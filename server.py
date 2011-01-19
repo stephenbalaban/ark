@@ -10,6 +10,7 @@ from entities import *
 from engine import *
 from game import *
 
+DIRS = { 'LEFT' : LEFT, 'DOWN' : DOWN, 'RIGHT' : RIGHT, 'UP' : UP}
 class  MainHandler (tornado.web.RequestHandler):
     def get(self):
       self.render('index.htm')
@@ -34,7 +35,7 @@ class Client:
 
         self.updates =  0 
         self.socket = socket        
-        self.dir = vector2(0,0)
+        self.dir = ZERO_VECTOR 
         socket.on_message = self.on_message
         self.dude = Dude(self)
         self.dude.on_die = self.handle_player_die
@@ -59,7 +60,6 @@ class Client:
     
         self.dude.dir = self.dir
         self.dude.act = self.act
-        
         self.dir = ZERO_VECTOR
         self.act = None
              
@@ -87,7 +87,7 @@ class Client:
     def on_message(self, message):                        
         msg = eval(message)
         if 'dir' in msg:
-            self.dir = msg['dir']
+            self.dir = DIRS[msg['dir']]
         elif 'act' in msg:
             self.act = msg['act']
         elif 'name' in msg:

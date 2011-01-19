@@ -71,10 +71,8 @@ class vector2:
     angle = acos( self.normalize()*vector2(1,0))
 
     #the only issue is that this will always return a positive angle
-    #so we need to check and see if this vector has positive x component
-    #if so, subtract the result it gives us from 260
-
-    if(self.x > 0):
+    #so if  y is  negative,make the angle negative
+    if(self.y < 0):
       angle = math.pi*2 - angle
     return angle
     

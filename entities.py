@@ -4,62 +4,77 @@ from engine import *
 
 
 
-BOMB_COOLDOWN = 10
-LASER_COOLDOWN = 5
 
-LAYER_BLOCKS = 0
+LAYER_GOALS = 0
+LAYER_BLOCKS = 1
+LAYER_POWERUPS = 2
 
 
-
+ACT_PLACE = 1
 class Mover(Entity):
 
     def try_move(self, push_dir):
-        if push_dir != ZERO_VECTOR:
+
+        if not (push_dir.x == 0  and push_dir.y == 0):
             target = self.pos + push_dir;
             other_target = target+push_dir;
 
             ents = engine.grid.get_entities(target.x,
                                             target.y)
 
-
             other_ents = engine.grid.get_entities(other_target.x,
-                                            other_target.y)
-
+                                                   other_target.y)
             blocked = False
                     
-            if  LAYER_BLOCKS in ents:
-              if  LAYER_BLOCKS in other_ents:
-                blocked = True
-              else:
+            if  len(ents):
+                #see if this guy to the right can move
+                    
                 for layer in ents:
-                  ent = ents[layer]
-                  if not self.can_push(ent):
-                    blocked = True
-                if not blocked:
-                    for layer in ents:
-                        self.push(ents[layer])
-                        ents[layer].take_push(self, other_target)
-                
+                    other = ents[layer] 
+                    if self.can_push(other) and other.try_move(push_dir):
+                        other.take_push(self, other_target)
+                        self.push(other)
+                    elif self.can_smash(other):
+                        other.take_smash(self)
+                        self.smash(other)
+                    else:
+                        blocked = True
+                        
             if not blocked:  
-              self.move(target)
-
+                    self.move(target)
             return not blocked
+
         return True
 
+    def touch(self, other):
+        pass
+    def can_push(self,  other):
+        return False
+    def can_smash(self, other):
+        return False
+    def push(self, victim):
+        pass
+    def smash(self, victim):
+        pass
+            
+    def take_push(self, pusher, target):
+        self.move(target)
+    def take_smash(self,  smasher):
+        self.die()
 
 class Dude(Mover):
     """a single object that moves around in the game"""
 
     def __init__(self,owner):
-        Entity.__init__(self, vector2(1,1), ENTITY_SIZE )
+
+        self.act = None
+        Entity.__init__(self, vector2(1,1), ENTITY_SIZE, LAYER_BLOCKS )
 
         self.owner = owner
         self.solid = True
         self.dir = ZERO_VECTOR
         self.last_dir = ZERO_VECTOR
         self.act = None
-        self.bomb_cooldown = BOMB_COOLDOWN
-        self.laser_cooldown = LASER_COOLDOWN
         self.on_die = None
         self.frames = 2
         self.team = random.choice(['blue','red'])
@@ -67,12 +82,16 @@ class Dude(Mover):
 
     def push(self, pushee):
         pass
-  
+ 
+     
     def can_push(self, obj):
         can = isinstance(obj, Snockerball)
         can = can or isinstance(obj, Booster)
         can = can or (isinstance(obj, TeamBlock) and obj.team == self.team)
         return can 
+    def can_smash(self, obj):
+        can = isinstance(obj, Goal)
+        return can
         
     def update(self):
         self.try_move(self.dir)
@@ -84,8 +103,15 @@ class Dude(Mover):
             self.change_tex(self.team+'_right')
         elif self.dir == LEFT:
             self.change_tex(self.team+'_left')
+        if self.dir.x !=0 or self.dir.y != 0:
+            self.last_dir = self.dir
+        if self.act == 'place':
+            place = self.pos+self.last_dir
+            print self.dir
 
-
+            if not LAYER_POWERUPS in engine.grid.get_entities(place.x, place.y):
+                Booster(place, self.last_dir)
+            self.act = None
 
     def die(self, killer):
         if self.on_die:
@@ -93,11 +119,27 @@ class Dude(Mover):
         killer.on_kill(self)
         Entity.die(self)
                 
-      
-class TeamBlock(Entity):
+
+
+class  Goal(Mover):
+    
+    def __init__(self, team,pos=ZERO_VECTOR):
+        Entity.__init__(self,pos, ENTITY_SIZE, LAYER_GOALS)
+        self.team = team
+        self.tex = team + "_tile_1.png" 
+    def update(self): 
+        pass
+
+    def take_smash (self, smasher):
+        if isinstance(smasher, Snockerball):
+            smasher.die()
+            print "GOOOOOOOOOOOOOOOOOAL", self.team
+
+            Snockerball(vector2(GRID_SIZE/2, GRID_SIZE/2))
+     
+class TeamBlock(Mover):
     def __init__(self, team, pos=ZERO_VECTOR):
-        
-        Entity.__init__(self, pos, ENTITY_SIZE)
+        Entity.__init__(self, pos, ENTITY_SIZE, LAYER_GOALS)
         self.team = team
         self.tex = self.team+'_tile.png'
         self.solid = True
@@ -105,8 +147,10 @@ class TeamBlock(Entity):
     def update(self):
         pass 
 
-    def take_push(self, pusher, target):
-        self.move(target)
+    def can_push(self, victim):
+        can = isinstance(victim, TeamBlock)
+        return can
+
 
 
 class RedBlock(TeamBlock):
@@ -121,7 +165,8 @@ class BlueBlock(TeamBlock):
     def __init__(self,pos):
         TeamBlock.__init__(self,'blue',pos)
 
-class SolidBlock(Entity):
+
+class SolidBlock(Mover):
     def __init__(self, pos):
         
         Entity.__init__(self, pos, ENTITY_SIZE)
@@ -137,10 +182,12 @@ class SolidBlock(Entity):
 
 
 
-class Booster(Entity):
+class Booster(Mover):
 
-    def __init__(self, pos, direction):
-        Entity.__init__(self, pos, ENTITY_SIZE)
+    def __init__(self, pos, direction=None):
+        Entity.__init__(self, pos, ENTITY_SIZE, LAYER_POWERUPS)
+        if not direction:
+            direction = random.choice([UP,DOWN,LEFT,RIGHT])
         self.angle = direction.angle()
         self.dir = direction
         self.tex = 'boost_arrow.png'
@@ -156,71 +203,77 @@ class Booster(Entity):
 
     def take_push(self, pusher, target):
         if isinstance(pusher,Snockerball): 
-            self.die()
+            pass
         else:
             self.move(target)
+        
 
 
 
 class Snockerball(Mover):
     def __init__(self,pos=ZERO_VECTOR):
-        self.layer = LAYER_BLOCKS
-        Entity.__init__(self, pos, ENTITY_SIZE)
+        Entity.__init__(self, pos, ENTITY_SIZE, LAYER_BLOCKS)
         self.tex = 'snockerball.png'
         self.team = None
         self.dir = ZERO_VECTOR
     
     def can_push(self, pushee):
-        can = isinstance(pushee, Booster)
-    
+        can = isinstance(pushee, Snockerball)
+        return can 
+    def can_smash(self, victim):
+        can = isinstance(victim, Booster)
+        can = can or isinstance(victim, Goal)
         return can
-  
+
     def push(self, pushee):
         if isinstance(pushee, Booster):
-            print "boosted!",pushee.dir
             self.dir += pushee.dir
 
+    def smash(self, other):
+        if isinstance(other, Booster):
+            self.dir += other.dir
+
     def take_push(self, pusher, target):
-        self.dir += target - self.pos
+        self.dir += self.pos - pusher.pos
         self.move(target)
-        
+
         
     def update(self):
 
-        v_x = self.dir.x+1-1
-        v_y = self.dir.y+1-1
 
-        while v_x > 0:
-            if not self.try_move(LEFT):
-                self.dir.x = - self.dir.x
-                break 
-            v_x -= 1
-                
+        dx = clamp(-2,self.dir.x,2 )
+        dy = clamp(-2,self.dir.y, 2)
+        self.dir.x = dx
+        self.dir.y = dy
+        while dx  or dy:
 
-        while v_x < 0:
-            if not self.try_move(RIGHT):
-                self.dir.x = -self.dir.x
-                break
-            v_x += 1
-               
-
-        while v_y > 0:
-            if not self.try_move(UP):
-                self.dir.y = -self.dir.y
-                break 
-            v_y -= 1
-                
-
-        while v_y < 0:
-            if not self.try_move(DOWN):
-                self.dir.y = - self.dir.y
-                break
-            v_y += 1
-                
+            if dx > 0:
+                if not self.try_move(RIGHT):
+                    self.dir.x = - self.dir.x
+                    dx = 0
+                else:
+                    dx -= 1
+            
+            if dx < 0:
+                if not self.try_move(LEFT):
+                    self.dir.x = - self.dir.x
+                    dx = 0
+                else:
+                    dx += 1
 
 
-    def die(self,killer):
-        Entity.die(self, killer)
-        Diamond()
+            if dy < 0:
+                if not self.try_move(UP):
+                    self.dir.y = - self.dir.y
+                    dy =0
+                else:
+                    dy += 1
+
+            if dy > 0:
+                if not self.try_move(DOWN):
+                    self.dir.y = - self.dir.y
+                    dy =0 
+                else:
+                    dy  -= 1
 
 

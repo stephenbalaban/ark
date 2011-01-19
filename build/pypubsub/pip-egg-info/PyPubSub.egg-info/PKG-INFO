@@ -1,0 +1,43 @@
+Metadata-Version: 1.0
+Name: PyPubSub
+Version: 2.0
+Summary: Python Publish-Subscribe Module
+Home-page: UNKNOWN
+Author: Oliver Schoenborn et al
+Author-email: oliver.schoenborn@utoronto.ca
+License: PSF
+Description: 
+        This provides a simple but versatile messaging system, ideal for decoupling
+        parts of your application: senders and listeners don't need to know about
+        each other.
+        
+        Version 2 provides pubsub2, which should be used instead of pubsub:
+        
+        - pubsub2 provides better handling of exceptions
+        - allows tools like pylint/pychecker to verify validity of message types
+        - facilitates the documentation of message types and message data
+        - supports customizable logging (incl no logging, the default)
+        - support debugging of the send/receive dispatches
+        
+        The only real change from pubsub is that class are used instead of
+        strings for the message topics, and a whole whack of code is no
+        longer needed (tree and its traversal, dictionary of weak references,
+        etc).
+        
+        Version 1 is still available as pubsub, for backwards compatibility,
+        but it is depracated.
+        
+        Todo:
+        
+        - include the traceback in the exception info
+        - support subtopic access in supertopic messages
+        
+Keywords: publish subscribe observer pattern signal signals event events message messages messaging
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: Python Software Foundation License
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python
+Classifier: Topic :: Software Development :: Libraries :: Application Frameworks
+Classifier: Topic :: Software Development :: Libraries :: Python Modules

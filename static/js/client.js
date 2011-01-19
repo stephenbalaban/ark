@@ -1,6 +1,8 @@
 var DRAW_PERIOD = 100;
 var TURN_PERIOD = 500;   
 var DRAWS_PER_TURN = TURN_PERIOD/DRAW_PERIOD;
+var SERVER_ADDRESS = "dev.gomboloid.com:8000"
+
 
 function lerp_frame(first,last){
 
@@ -195,17 +197,22 @@ function on_click(e)  {
 }
 
 function on_keydown(e) {
+
+ 	msg = {}
     if (e.which == '37'){
-	player_dir = "LEFT";   
+		msg['dir'] = "LEFT";   
     }else if (e.which == '38'){
-	player_dir = 'UP';
+		msg['dir'] = 'UP';
     }else if (e.which == '39'){
-	player_dir = 'RIGHT';
+		msg['dir'] = 'RIGHT';
     }else if (e.which == '40'){
-	player_dir = 'DOWN';
-    }
-    if (player_dir)
-        socket.send("{ 'dir' : "+player_dir+"}");
+		msg['dir'] = 'DOWN';
+
+    }else if (e.which = '32'){
+		msg['act'] = 'place';
+	}
+
+	socket.send(JSON.stringify(msg));
     
 }
 
@@ -216,7 +223,7 @@ Main function
 http://dev.gomboloid.com:8000/
 
 function connect()  {       
-    socket = new WebSocket("ws://dev.gomboloid.com:8000/ws");
+    socket = new WebSocket("ws://"+SERVER_ADDRESS+"/ws");
 
     socket.onmessage = socket_message_handler;
 }
