@@ -101,8 +101,16 @@ class GameGrid:
         else:
             return self.cells[ent.pos.x][ent.pos.y].remove_entity(ent)
 
- 
-
+    def get_free_position(self, layer, tries=10):
+	placed = False
+	
+	while not placed and tries:
+	    tries = tries - 1
+	    x = random.randint(0, GRID_SIZE-1)
+	    y = random.randint(0, GRID_SIZE-1)
+	    if not layer in self.get_entities(x,y):
+			return vector2(x,y)
+	return None
 
 class Engine:
         """encapsulates the behavior of the entire game"""

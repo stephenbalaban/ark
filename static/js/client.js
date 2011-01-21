@@ -1,7 +1,7 @@
 var DRAW_PERIOD = 100;
 var TURN_PERIOD = 500;   
 var DRAWS_PER_TURN = TURN_PERIOD/DRAW_PERIOD;
-var SERVER_ADDRESS = "dev.gomboloid.com:8000"
+var SERVER_ADDRESS = "localhost:8000"
 
 
 function lerp_frame(first,last){
@@ -50,7 +50,7 @@ function draw() {
         ctx.translate(-x,-y);   
     }   
 
-    if (anim_index > DRAWS_PER_TURN)
+    if (anim_index >= DRAWS_PER_TURN)
         anim_index = DRAWS_PER_TURN; 
     frame_number += 1;
     anim_index += 1; 
@@ -66,8 +66,6 @@ function draw() {
 //top level handler
 //dispatches the socket message to the appropriate handler
 function socket_message_handler (event) {
-	 $('#message').innerHTML = "Update size: " +
-	    event.data.length+" bytes.";
 	//all messages are just JSON structs
 	var message = JSON.parse(event.data);
 	//dispatch this message to the appropriate handler

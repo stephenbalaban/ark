@@ -26,26 +26,11 @@ class Game:
             self.add_vert_block_line(SolidBlock, GRID_SIZE-1, 1, GRID_SIZE -2)
 
 
-    
-        self.add_horiz_block_line(RedBlock, 1, goal_size+1, goal_size+1)
-        self.add_horiz_block_line(BlueBlock, GRID_SIZE - goal_size - 2,  GRID_SIZE - 2, GRID_SIZE - goal_size -2) 
         
-        for dir in [UP, DOWN, LEFT, RIGHT]:
-            Snockerball(dir+vector2(GRID_SIZE/2, GRID_SIZE/2))
-        
-        for x in range(goal_size):
-            for y in range(goal_size):
-                Goal("red", vector2(1+x,1+y)) 
-                Goal("blue", vector2(GRID_SIZE-goal_size+x-1, GRID_SIZE-goal_size+y-1))
+        for x in range(GRID_SIZE):
+            color = random.choice(['red', 'green', 'blue', 'yellow'])
 
-
-        boost_start = 4*GRID_SIZE/10
-        boost_stop = 6*GRID_SIZE/10
-        for x in range(boost_start, boost_stop):    
-            Booster(vector2(x,x))
-            other = boost_start+boost_stop-x
-            if x != other:
-                Booster(vector2(boost_start+boost_stop-x,x))
+            Candy(color, engine.grid.get_free_position(LAYER_BLOCKS))
 
 
     def add_vert_block_line(self,block_class, x, start_y, stop_y):

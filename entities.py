@@ -63,12 +63,13 @@ class Mover(Entity):
         self.die()
 
 class Dude(Mover):
-    """a single object that moves around in the game"""
 
     def __init__(self,owner):
 
         self.act = None
-        Entity.__init__(self, vector2(1,1), ENTITY_SIZE, LAYER_BLOCKS )
+        pos = engine.grid.get_free_position(LAYER_BLOCKS)
+
+        Entity.__init__(self, pos, ENTITY_SIZE, LAYER_BLOCKS )
 
         self.owner = owner
         self.solid = True
@@ -87,12 +88,11 @@ class Dude(Mover):
     def can_push(self, obj):
         can = isinstance(obj, Snockerball)
         can = can or isinstance(obj, Booster)
+        can = can or isinstance(obj, Candy)
         can = can or (isinstance(obj, TeamBlock) and obj.team == self.team)
-        return can 
-    def can_smash(self, obj):
-        can = isinstance(obj, Goal)
         return can
-        
+
+
     def update(self):
         self.try_move(self.dir)
         if self.dir == UP:
@@ -121,21 +121,16 @@ class Dude(Mover):
                 
 
 
-class  Goal(Mover):
-    
-    def __init__(self, team,pos=ZERO_VECTOR):
-        Entity.__init__(self,pos, ENTITY_SIZE, LAYER_GOALS)
-        self.team = team
-        self.tex = team + "_tile_1.png" 
+class  Candy(Mover):
+    def __init__(self, color, pos=ZERO_VECTOR):
+        Entity.__init__(self,pos, ENTITY_SIZE, LAYER_BLOCKS)
+        self.color = color
+        self.tex = color  + "_candy.png" 
+
+   
     def update(self): 
         pass
 
-    def take_smash (self, smasher):
-        if isinstance(smasher, Snockerball):
-            smasher.die()
-            print "GOOOOOOOOOOOOOOOOOAL", self.team
-
-            Snockerball(vector2(GRID_SIZE/2, GRID_SIZE/2))
      
 class TeamBlock(Mover):
     def __init__(self, team, pos=ZERO_VECTOR):
@@ -145,6 +140,7 @@ class TeamBlock(Mover):
         self.solid = True
 
     def update(self):
+
         pass 
 
     def can_push(self, victim):
@@ -153,23 +149,10 @@ class TeamBlock(Mover):
 
 
 
-class RedBlock(TeamBlock):
-
-    def __init__(self,pos):
-        TeamBlock.__init__(self,'red',pos)
-        
-    
-
-class BlueBlock(TeamBlock):
-
-    def __init__(self,pos):
-        TeamBlock.__init__(self,'blue',pos)
-
-
 class SolidBlock(Mover):
     def __init__(self, pos):
         
-        Entity.__init__(self, pos, ENTITY_SIZE)
+        Entity.__init__(self, pos, ENTITY_SIZE, LAYER_BLOCKS)
         
         self.tex = 'box.png'
         self.solid = True
@@ -177,6 +160,7 @@ class SolidBlock(Mover):
 
     def update(self):
         pass
+
     def get_state(self):
         return Entity.get_state(self)
 
