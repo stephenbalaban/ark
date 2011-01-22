@@ -90,6 +90,7 @@ class Dude(Mover):
         can = can or isinstance(obj, Booster)
         can = can or isinstance(obj, Candy)
         can = can or (isinstance(obj, TeamBlock) and obj.team == self.team)
+	can = can or isinstance(obj, BlinkyBlock)
         return can
 
 
@@ -157,13 +158,65 @@ class SolidBlock(Mover):
         self.tex = 'box.png'
         self.solid = True
 
-
     def update(self):
         pass
 
     def get_state(self):
         return Entity.get_state(self)
 
+
+
+class BlinkyBlock(Mover):
+
+    def __init__(self, pos,powered=None):
+        
+        Entity.__init__(self, pos, ENTITY_SIZE, LAYER_BLOCKS)
+        if powered == None:
+	    self.powered = random.choice([True, False])
+	else:
+	    self.powered = powered
+	self.blink_period = 10
+	self.cool_period = 4
+	self.color = random.choice(['blue', 'purple'])
+        self.tex = self.color+'_candy.png'
+        self.solid = True
+	self.blink_ticks_left = random.choice(range(self.blink_period))
+	self.cool_ticks_left = 0
+	self.last_blink_frame = -2
+
+    def update(self):
+
+	if self.powered:
+	    print "powered", self.blink_ticks_left
+	    if self.blink_ticks_left == self.blink_period:
+		self.change_tex(self.color+'_candy.png')
+	    self.blink_ticks_left -= 1
+	    if self.blink_ticks_left <= 0:
+		self.blink()
+	else:
+	    if self.cool_ticks_left == self.cool_period:
+		self.change_tex(self.color+'_candy.png')
+
+	    self.cool_ticks_left -= 1
+       
+	    if self.cool_ticks_left <= 0: 
+		neighbors = engine.grid.get_neighbors(self.pos)
+		for direction in neighbors:
+		    if LAYER_BLOCKS in neighbors[direction]:
+			guys = neighbors[direction]
+			guy = guys[LAYER_BLOCKS]
+			if isinstance(guy, BlinkyBlock) and guy.was_blinking():
+			    self.blink()
+	
+    def was_blinking(self):
+	return self.last_blink_frame == engine.current_frame - 1
+    def	blink(self):
+	self.change_tex(self.color+'_candy_on.png')
+	if self.powered:
+	    self.blink_ticks_left = self.blink_period
+	else:
+	    self.cool_ticks_left = self.cool_period
+	self.last_blink_frame = engine.current_frame
 
 
 class Booster(Mover):

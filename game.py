@@ -26,12 +26,12 @@ class Game:
             self.add_vert_block_line(SolidBlock, GRID_SIZE-1, 1, GRID_SIZE -2)
 
 
-        
         for x in range(GRID_SIZE):
             color = random.choice(['red', 'green', 'blue', 'yellow'])
 
-            Candy(color, engine.grid.get_free_position(LAYER_BLOCKS))
-
+            #Candy(color, engine.grid.get_free_position(LAYER_BLOCKS))
+	    BlinkyBlock(engine.grid.get_free_position(LAYER_BLOCKS),False)
+	BlinkyBlock(engine.grid.get_free_position(LAYER_BLOCKS), True)
 
     def add_vert_block_line(self,block_class, x, start_y, stop_y):
         for y in xrange(start_y, stop_y+1):

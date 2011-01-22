@@ -112,6 +112,18 @@ class GameGrid:
 			return vector2(x,y)
 	return None
 
+    def get_neighbors(self, pos):
+	neighbors = {}
+	if pos.x >= 0:
+	    neighbors[LEFT] = self.get_entities(pos.x-1, pos.y)
+	if pos.x < GRID_SIZE:
+	    neighbors[RIGHT] = self.get_entities(pos.x+1, pos.y)
+	if pos.y >= 0:
+	    neighbors[UP] = self.get_entities(pos.x, pos.y-1)
+	if pos.y < GRID_SIZE:
+	    neighbors[DOWN] =self.get_entities(pos.x, pos.y+1)  
+
+	return neighbors
 class Engine:
         """encapsulates the behavior of the entire game"""
         def __init__(self):
