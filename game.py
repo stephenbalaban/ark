@@ -16,22 +16,36 @@ class Game:
         #make the boundaries
         walls = True
         
-        goal_size = 4
+        forest_size = 4
+    
+        
         if walls:
             self.add_horiz_block_line(SolidBlock, 0, GRID_SIZE - 1, GRID_SIZE - 1)
             self.add_horiz_block_line(SolidBlock, 0, GRID_SIZE -1, 0)
-
             self.add_vert_block_line(SolidBlock, 0, 1, GRID_SIZE - 2)
-
             self.add_vert_block_line(SolidBlock, GRID_SIZE-1, 1, GRID_SIZE -2)
+        
+        def vert_road_adder(pos):
+            Road(pos, True)
+            return
 
+        def horiz_road_adder(pos):
+            Road(pos, False)
 
+        self.add_horiz_block_line(horiz_road_adder, 1, 20, 14)
         for x in range(GRID_SIZE):
-            color = random.choice(['red', 'green', 'blue', 'yellow'])
+            for y in range(GRID_SIZE):
+                try:
+                    Background(vector2(x,y))
+                except:
+                    pass
+        Forest(2,2,16,10)
+        Forest(2,16,16,10)  
+        Building(19,2,4,4) 
+        Building(25,2,4,4)
 
-            #Candy(color, engine.grid.get_free_position(LAYER_BLOCKS))
-	    BlinkyBlock(engine.grid.get_free_position(LAYER_BLOCKS),False)
-	BlinkyBlock(engine.grid.get_free_position(LAYER_BLOCKS), True)
+        Building(19,8,4,4)
+        Building(25,8,4,4)
 
     def add_vert_block_line(self,block_class, x, start_y, stop_y):
         for y in xrange(start_y, stop_y+1):

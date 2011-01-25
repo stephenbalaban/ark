@@ -1,59 +1,35 @@
-var DRAW_PERIOD = 100;
-var TURN_PERIOD = 500;   
-var DRAWS_PER_TURN = TURN_PERIOD/DRAW_PERIOD;
-var SERVER_ADDRESS = "localhost:8000"
-
-
-function lerp_frame(first,last){
-
-    return first + (last-first)*(anim_index/DRAWS_PER_TURN);
-}
-
-
+var TURN_PERIOD = 250;   
+var DRAWS_PER_TURN = 4;
+var DRAW_PERIOD = TURN_PERIOD/DRAWS_PER_TURN;
+var SERVER_ADDRESS = "dev.gomboloid.com:8000"
+var draw_frame_number = 0;
+var game_frame_number = 0;
+var anim_index = 0;
+var game_frame_start = 0;
 
 function draw() { 
-    var ctxs = {}
+    var contexts = {}
+    anim_index = (draw_frame_number - game_frame_start)/DRAWS_PER_TURN;
+    
+    if (anim_index > 1)
+	anim_index = 1;
     for (var i in canvas_layers) {
-        ctxs[i] = canvas_layers[i].getContext("2d");            
-        ctxs[i].clearRect(0,0,canvasWidth, canvasHeight);             
+        contexts[i] = canvas_layers[i].getContext("2d");            
+        contexts[i].clearRect(0,0,canvasWidth, canvasHeight);             
     }
     
     for (var ent_id  in new_gamestate.ents)  {
 
         var ent = new_gamestate.ents[ent_id];
-        if (ent.olds && ent.olds['pos']) {
-            var x = lerp_frame(ent.olds.pos[0], ent.pos[0]);
-            var y = lerp_frame(ent.olds.pos[1], ent.pos[1]);
+
+        if (ent.anim && ent.anim in animations){
+	    animations[ent.anim](contexts, ent);
         } else {
-            var x = ent.pos[0];
-            var y = ent.pos[1];
+	    animations.base(contexts, ent)
         }
+    }  
+    draw_frame_number += 1;
 
-        x = entity_size*0.5 + x*entity_size;
-        y = entity_size*0.5 + y*entity_size;
-    
-        var s_x = entity_size*0.5; 
-        var s_y = entity_size*0.5;
-        var angle = ent.angle;
-        var img = new Image();
-
-        if (ent.frames){
-            img.src = imageBase+ent.tex+"_"+(anim_index % ent.frames)+".png"; 
-        } else {
-            img.src = imageBase+ent.tex;
-        }
-        var ctx = ctxs[ent.layer]; 
-        ctx.translate(x,y);
-        ctx.rotate(angle);               
-        ctx.drawImage(img, -s_x, -s_y, s_x*2, s_y*2);
-        ctx.rotate(-angle);
-        ctx.translate(-x,-y);   
-    }   
-
-    if (anim_index >= DRAWS_PER_TURN)
-        anim_index = DRAWS_PER_TURN; 
-    frame_number += 1;
-    anim_index += 1; 
 }
 
 //###########################################################
@@ -76,6 +52,8 @@ function socket_message_handler (event) {
 //i.e. the position, location &c of all entities
 function handle_gamestate(state) {
     new_gamestate = state.state;
+    game_frame_number = state.frame;
+    game_frame_start = draw_frame_number;
 }
        
 //this message contains changes in the gamestate
@@ -92,17 +70,21 @@ function handle_delta(delta) {
     for (var ent_id in delta.deltas){
         var this_delta = delta.deltas[ent_id];
 
-        for (var att in this_delta){
-            ent = new_gamestate.ents[ent_id];
-            if (! ent.olds) ent.olds = {};
-            ent.olds[att] = ent[att]; 
+    
+        
+	ent = new_gamestate.ents[ent_id];
+       
+	if (! ent.olds) ent.olds = {};
+	for (var att in ent)
+            ent.olds[att] = ent[att];
+	 for (var att in this_delta)
             ent[att] = this_delta[att];
-        }
     }
 
     for (var i in delta.deads)
         delete new_gamestate.ents[delta.deads[i]];
-    anim_index = 0;
+    game_frame_number = delta.frame;
+    game_frame_start = draw_frame_number;
 }
  
 //this message contains game score information   
@@ -116,6 +98,7 @@ function handle_score(score_msg) {
     }  
     $('#scores').innerHTML = score_text;
 }
+
 
 //this function is not in use yet
 //but it will be used to cache certain strings
@@ -132,8 +115,6 @@ function handle_string_map(map) {
 var new_gamestate = {'ents' : {}};
  //used to map strings to ids, to reduce websocket bandwidth
 var string_map = {  };
-var frame_number = 0;
-var anim_index = 0;
 //a function dispatch table. Each message that comes in
 //has a type, and the type of the message is used to determine
 //which handler function should be called
@@ -148,13 +129,14 @@ var canvas_layers = {}
 //how big is the canvas?
 var canvasWidth = 512;
 var canvasHeight = 512;
-//how big are individual factory elements?
 var entity_size = 16;
 //all the images are stored in the same directory
 //to save on bandwidth we know to prefix them all with this
-var imageBase = '/static/images/';
+var image_base = '/static/images/';
 
 var player_dir = null;
+
+
 /*####################################################
   Utility Functions
 ######################################################*/
@@ -183,7 +165,12 @@ function get_cursor_position(e){
     return [x,y]
 }
 
+function log_message(msg){
 
+    var so_far = $("#log").html()+"<br>";
+    $("#log").html(so_far+msg);
+
+}
 /*#################################################
  Mouse Click handling
  The mouse can be in a number of different states. 
@@ -207,7 +194,7 @@ function on_keydown(e) {
 		msg['dir'] = 'DOWN';
 
     }else if (e.which = '32'){
-		msg['act'] = 'place';
+		msg['act'] = 'use';
 	}
 
 	socket.send(JSON.stringify(msg));
@@ -218,7 +205,6 @@ function on_keydown(e) {
 /* #################################################
 Main function
 ###################################################*/
-http://dev.gomboloid.com:8000/
 
 function connect()  {       
     socket = new WebSocket("ws://"+SERVER_ADDRESS+"/ws");
@@ -227,7 +213,7 @@ function connect()  {
 }
 function start() {		
     canvas_layers[0] =  $("#layer0")[0];
-    canvas_layers[1] =  $("#layer2")[0];
+    canvas_layers[1] =  $("#layer1")[0];
     canvas_layers[2] =  $("#layer2")[0];
     canvas_layers[2].onclick = on_click;
     connect();

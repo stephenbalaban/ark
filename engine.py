@@ -199,9 +199,10 @@ class Engine:
                 
                 noobs, deads = self.update_entity_map()
                 delta_list = {'type' : 'delta',
-                          'noobs' : noobs,
-                          'deads' : deads, 
-                                          'deltas': {}}
+			      'noobs' : noobs,
+			      'deads' : deads, 
+			      'deltas': {},
+			      'frame' : self.current_frame}
                 gamestate = { 'type' : 'gs',
                                           'ents' : {}}
                 for client_id in self.client_manager.clients:
@@ -212,14 +213,14 @@ class Engine:
                         if entity:
                                 entity.update()
                                 delta = entity.get_delta()
-                                if delta:
-                                        delta_list['deltas'][entity.id] = entity.get_delta()
-                                if entity.tex:
-                                        gamestate['ents'][entity.id] = entity.get_state()
+                                if len(delta):
+                                        delta_list['deltas'][entity.id] = delta
+				gamestate['ents'][entity.id] = entity.get_state()
                                 
 
                 self.current_state = { 'type' : 'gs',
-                                                           'state' : gamestate }
+				       'state' : gamestate,
+					'frame' : self.current_frame }
                 
                 #tell everyone about the current gamestate
                 #but don't bother if there are no changes
@@ -237,33 +238,51 @@ engine = Engine()
 class Entity:
         "abstract base class for things in the game"
         def __init__(self, pos, size, layer=0):
+
+		self.__dict__['net_vars'] = {
+				 'tex': True,
+				 'angle' : True,
+				 'size' :True,
+				 'pos' : True,
+				  'layer' : True
+				}           
+
+		self.__dict__["delta"] = {}
+		
+	
+			
                 self.tex = 'none.png'
                 self.dead = False
                 self.pos = pos
-                self.size = size;
+                self.size = size
                 self.dir = ZERO_VECTOR
-                self.pos_changed = False
-                self.img_changed = False
-                self.size_changed = False
-            
-                self.frames = 0
                 self.angle = 0
                 self.layer = layer 
                 engine.add_entity(self)
+
+	def __setattr__(self, attr_name, value):
+
+	    if attr_name in self.net_vars:
+		if attr_name in self.__dict__:
+		    if self.__dict__[attr_name] == value:
+			return 
+		self.delta[attr_name] = value
+	    self.__dict__[attr_name] =  value
 
         def move(self, new_pos):
                 engine.grid.remove_entity(self)
                 self.pos = new_pos
                 self.pos_changed = True
                 engine.grid.add_entity(self)
-                
+	
+	def update(self):
+	    pass 
+        
         def change_tex(self, new_tex):
                 self.tex = new_tex
-                self.img_changed = True
 
         def change_size(self, new_size):
                 self.size  = new_size
-                self.size_changed = True
 
         def die(self, killer=None):
                 engine.remove_entity(self)
@@ -271,24 +290,27 @@ class Entity:
 
         def get_state(self):
 
-                        return {'pos': (self.pos.x, self.pos.y),
-                        'size': (self.size.x, self.size.y),
-                        'tex': self.tex,
-                        'layer': self.layer,
-                        'frames' : self.frames,
-                        'angle' : self.angle}
+	    state = {}
+	    for varname in self.net_vars:
+		val = self.__dict__[varname]
+		if hasattr(val, 'to_json'):
+		    val = val.to_json()
+		state[varname] = val
+	    return state
 
         def get_delta(self):
-                delta = {}
-                if self.pos_changed:
-                        delta['pos'] = (self.pos.x, self.pos.y)
-                if self.img_changed:
-                        delta['tex'] = self.tex
-                if self.size_changed:
-                        delta['size'] = self.size
-                if len(delta) == 0:
-                        return None
-                return delta
+	    for attr_name in self.delta:
+		self.__dict__[attr_name] = self.delta[attr_name]
+	    out_delta = {}
+	    #do json encoding here
+	    for varname in self.delta:
+		val = self.delta[varname]
+		if hasattr(val,'to_json'):
+		    val = val.to_json()
+		out_delta[varname] = val
+
+	    self.delta = {}
+	    return out_delta
                 
 def clamp (min_, x, max_): 
     if x < min_:
