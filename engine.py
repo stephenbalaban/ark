@@ -102,28 +102,28 @@ class GameGrid:
             return self.cells[ent.pos.x][ent.pos.y].remove_entity(ent)
 
     def get_free_position(self, layer, tries=10):
-	placed = False
-	
-	while not placed and tries:
-	    tries = tries - 1
-	    x = random.randint(0, GRID_SIZE-1)
-	    y = random.randint(0, GRID_SIZE-1)
-	    if not layer in self.get_entities(x,y):
-			return vector2(x,y)
-	return None
+        placed = False
+        
+        while not placed and tries:
+            tries = tries - 1
+            x = random.randint(0, GRID_SIZE-1)
+            y = random.randint(0, GRID_SIZE-1)
+            if not layer in self.get_entities(x,y):
+                return vector2(x,y)
+        return None
 
     def get_neighbors(self, pos):
-	neighbors = {}
-	if pos.x >= 0:
-	    neighbors[LEFT] = self.get_entities(pos.x-1, pos.y)
-	if pos.x < GRID_SIZE:
-	    neighbors[RIGHT] = self.get_entities(pos.x+1, pos.y)
-	if pos.y >= 0:
-	    neighbors[UP] = self.get_entities(pos.x, pos.y-1)
-	if pos.y < GRID_SIZE:
-	    neighbors[DOWN] =self.get_entities(pos.x, pos.y+1)  
+        neighbors = {}
+        if pos.x >= 0:
+            neighbors[LEFT] = self.get_entities(pos.x-1, pos.y)
+        if pos.x < GRID_SIZE:
+            neighbors[RIGHT] = self.get_entities(pos.x+1, pos.y)
+        if pos.y >= 0:
+            neighbors[UP] = self.get_entities(pos.x, pos.y-1)
+        if pos.y < GRID_SIZE:
+            neighbors[DOWN] =self.get_entities(pos.x, pos.y+1)  
 
-	return neighbors
+        return neighbors
 class Engine:
         """encapsulates the behavior of the entire game"""
         def __init__(self):
@@ -197,38 +197,37 @@ class Engine:
                 
         def update(self):
                 
-                noobs, deads = self.update_entity_map()
-                delta_list = {'type' : 'delta',
-			      'noobs' : noobs,
-			      'deads' : deads, 
-			      'deltas': {},
-			      'frame' : self.current_frame}
-                gamestate = { 'type' : 'gs',
-                                          'ents' : {}}
-                for client_id in self.client_manager.clients:
-                        client = self.client_manager.clients[client_id]
-                        client.update()
-                for ent_id in self.dude_map:
-                        entity = self.dude_map[ent_id]
-                        if entity:
-                                entity.update()
-                                delta = entity.get_delta()
-                                if len(delta):
-                                        delta_list['deltas'][entity.id] = delta
-				gamestate['ents'][entity.id] = entity.get_state()
-                                
-
-                self.current_state = { 'type' : 'gs',
-				       'state' : gamestate,
-					'frame' : self.current_frame }
-                
-                #tell everyone about the current gamestate
-                #but don't bother if there are no changes
-                if len(delta_list['deltas']) !=  0 \
-                or len(delta_list['noobs']) != 0 \
-                or len(delta_list['deads']) != 0:
-                                self.client_manager.broadcast(delta_list)
-                
+            noobs, deads = self.update_entity_map()
+            delta_list = {'type' : 'delta',
+              'noobs' : noobs,
+              'deads' : deads, 
+              'deltas': {},
+              'frame' : self.current_frame}
+            gamestate = { 'type' : 'gs',
+                                      'ents' : {}}
+            for client_id in self.client_manager.clients:
+                client = self.client_manager.clients[client_id]
+                client.update()
+            for ent_id in self.dude_map:
+                entity = self.dude_map[ent_id]
+                if entity:
+                    entity.update()
+                    delta = entity.get_delta()
+                    if len(delta):
+                        delta_list['deltas'][entity.id] = delta
+                gamestate['ents'][entity.id] = entity.get_state()
+                            
+            self.current_state = { 'type' : 'gs',
+                   'state' : gamestate,
+                'frame' : self.current_frame }
+            
+            #tell everyone about the current gamestate
+            #but don't bother if there are no changes
+            if len(delta_list['deltas']) !=  0 \
+            or len(delta_list['noobs']) != 0 \
+            or len(delta_list['deads']) != 0:
+                            self.client_manager.broadcast(delta_list)
+            
 
 
 engine = Engine()
@@ -236,81 +235,78 @@ engine = Engine()
 
 
 class Entity:
-        "abstract base class for things in the game"
-        def __init__(self, pos, size, layer=0):
+    "abstract base class for things in the game"
+    def __init__(self, pos, size, layer=0):
 
-		self.__dict__['net_vars'] = {
-				 'tex': True,
-				 'angle' : True,
-				 'size' :True,
-				 'pos' : True,
-				  'layer' : True
-				}           
+        self.__dict__['net_vars'] = {
+                 'tex': True,
+                 'angle' : True,
+                 'size' :True,
+                 'pos' : True,
+                  'layer' : True
+                }           
 
-		self.__dict__["delta"] = {}
-		
-	
-			
-                self.tex = 'none.png'
-                self.dead = False
-                self.pos = pos
-                self.size = size
-                self.dir = ZERO_VECTOR
-                self.angle = 0
-                self.layer = layer 
-                engine.add_entity(self)
-
-	def __setattr__(self, attr_name, value):
-
-	    if attr_name in self.net_vars:
-		if attr_name in self.__dict__:
-		    if self.__dict__[attr_name] == value:
-			return 
-		self.delta[attr_name] = value
-	    self.__dict__[attr_name] =  value
-
-        def move(self, new_pos):
-                engine.grid.remove_entity(self)
-                self.pos = new_pos
-                self.pos_changed = True
-                engine.grid.add_entity(self)
-	
-	def update(self):
-	    pass 
+        self.__dict__["delta"] = {}
         
-        def change_tex(self, new_tex):
-                self.tex = new_tex
+    
+            
+        self.tex = 'none.png'
+        self.dead = False
+        self.pos = pos
+        self.size = size
+        self.dir = ZERO_VECTOR
+        self.angle = 0
+        self.layer = layer 
+        engine.add_entity(self)
 
-        def change_size(self, new_size):
-                self.size  = new_size
+    def __setattr__(self, attr_name, value):
 
-        def die(self, killer=None):
-                engine.remove_entity(self)
-                self.dead = True
+        if attr_name in self.net_vars:
+            if attr_name in self.__dict__:
+                if self.__dict__[attr_name] == value:
+                    return 
+            self.delta[attr_name] = value
+        self.__dict__[attr_name] =  value
 
-        def get_state(self):
+    def move(self, new_pos):
+        engine.grid.remove_entity(self)
+        self.pos = new_pos
+        self.pos_changed = True
+        engine.grid.add_entity(self)
+    
+    def update(self):
+        pass 
+        
+    def change_tex(self, new_tex):
+        self.tex = new_tex
 
-	    state = {}
-	    for varname in self.net_vars:
-		val = self.__dict__[varname]
-		if hasattr(val, 'to_json'):
-		    val = val.to_json()
-		state[varname] = val
-	    return state
+    def change_size(self, new_size):
+        self.size  = new_size
 
-        def get_delta(self):
-	    for attr_name in self.delta:
-		self.__dict__[attr_name] = self.delta[attr_name]
-	    out_delta = {}
-	    #do json encoding here
-	    for varname in self.delta:
-		val = self.delta[varname]
-		if hasattr(val,'to_json'):
-		    val = val.to_json()
-		out_delta[varname] = val
+    def die(self, killer=None):
+        engine.remove_entity(self)
+        self.dead = True
 
-	    self.delta = {}
-	    return out_delta
+    def get_state(self):
+
+        state = {}
+        for varname in self.net_vars:
+            val = self.__dict__[varname]
+            if hasattr(val, 'to_json'):
+                val = val.to_json()
+            state[varname] = val
+        return state
+
+    def get_delta(self):
+        out_delta = {}
+        #do json encoding here
+        for varname in self.delta:
+            val = self.delta[varname]
+            if hasattr(val,'to_json'):
+                val = val.to_json()
+            out_delta[varname] = val
+        self.delta = {}
+        return out_delta
                 
 def clamp (min_, x, max_): 
     if x < min_:
