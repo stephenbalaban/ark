@@ -67,6 +67,13 @@ class Mover(Entity):
 
 class Carryable(Entity):
 
+    def __init__(self, pos):
+        Entity.__init__(self, pos, ENTITY_SIZE, LAYER_BLOCKS)
+        self.type = random.choice(['lemon',
+                                  'cherry'])
+        self.tex = "carried\\%s.png" % self.type
+        self.height = ENTITY_SIZE.x
+        self.carried_by = None
     def update(self):
         if self.carried_by:
             self.pos = self.carried_by.pos
@@ -137,6 +144,9 @@ class Dude(Mover):
             except CellFull:
                 self.carrying.pos = self.pos
             return
+       
+       
+        #check for an item to act on
         neighbors = engine.grid.get_neighbors(self.pos)
         if self.last_dir in neighbors:
             dudes = neighbors[self.last_dir]
@@ -144,13 +154,15 @@ class Dude(Mover):
                 other_guy = dudes[LAYER_BLOCKS]
                 if isinstance(other_guy, Tree):
                     other_guy.die()
-                    WoodPile(other_guy.pos)
-                elif isinstance(other_guy, WoodPile):
+                    Carryable(other_guy.pos())
+                elif isinstance(other_guy, Carryable):
                     other_guy.carried_by = self
                     #he doesn't count in the grid any more
                     engine.grid.remove_entity(other_guy)
                     other_guy.height = ENTITY_SIZE.x*4
                     self.carrying = other_guy
+            else:
+                PlowedPatch(self.pos+self.last_dir)
 
 
     def update_texture(self):
@@ -187,6 +199,11 @@ class Road(Entity):
         else:
                         self.tex = 'road_horizontal.png'
 
+class PlowedPatch(Mover):
+    def __init__(self, pos):
+        Entity.__init__(self, pos, ENTITY_SIZE, LAYER_BLOCKS)
+        self.tex = 'plowed.png'
+
 class Tree(Mover):
     def __init__(self, pos):
         Entity.__init__(self, pos, vector2(8,16), LAYER_BLOCKS)
@@ -209,7 +226,9 @@ class Flag(Mover):
         Entity.__init__(self, pos, ENTITY_SIZE,LAYER_BLOCKS)
         self.tex = team+'_flag.png'
         self.height= ENTITY_SIZE.x
-class Forest:
+
+
+class FruitPatch:
 
     def __init__(self, pos_x, pos_y, width, height,edge=2):
         halfwidth = width*0.5
@@ -218,9 +237,9 @@ class Forest:
                      halfheight*halfheight)
         for x in range(width):
             for y in range(height):
-                if random.random() < 0.1:
+                if random.random() < 0.025:
                     try:
-                        Tree(vector2(pos_x+x, pos_y+y))
+                        Carryable(vector2(pos_x+x, pos_y+y))
                     except CellFull:
                         pass
 

@@ -15,6 +15,7 @@ class Game:
 
         #make the boundaries
         walls = True
+        add_road=False;
         
         forest_size = 4
     
@@ -31,8 +32,9 @@ class Game:
 
         def horiz_road_adder(pos):
             Road(pos, False)
+            
+        #self.add_horiz_block_line(horiz_road_adder, 1, GRID_SIZE-2, GRID_SIZE/2)
 
-        self.add_horiz_block_line(horiz_road_adder, 1, GRID_SIZE-2, GRID_SIZE/2)
         for x in range(GRID_SIZE):
             for y in range(GRID_SIZE):
                 try:
@@ -41,10 +43,10 @@ class Game:
                     pass
        
         
-        Forest(2,2,GRID_SIZE-4,GRID_SIZE-4)
+        FruitPatch(2,2,GRID_SIZE-4,GRID_SIZE-4)
         
-        Flag(engine.grid.get_free_position(LAYER_BLOCKS), "red")
-        Flag(engine.grid.get_free_position(LAYER_BLOCKS),"blue")
+        #Flag(engine.grid.get_free_position(LAYER_BLOCKS), "red")
+        #Flag(engine.grid.get_free_position(LAYER_BLOCKS),"blue")
         #Building(19,2,4,4) 
         #Building(25,2,4,4)
 
