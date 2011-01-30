@@ -34,7 +34,9 @@ function get_entity_pos(ent){
         var x = lerp_frame(old_ent.pos[0] - ocx, ent.pos[0] - cx, lerp_frac);
         var y = lerp_frame(old_ent.pos[1] - ocy, ent.pos[1] - cy, lerp_frac);
         var h = lerp_frame(old_ent.height, ent.height, lerp_frac);
- 
+
+
+
         x = canvas_width/2 + entity_size*(x+0.5)
         y = canvas_height/2 + entity_size*(y + 0.5)
     
@@ -76,10 +78,17 @@ var animations = {
         var h = pos[2];
         var cx = pos[3];
         var cy = pos[4];
-        
-        var walking =  (ent.id in old_gamestate.ents &&
-                old_gamestate.ents[ent.id].pos != ent.pos &&
-                draw_frame_number - new_gamestate.draw_frame <= DRAWS_PER_TURN);
+
+
+        var walking = false;
+       if (ent.id in old_gamestate.ents && 
+               draw_frame_number - new_gamestate.draw_frame <= DRAWS_PER_TURN) {
+           var old_pos =  old_gamestate.ents[ent.id].pos;
+           if (old_pos[0] != ent.pos[0] || old_pos[1] != ent.pos[1])
+               walking = true;      
+       }
+      
+                
         var s_x = ent.size[0]; 
         var s_y = ent.size[1];
         var angle = ent.angle;

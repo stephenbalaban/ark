@@ -44,18 +44,20 @@ var lerp_frac = 0.0;
  * ##################################################*/
 function draw() { 
     var contexts = {}
-    var frame_delta = DRAWS_PER_TURN;
     var lerp_time = new_gamestate.draw_frame - old_gamestate.draw_frame;
-    lerp_frac = (draw_frame_number - old_gamestate.draw_frame)/frame_delta;
+    lerp_frac = (draw_frame_number - old_gamestate.draw_frame)/DRAWS_PER_TURN;
+    
     if (lerp_frac > 1){
         lerp_frac = 1;
-        
-        while (pending_deltas.length > 0)
-        apply_delta(pending_deltas.pop(), old_gamestate);
+        var got_one = false;
+        while (pending_deltas.length > 0) {
+            apply_delta(pending_deltas.pop(), old_gamestate);
+            got_one = true;
+        }
         old_gamestate.draw_frame= draw_frame_number;
 
     }
-   $("#messages").html(frame_delta+" "+lerp_frac); 
+   $("#messages").html(lerp_frac); 
 
     for (var i in canvas_layers) {
         contexts[i] = canvas_layers[i].getContext("2d");            
@@ -115,9 +117,6 @@ function handle_delta(delta) {
     apply_delta(delta, new_gamestate);
     new_gamestate.draw_frame = draw_frame_number+DRAWS_PER_TURN;
     pending_deltas.unshift(JSON.parse(JSON.stringify(delta)));
-    delta.draw_frame = draw_frame_number;
-    game_frame_number = delta.frame;
-    game_frame_start = draw_frame_number;
 }
 
 
