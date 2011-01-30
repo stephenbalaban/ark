@@ -37,8 +37,7 @@ class Client:
         self.socket = socket        
         self.dir = ZERO_VECTOR 
         socket.on_message = self.on_message
-        self.dude = Dude(self)
-        self.dude.on_die = self.handle_player_die
+        
         self.act = None
         self.bomb = None
         self.bomb_cooldown = 0
@@ -50,9 +49,17 @@ class Client:
         engine.add_client(self)
         self.death_count = 0
         self.kill_count = 0
+        self.disconnected = False
+        
         print "client",self.id,"spawned."
         
-        
+    
+    def spawn_dude(self):
+        self.dude =  Dude(self)
+        self.dude.on_die = self.handle_player_die
+        self.send({'type' : 'client_info', 
+            'camera_ent_id' : self.dude.id})
+
     def update(self):
         if self.dude == None:
             print "dudeless"
@@ -66,8 +73,9 @@ class Client:
     def handle_player_die(self):
         print self.name,"died"
         self.death_count += 1
-        self.dude =  Dude(self)
-        self.dude.on_die = self.handle_player_die
+        if not self.disconnected:
+            self.spawn_dude()
+
 
     def on_kill(self, victim):
         if victim.owner == self:
@@ -78,6 +86,7 @@ class Client:
             print self.name, "killed",victim.owner.name
             
     def disconnect(self):
+        self.disconnected = True
         if self.dude:
             self.dude.die(self)
         
@@ -104,7 +113,8 @@ class SocketConnectionHandler (tornado.websocket.WebSocketHandler):
     def open(self):
         print "Client",self.client.id," opened a socket. They are alive!"
         self.client.send(engine.current_state)
-
+        self.client.spawn_dude()
+        print "state sent!"
 
 game = Game()
 game.make_maze()

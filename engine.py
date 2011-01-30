@@ -6,8 +6,10 @@ UP = vector2(0,-1)
 DOWN = vector2(0,1)
 LEFT = vector2(-1,0)
 RIGHT = vector2(1,0)
+
+DIR_NAMES = {UP: 'up', DOWN : 'down', LEFT : 'left', RIGHT : 'right'}
 ENTITY_SIZE = vector2(8,8)
-GRID_SIZE = 31
+GRID_SIZE = 64
 
 class ClientManager:
     
@@ -33,6 +35,7 @@ class ClientManager:
                 self.clients[id].disconnect()
         self.clients = new_clients
 
+class CellFull(Exception): pass
 class GridCell:
         
         def __init__(self, num_layers):
@@ -50,7 +53,7 @@ class GridCell:
                 "Tries to add the entity. Returns false if "\
                 "that layer is full."
                 if ent.layer in self.entities:
-                        raise Exception("couldn't add %s at %d, %d ,%d"\
+                        raise CellFull("couldn't add %s at %d, %d ,%d"\
                                                 ", a %s was there" % (ent, 
         ent.pos.x, ent.pos.y, ent.layer, self.entities[ent.layer]))
                 self.entities[ent.layer] = ent
@@ -124,6 +127,8 @@ class GameGrid:
             neighbors[DOWN] =self.get_entities(pos.x, pos.y+1)  
 
         return neighbors
+
+
 class Engine:
         """encapsulates the behavior of the entire game"""
         def __init__(self):
@@ -135,7 +140,7 @@ class Engine:
                 self.grid = GameGrid(4, 256)
 
         def set_game(self, game):
-                "Sets self.game. Game entitie can use " \
+                "Sets self.game. Game entities can use " \
                 "this property to mess with the game as a whole. "
                 self.game = game
                 
@@ -243,8 +248,11 @@ class Entity:
                  'angle' : True,
                  'size' :True,
                  'pos' : True,
-                  'layer' : True
+                  'layer' : True,
+                 'height': 0,
+                 'id' : -1
                 }           
+
 
         self.__dict__["delta"] = {}
         
@@ -257,6 +265,7 @@ class Entity:
         self.dir = ZERO_VECTOR
         self.angle = 0
         self.layer = layer 
+        self.height = 0
         engine.add_entity(self)
 
     def __setattr__(self, attr_name, value):
@@ -271,7 +280,6 @@ class Entity:
     def move(self, new_pos):
         engine.grid.remove_entity(self)
         self.pos = new_pos
-        self.pos_changed = True
         engine.grid.add_entity(self)
     
     def update(self):

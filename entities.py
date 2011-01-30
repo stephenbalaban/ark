@@ -65,6 +65,11 @@ class Mover(Entity):
     def take_smash(self,  smasher):
         self.die()
 
+class Carryable(Entity):
+
+    def update(self):
+        if self.carried_by:
+            self.pos = self.carried_by.pos
 class Dude(Mover):
 
     def __init__(self,owner):
@@ -74,13 +79,12 @@ class Dude(Mover):
         Entity.__init__(self, pos, vector2(8,16), LAYER_BLOCKS )
 
         self.net_vars['anim'] = True
-        self.net_vars['walking'] = True
 
         self.act = None
         self.owner = owner
         self.solid = True
         self.dir = ZERO_VECTOR
-        self.last_dir = ZERO_VECTOR
+        self.last_dir = RIGHT
         self.act = None
         self.on_die = None
         self.frames = 2
@@ -88,40 +92,77 @@ class Dude(Mover):
         self.tex = 'warrior_right'        
         self.anim = 'dude'
         self.walking = False
+        #states are: standing, moving, acting
+        self.state = 'standing'
+        self.carrying = None
 
     def push(self, pushee):
         pass
  
     def get_delta(self):
-        return Entity.get_delta(self)
+        delta = Entity.get_delta(self)
+        return delta 
+    def can_push(self,other):
+        can =  isinstance(other, WoodPile)
+        can = can or isinstance(other, Flag)
+
+        return can
+
 
     def update(self):
-        self.try_move(self.dir)
+        if not self.dir.is_zero():
+            if self.dir == self.last_dir:
+                self.state = 'moving'
+                self.try_move(self.dir)
+            self.last_dir = self.dir
+        elif self.act == 'use':
+            self.state = 'using'
+            self.use()
+        else:
+            self.state = 'standing'
         self.update_texture()
+         
+
+    def use(self):
         
 
-    def update_texture(self):
-        if self.act == 'use':
-            print "usin'", self.last_dir, LEFT, RIGHT
-            if self.last_dir == LEFT:
-                self.tex = 'warrior_action_left'
-            elif self.last_dir == RIGHT:
-                self.tex = 'warrior_action_right'
+        if self.carrying:
+            
+            self.carrying.pos = self.pos + self.last_dir
+            try:
+                engine.grid.add_entity(self.carrying)
+                self.carrying.carried_by = None
+                self.carrying.height = ENTITY_SIZE.x
+                self.carrying = None
+            except CellFull:
+                self.carrying.pos = self.pos
             return
-        
-        if self.dir == UP:
-            self.change_tex('warrior_up')
-        elif self.dir == DOWN:
-            self.change_tex('warrior_down')
-        elif self.dir == RIGHT:
-            self.change_tex('warrior_right')
-        elif self.dir == LEFT:
-            self.change_tex('warrior_left')
-        if not self.dir.is_zero():
-            self.last_dir = self.dir
-            self.walking = True
+        neighbors = engine.grid.get_neighbors(self.pos)
+        if self.last_dir in neighbors:
+            dudes = neighbors[self.last_dir]
+            if LAYER_BLOCKS in dudes:
+                other_guy = dudes[LAYER_BLOCKS]
+                if isinstance(other_guy, Tree):
+                    other_guy.die()
+                    WoodPile(other_guy.pos)
+                elif isinstance(other_guy, WoodPile):
+                    other_guy.carried_by = self
+                    #he doesn't count in the grid any more
+                    engine.grid.remove_entity(other_guy)
+                    other_guy.height = ENTITY_SIZE.x*4
+                    self.carrying = other_guy
+
+
+    def update_texture(self):
+        if self.state == 'using':
+            self.tex = 'warrior/action/'+DIR_NAMES[self.last_dir]+'/'
+            return
+       
         else:
-            self.walking = False
+            self.tex = 'warrior/walk/'+DIR_NAMES[self.last_dir]+'/'
+
+            return
+
 
 
     def die(self, killer):
@@ -150,8 +191,24 @@ class Tree(Mover):
     def __init__(self, pos):
         Entity.__init__(self, pos, vector2(8,16), LAYER_BLOCKS)
         self.tex = 'full_tree.png'
+        self.height = ENTITY_SIZE.x*2
 
+class WoodPile(Mover, Carryable):
     
+    def __init__(self, pos):
+        Entity.__init__(self, pos, ENTITY_SIZE, LAYER_BLOCKS)
+        self.tex = 'carried/wood_pile.png'
+        self.carried_by = None
+        self.height = ENTITY_SIZE.x
+
+    def update(self):
+        Carryable.update(self)
+
+class Flag(Mover):
+    def __init__(self, pos, team):
+        Entity.__init__(self, pos, ENTITY_SIZE,LAYER_BLOCKS)
+        self.tex = team+'_flag.png'
+        self.height= ENTITY_SIZE.x
 class Forest:
 
     def __init__(self, pos_x, pos_y, width, height,edge=2):
@@ -161,21 +218,11 @@ class Forest:
                      halfheight*halfheight)
         for x in range(width):
             for y in range(height):
-
-                if x < edge or x > width - edge:
-                    dx = x - halfwidth
-                else:
-                    dx = 0
-                if y < edge or y > height - edge:
-                    dy = y - halfheight
-                else:
-                    dy = 0
-                 
-                d = sqrt(dx*dx+dy*dy)
-                p = 1.0 - d/d_max
-                 
-                if random.random() <= p:
-                    Tree(vector2(pos_x+x, pos_y+y))
+                if random.random() < 0.1:
+                    try:
+                        Tree(vector2(pos_x+x, pos_y+y))
+                    except CellFull:
+                        pass
 
 
 class Building:

@@ -9,28 +9,18 @@
     </script> 
     <script type="text/javascript" src="/static/js/client.js"> 
     </script> 
-    <style type="text/css">  
-    <style type="text/css">  
-      canvas { border: 1px solid black; float:left; } 
-    </style>  
-  </head>  
-  <body onload="start();">  
-    
- <div id="canvasses">
- <canvas id="layer0" width="512" height="512" 
-   style="position: absolute; left: 0; top: 0; z-index: 0;"></canvas>
- <canvas id="layer1" width="512" height="512" 
-   style="position: absolute; left: 0; top: 0; z-index: 1;"></canvas>
- <canvas id="layer2" width="512" height="512" 
-   style="position: absolute; left: 0; top: 0; z-index: 2;"></canvas>
-  </div>
- <div id="right_side" width="400" style="float: right;">	
-      <div id="scores">
-      </div>
-      <div id="log" style="height:200px">
-     </div>
-      <div id="error">
-      </div>
+    <link rel="stylesheet" href="/static/css/style.css">  
+    </link>  
+</head> 
+<body onload="start();">  
+    <div id="container">
+        
+        <div id="content">
+            <div id="canvasses">
+            </div>
+            <div id="messages">
+            </div>
+        </div>
     </div>
   </body> 
 </html> 
