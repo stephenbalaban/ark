@@ -11,8 +11,8 @@ from engine import *
 
 
 LAYER_GROUND = 0
-LAYER_BLOCKS = 1
-LAYER_POWERUPS = 2
+LAYER_GROUND_DETAIL = 1
+LAYER_BLOCKS = 2
 
 
 ACT_PLACE = 1
@@ -65,28 +65,26 @@ class Mover(Entity):
     def take_smash(self,  smasher):
         self.die()
 
-class Carryable(Entity):
+class Carryable(Mover):
 
     def __init__(self, pos):
         Entity.__init__(self, pos, ENTITY_SIZE, LAYER_BLOCKS)
         self.type = random.choice(['lemon',
                                   'cherry'])
         self.tex = "carried\\%s.png" % self.type
-        self.height = ENTITY_SIZE.x
+        self.height = ENTITY_SIZE.x*0.5
         self.carried_by = None
-    def update(self):
-        if self.carried_by:
-            self.pos = self.carried_by.pos
+
 class Dude(Mover):
 
     def __init__(self,owner):
 
         pos = engine.grid.get_free_position(LAYER_BLOCKS)
 
-        Entity.__init__(self, pos, vector2(8,16), LAYER_BLOCKS )
+        Entity.__init__(self, pos, ENTITY_SIZE, LAYER_BLOCKS )
 
         self.net_vars['anim'] = True
-
+        self.height = ENTITY_SIZE.x*0.5;
         self.act = None
         self.owner = owner
         self.solid = True
@@ -119,8 +117,9 @@ class Dude(Mover):
     def update(self):
         if not self.dir.is_zero():
             if self.dir == self.last_dir:
-                self.state = 'moving'
-                self.try_move(self.dir)
+                if self.try_move(self.dir):
+                    if self.carrying:
+                        self.carrying.pos = self.pos
             self.last_dir = self.dir
         elif self.act == 'use':
             self.state = 'using'
@@ -135,15 +134,28 @@ class Dude(Mover):
 
         if self.carrying:
             
-            self.carrying.pos = self.pos + self.last_dir
-            try:
-                engine.grid.add_entity(self.carrying)
-                self.carrying.carried_by = None
-                self.carrying.height = ENTITY_SIZE.x
-                self.carrying = None
-            except CellFull:
-                self.carrying.pos = self.pos
-            return
+            target_pos = self.pos + self.last_dir
+            dudes = engine.grid.get_entities(target_pos.x, target_pos.y)
+
+           
+            if not LAYER_BLOCKS in dudes:
+
+                if LAYER_GROUND_DETAIL in dudes:
+                    ent = dudes[LAYER_GROUND_DETAIL]
+                    if isinstance(ent, PlowedPatch):
+                        if ent.state == 'unplanted':
+                            self.carrying.pos = ent.pos
+                            ent.plant(self.carrying)
+                            self.carrying.carried_by = None
+                            self.carrying.height = 0.5
+                            self.carrying = None
+                            return
+                else:
+                    self.carrying.pos = target_pos
+                    engine.grid.add_entity(self.carrying)
+                    self.carrying.carried_by = None
+                    self.carrying.height = ENTITY_SIZE.x*0.5
+                    self.carrying = None
        
        
         #check for an item to act on
@@ -159,9 +171,10 @@ class Dude(Mover):
                     other_guy.carried_by = self
                     #he doesn't count in the grid any more
                     engine.grid.remove_entity(other_guy)
-                    other_guy.height = ENTITY_SIZE.x*4
+                    other_guy.height = ENTITY_SIZE.x*2.5
                     self.carrying = other_guy
-            else:
+                    other_guy.pos = self.pos
+            elif not LAYER_GROUND_DETAIL in dudes:
                 PlowedPatch(self.pos+self.last_dir)
 
 
@@ -201,13 +214,57 @@ class Road(Entity):
 
 class PlowedPatch(Mover):
     def __init__(self, pos):
-        Entity.__init__(self, pos, ENTITY_SIZE, LAYER_BLOCKS)
-        self.tex = 'plowed.png'
+        Entity.__init__(self, pos, ENTITY_SIZE, LAYER_GROUND_DETAIL)
+        #check for neighbors above and below, changing them if necessary
+        neighbors = engine.grid.get_neighbors(self.pos)
+        has_neighbors = {UP:False, DOWN: False}
+        for dir in [UP, DOWN]:
+            if dir in neighbors:
+                ents = neighbors[dir]
+                if LAYER_GROUND_DETAIL in ents:
+                    ent = ents[LAYER_GROUND_DETAIL]
+                    if isinstance(ent, PlowedPatch):
+                        ent.new_neighbor(dir)
+                        has_neighbors[dir] = True
+        if has_neighbors[UP] and has_neighbors[DOWN]:
+            self.type = 'middle'
+        elif has_neighbors[UP]:
+            self.type = 'bottom'
+        elif has_neighbors[DOWN]:
+            self.type = 'top'
+        else:
+            self.type = 'solo'
+            
+        self.tex = "plowed/unplanted/%s.png" % self.type
+        self.state = 'unplanted'
+        self.planted = None
+
+    def plant(self, seed):
+        self.planted = seed
+        seed.tex = 'none.png'
+        self.state = 'planted'
+        self.update_tex()
+    def new_neighbor(self, dir):
+        if self.type == 'solo':
+            if dir == UP:
+                self.type = 'top'
+            elif dir == DOWN:
+                self.type = 'bottom'
+
+        elif self.type == 'top':
+            if dir == DOWN:
+                self.type = 'middle'
+        elif self.type == 'bottom':
+            if dir == UP:
+                self.type = 'middle'
+        self.update_tex()
+    def update_tex(self):        
+        self.tex = 'plowed/%s/%s.png' % (self.state, self.type)
 
 class Tree(Mover):
     def __init__(self, pos):
         Entity.__init__(self, pos, vector2(8,16), LAYER_BLOCKS)
-        self.tex = 'full_tree.png'
+        elf.tex = 'full_tree.png'
         self.height = ENTITY_SIZE.x*2
 
 class WoodPile(Mover, Carryable):

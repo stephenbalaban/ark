@@ -213,15 +213,10 @@ class Engine:
             for client_id in self.client_manager.clients:
                 client = self.client_manager.clients[client_id]
                 client.update()
-
             for ent_id in self.dude_map:
                 entity = self.dude_map[ent_id]
                 if entity:
                     entity.update()
-
-            for ent_id in self.dude_map:
-                entity = self.dude_map[ent_id]
-                if entity:
                     delta = entity.get_delta()
                     if len(delta):
                         delta_list['deltas'][entity.id] = delta
@@ -236,7 +231,7 @@ class Engine:
             if len(delta_list['deltas']) !=  0 \
             or len(delta_list['noobs']) != 0 \
             or len(delta_list['deads']) != 0:
-                self.client_manager.broadcast(delta_list)
+                            self.client_manager.broadcast(delta_list)
             
 
 
@@ -256,8 +251,8 @@ class Entity:
                   'layer' : True,
                  'height': 0,
                  'id' : -1,
-                 'lerp_targets' : {},
-                 'lerp_frames' : {},
+                 'targets' : {},
+                  'lerp_ticks' : {},
                 }           
 
 
@@ -273,8 +268,8 @@ class Entity:
         self.angle = 0
         self.layer = layer 
         self.height = 0
-        self.lerp_targets = {}
-        self.lerp_frames = {}
+        self.targets = {}
+        self.lerp_ticks = {}
         engine.add_entity(self)
 
     def __setattr__(self, attr_name, value):

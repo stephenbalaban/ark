@@ -44,30 +44,37 @@ var lerp_frac = 0.0;
  * ##################################################*/
 function draw() { 
     var contexts = {}
-    var lerp_time = new_gamestate.draw_frame - old_gamestate.draw_frame;
-    lerp_frac = (draw_frame_number - old_gamestate.draw_frame)/DRAWS_PER_TURN;
-    
-    if (lerp_frac > 1){
-        lerp_frac = 1;
-        var got_one = false;
-        while (pending_deltas.length > 0) {
-            apply_delta(pending_deltas.pop(), old_gamestate);
-            got_one = true;
-        }
-        old_gamestate.draw_frame= draw_frame_number;
-
-    }
-   $("#messages").html(lerp_frac); 
 
     for (var i in canvas_layers) {
         contexts[i] = canvas_layers[i].getContext("2d");            
-        contexts[i].clearRect(0,0,canvas_width, canvas_height);             
+        contexts[i].clearRect(0,0,canvas_width, canvas_height);                             var how_far
     }
     //this is the position of the camera in the game world
     //entities are drawn relative to the camera
  
     for (var ent_id  in new_gamestate.ents)  {
+        var ent = new_gamestate.ents[ent_id];
+        
+        if (ent.lerp_targets.pos && ent.lerp_frames.pos > 0){
+            --ent.lerp_frames.pos;                
+            var how_far = 1 - ent.lerp_frames.pos/DRAWS_PER_TURN;
+            for (var i in [0,1]){
+                var piece = (ent.lerp_targets.pos[i] - ent.pos[i]) 
+                piece = piece * how_far;
+                ent.pos[i] += piece;
+                
+            }
+        }
+        if (ent.lerp_targets.height && ent.lerp_frames.height > 0){
+            --ent.lerp_frames.height;                
+            var how_far = 1 - ent.lerp_frames.pos/DRAWS_PER_TURN;
+            how_far = how_far*(ent.lerp_targets.height - ent.height);
+            ent.height += how_far;
+                
+        }
+    }
 
+    for (var ent_id in new_gamestate.ents){
         var ent = new_gamestate.ents[ent_id];
 
        
@@ -104,9 +111,7 @@ function socket_message_handler (event) {
 //i.e. the position, location &c of all entities
 function handle_gamestate(state) {
     new_gamestate = state.state;
-    old_gamestate = JSON.parse(JSON.stringify(state.state));
     new_gamestate.draw_frame = draw_frame_number + DRAWS_PER_TURN;
-    old_gamestate.draw_frame = draw_frame_number;
     game_frame_number = state.frame;
 }
        
@@ -115,8 +120,6 @@ function handle_gamestate(state) {
 //dead entities are removed, and states are updated
 function handle_delta(delta) {
     apply_delta(delta, new_gamestate);
-    new_gamestate.draw_frame = draw_frame_number+DRAWS_PER_TURN;
-    pending_deltas.unshift(JSON.parse(JSON.stringify(delta)));
 }
 
 
@@ -131,8 +134,14 @@ function apply_delta(delta, gamestate){
         var this_delta = delta.deltas[ent_id];
 
         ent = gamestate.ents[ent_id];
-        for (var att in this_delta)
-            ent[att] = this_delta[att];
+        for (var att in this_delta){
+            if (att == 'pos' || att == 'height'){
+                ent.lerp_targets[att] = this_delta[att];
+                ent.lerp_frames[att] = DRAWS_PER_TURN+1;
+            }else{
+                ent[att] = this_delta[att];
+            }
+        }
     }
 
     for (var i in delta.deads)

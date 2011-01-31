@@ -4,43 +4,28 @@ function lerp_frame(first,last,percent){
 
 function get_entity_pos(ent){
 
-        var old_ent = ent;
-        if (ent.id in old_gamestate.ents)
-            old_ent = old_gamestate.ents[ent.id];
         if (camera_ent_id == -1){            
             var cam = { 'pos' : [0,0]};
-            var old_cam = {'pos' : [0,0]};
         }
 
         else{
             var cam = new_gamestate.ents[camera_ent_id];
-            var old_cam = old_gamestate.ents[camera_ent_id];
-
             if (! cam)
                 cam = {'pos' : [0,0]}
-            if (! old_cam){
-                if (cam)
-                    old_cam = {'pos' : cam.pos}
-                else{
-                    old_cam = {'pos' : [0,0]}
-                }
-
-            }
         }
+
+
+
         var cx = cam.pos[0];
         var cy = cam.pos[1];
-        var ocx = old_cam.pos[0];
-        var ocy = old_cam.pos[1];
-        var x = lerp_frame(old_ent.pos[0] - ocx, ent.pos[0] - cx, lerp_frac);
-        var y = lerp_frame(old_ent.pos[1] - ocy, ent.pos[1] - cy, lerp_frac);
-        var h = lerp_frame(old_ent.height, ent.height, lerp_frac);
+        var x = ent.pos[0];
+        var y = ent.pos[1];
+        var height = ent.height;
 
-
-
-        x = canvas_width/2 + entity_size*(x+0.5)
-        y = canvas_height/2 + entity_size*(y + 0.5)
+        x = canvas_width/2 + entity_size*(x-cx+0.5)
+        y = canvas_height/2 + entity_size*(y-cy + 0.5) - height;
     
-        return [x,y,h, cx, cy];
+        return [x,y,height, cx, cy];
 }
 var animations = {
 
@@ -52,15 +37,15 @@ var animations = {
         var y = pos[1];
         var h = pos[2];
         
-    
+        
 
         var s_x = ent.size[0]; 
         var s_y = ent.size[1];
         var angle = ent.angle;
         var img = new Image();
-    img.src = image_base + ent.tex;
+        img.src = image_base + ent.tex;
 
-    var ctx = contexts[ent.layer]
+        var ctx = contexts[ent.layer]
         ctx.translate(x,y-h);
         ctx.rotate(angle);               
         ctx.drawImage(img, -s_x, -s_y)
@@ -80,13 +65,10 @@ var animations = {
         var cy = pos[4];
 
 
+
         var walking = false;
-       if (ent.id in old_gamestate.ents && 
-               draw_frame_number - new_gamestate.draw_frame <= DRAWS_PER_TURN) {
-           var old_pos =  old_gamestate.ents[ent.id].pos;
-           if (old_pos[0] != ent.pos[0] || old_pos[1] != ent.pos[1])
-               walking = true;      
-       }
+        if (ent.lerp_frames.pos && ent.lerp_frames.pos >0 )
+            walking = true;
       
                 
         var s_x = ent.size[0]; 
@@ -100,7 +82,7 @@ var animations = {
             ent.frame =  (ent.frame+1) % 3;
     }
 
-        img.src = image_base + ent.tex+ent.frame+".png";
+        img.src = image_base + ent.tex+"/"+ent.frame+".png";
 
     var ctx = contexts[ent.layer]
         ctx.translate(x,y-h);
