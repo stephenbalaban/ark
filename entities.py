@@ -151,11 +151,13 @@ class Dude(Mover):
                             self.carrying = None
                             return
                 else:
+                    print "can plant"
                     self.carrying.pos = target_pos
                     engine.grid.add_entity(self.carrying)
                     self.carrying.carried_by = None
                     self.carrying.height = ENTITY_SIZE.x*0.5
                     self.carrying = None
+            return
        
        
         #check for an item to act on

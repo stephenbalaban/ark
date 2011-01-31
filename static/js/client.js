@@ -29,8 +29,8 @@ var gamestate_buffer = {old_ticks: old_gamestate,
                         new_ticks: new_gamestate};
 
 var TURN_PERIOD = 250;   
-var DRAWS_PER_TURN = 4;
-var DRAW_PERIOD = TURN_PERIOD/DRAWS_PER_TURN;
+var DRAWS_PER_TURN = 6;
+var DRAW_PERIOD = TURN_PERIOD/(DRAWS_PER_TURN-2);
 var SERVER_ADDRESS = "dev.gomboloid.com:8000";
 var draw_frame_number = 0;
 var game_frame_number = 0;
