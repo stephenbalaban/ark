@@ -9,7 +9,7 @@ RIGHT = vector2(1,0)
 
 DIR_NAMES = {UP: 'up', DOWN : 'down', LEFT : 'left', RIGHT : 'right'}
 ENTITY_SIZE = vector2(8,8)
-GRID_SIZE = 64
+GRID_SIZE = 32
 
 class ClientManager:
     
