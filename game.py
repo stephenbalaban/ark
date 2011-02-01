@@ -38,16 +38,18 @@ class Game:
         for x in range(GRID_SIZE):
             for y in range(GRID_SIZE):
                 try:
-                    Background(vector2(x,y))
+                    Terrain(vector2(x,y))
                 except:
                     pass
        
         
         FruitPatch(2,2,GRID_SIZE-4,GRID_SIZE-4)
+        for x in range(5):
+            Alien(None) 
         
         #Flag(engine.grid.get_free_position(LAYER_BLOCKS), "red")
         #Flag(engine.grid.get_free_position(LAYER_BLOCKS),"blue")
-        #Building(19,2,4,4) 
+        #Lake(19,2,6,6) 
         #Building(25,2,4,4)
 
         #Building(19,8,4,4)

@@ -10,8 +10,9 @@ from engine import *
 
 
 LAYER_GROUND = 0
-LAYER_GROUND_DETAIL = 1
-LAYER_BLOCKS = 2
+LAYER_WATER = LAYER_GROUND+1
+LAYER_GROUND_DETAIL = LAYER_WATER+1
+LAYER_BLOCKS = LAYER_GROUND_DETAIL +1 
 
 
 ACT_PLACE = 1
@@ -93,10 +94,9 @@ class Dude(Mover):
         self.on_die = None
         self.frames = 2
         self.team = random.choice(['blue','red'])
-        self.tex = 'warrior_right'        
+        self.dude_class = 'warrior'
         self.anim = 'dude'
-        self.walking = False
-        #states are: standing, moving, acting
+        #states are: standing, moving, using
         self.state = 'standing'
         self.carrying = None
 
@@ -180,14 +180,11 @@ class Dude(Mover):
 
 
     def update_texture(self):
-        if self.state == 'using':
-            self.tex = 'warrior/action/'+DIR_NAMES[self.last_dir]+'/'
-            return
+        self.tex = ('%s/%s/%s' % (self.dude_class,
+                                  self.state,
+                                  DIR_NAMES[self.last_dir]))
+            
        
-        else:
-            self.tex = 'warrior/walk/'+DIR_NAMES[self.last_dir]+'/'
-
-            return
 
 
 
@@ -196,13 +193,78 @@ class Dude(Mover):
             self.on_die()
         killer.on_kill(self)
         Entity.die(self)
+
+
+
+
+class Alien(Dude):
+    def __init__(self, owner):
+        Dude.__init__(self,owner)
+        self.dude_class = 'alien'
+        self.update_texture() 
+       
+    def update(self):
+
+        #set dir 
+        if random.choice([True] + [False for x in range(5)]):
+            self.dir = random.choice([UP,DOWN,LEFT,RIGHT,ZERO_VECTOR])
+        Dude.update(self)
                 
-class Background(Entity):
+class Terrain(Entity):
     
     def __init__(self, pos):
-        Entity.__init__(self,pos,  ENTITY_SIZE,LAYER_GROUND)
-
+        Entity.__init__(self,pos,  ENTITY_SIZE, LAYER_GROUND)
         self.tex = 'grass.png' 
+        self.terrain_type = 'grass'
+        self.neighbor_types = {}
+        for dir in ORDINALS:
+            self.neighbor_types[dir] = 'grass'
+        self.update_tex()
+        
+    def to_water(self):
+        self.terrain_type = 'water'
+        self.update_tex()
+        neighbors = engine.grid.get_neighbors(self.pos)
+        for dir in neighbors:
+            this_dir_ents = neighbors[dir]
+            for layer in this_dir_ents:
+                this_ent = this_dir_ents[layer]
+                if isinstance(this_ent, Terrain):
+                    this_dir_ents[layer].update_tex()
+
+
+    def update_tex(self):        
+        neighbors =engine.grid.get_neighbors(self.pos)
+
+        
+        for dir in ORDINALS:
+            if dir in neighbors:
+                if LAYER_GROUND in neighbors[dir]:
+                    self.neighbor_types[dir] = neighbors[dir][LAYER_GROUND].terrain_type
+
+        self.tex = '%s/%s/%s/%s/%s.png' % (self.terrain_type,
+                                         self.neighbor_types[UP],
+                                         self.neighbor_types[DOWN],
+                                         self.neighbor_types[LEFT],
+                                         self.neighbor_types[RIGHT])
+
+
+
+
+
+
+class Lake:
+
+    def __init__(self, x,y, length,width):
+
+        for i in range(length):
+            for j in range(width):
+                ents = engine.grid.get_entities(x+i,y+j)
+                if LAYER_GROUND in ents:
+                    ents[LAYER_GROUND].to_water()
+
+
+    
 
 class Road(Entity):
 
