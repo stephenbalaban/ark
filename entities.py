@@ -9,7 +9,6 @@ from engine import *
 
 
 
-
 LAYER_GROUND = 0
 LAYER_GROUND_DETAIL = 1
 LAYER_BLOCKS = 2
@@ -214,7 +213,24 @@ class Road(Entity):
         else:
                         self.tex = 'road_horizontal.png'
 
+
+class Shrub(Mover):
+
+    def __init__(self, pos):
+        Entity.__init__(self, pos, ENTITY_SIZE, LAYER_BLOCKS)
+        self.plant_size = 0
+        self.tex = '/plants/shrub/0.png'
+        
+    def grow(self):
+        self.plant_size += 1
+        self.tex = '/plants/shrub/1.png'
+
+
+
+
 class PlowedPatch(Mover):
+
+    PLANT_GROWTH_TICKS = 20
     def __init__(self, pos):
         Entity.__init__(self, pos, ENTITY_SIZE, LAYER_GROUND_DETAIL)
         #check for neighbors above and below, changing them if necessary
@@ -240,12 +256,17 @@ class PlowedPatch(Mover):
         self.tex = "plowed/unplanted/%s.png" % self.type
         self.state = 'unplanted'
         self.planted = None
+        self.plant_growth_ticks = 0
+        self.growing = None
 
     def plant(self, seed):
         self.planted = seed
         seed.tex = 'none.png'
         self.state = 'planted'
         self.update_tex()
+        self.plant_growth_ticks = PlowedPatch.PLANT_GROWTH_TICKS
+ 
+
     def new_neighbor(self, dir):
         if self.type == 'solo':
             if dir == UP:
@@ -260,8 +281,23 @@ class PlowedPatch(Mover):
             if dir == UP:
                 self.type = 'middle'
         self.update_tex()
+
     def update_tex(self):        
         self.tex = 'plowed/%s/%s.png' % (self.state, self.type)
+
+    def update(self):
+        if self.plant_growth_ticks:
+            self.plant_growth_ticks -= 1
+            if self.plant_growth_ticks == 0:
+                if self.growing == None:
+                    print 'shrubbin'
+                    self.growing = Shrub(self.pos)
+                    self.plant_growth_ticks = PlowedPatch.PLANT_GROWTH_TICKS
+                    
+                else:
+                    self.growing.grow()
+
+
 
 class Tree(Mover):
     def __init__(self, pos):

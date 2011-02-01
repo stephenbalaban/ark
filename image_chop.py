@@ -4,8 +4,9 @@ import sys
 def chop(filename, square_size):
 
     im = Image.open(filename)
-    for x in range(square_size):
-	for y in range(square_size):
+    sx,sy = im.size
+    for x in range(sx/square_size):
+	for y in range(sy/square_size):
 	    coords =  (x*square_size,
 		    y*square_size, 
 		    (x+1)*square_size,

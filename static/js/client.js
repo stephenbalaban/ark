@@ -30,7 +30,7 @@ var gamestate_buffer = {old_ticks: old_gamestate,
 
 var TURN_PERIOD = 250;   
 var DRAWS_PER_TURN = 6;
-var DRAW_PERIOD = TURN_PERIOD/(DRAWS_PER_TURN-2);
+var DRAW_PERIOD = 100
 var SERVER_ADDRESS = "dev.gomboloid.com:8000";
 var draw_frame_number = 0;
 var game_frame_number = 0;
@@ -39,6 +39,9 @@ var game_frame_start = 0;
 var last_delta = {'deltas' : {}};
 var pending_deltas = []
 var lerp_frac = 0.0;
+var total_bytes = 0;
+var bw_start_frame = 0;
+var ping_period = 10;
 /*####################################################
  * Animation code
  * ##################################################*/
@@ -47,11 +50,20 @@ function draw() {
 
     for (var i in canvas_layers) {
         contexts[i] = canvas_layers[i].getContext("2d");            
-        contexts[i].clearRect(0,0,canvas_width, canvas_height);                             var how_far
+        contexts[i].clearRect(0,0,canvas_width, canvas_height);   
     }
     //this is the position of the camera in the game world
     //entities are drawn relative to the camera
- 
+    //
+    //figure out bandwidth
+    if (draw_frame_number - bw_start_frame >= ping_period){
+        var bw = total_bytes/(ping_period*DRAW_PERIOD);
+        $("#messages").html(bw/1024+"kbps"); 
+        bw_start_frame = game_frame_number;
+    } 
+     
+    
+    
     for (var ent_id  in new_gamestate.ents)  {
         var ent = new_gamestate.ents[ent_id];
         
@@ -61,7 +73,7 @@ function draw() {
             for (var i in [0,1]){
                 var piece = (ent.lerp_targets.pos[i] - ent.pos[i]) 
                 piece = piece * how_far;
-                ent.pos[i] += piece;
+                ent.pos[i] += piece;                
                 
             }
         }
@@ -102,6 +114,7 @@ function draw() {
 //dispatches the socket message to the appropriate handler
 function socket_message_handler (event) {
     //all messages are just JSON structs
+    total_bytes = total_bytes + event.data.length;
     var message = JSON.parse(event.data);
     //dispatch this message to the appropriate handler
         message_handlers[message.type](message);
@@ -137,7 +150,7 @@ function apply_delta(delta, gamestate){
         for (var att in this_delta){
             if (att == 'pos' || att == 'height'){
                 ent.lerp_targets[att] = this_delta[att];
-                ent.lerp_frames[att] = DRAWS_PER_TURN+1;
+                ent.lerp_frames[att] = DRAWS_PER_TURN;
             }else{
                 ent[att] = this_delta[att];
             }
