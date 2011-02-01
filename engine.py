@@ -8,6 +8,7 @@ LEFT = vector2(-1,0)
 RIGHT = vector2(1,0)
 
 DIR_NAMES = {UP: 'up', DOWN : 'down', LEFT : 'left', RIGHT : 'right'}
+DIR_OPPOSITES = {UP : DOWN, DOWN: UP, LEFT : RIGHT, RIGHT : LEFT}
 ORDINALS = [UP, DOWN, LEFT, RIGHT]
 UP_LEFT= UP+LEFT
 UP_RIGHT= UP+RIGHT
@@ -47,7 +48,7 @@ class GridCell:
         
         def __init__(self, num_layers):
 
-                self.entities = {}
+            self.entities = {}
 
         def get_entities(self):
                 ents = {}
@@ -68,11 +69,11 @@ class GridCell:
 
         def remove_entity(self, ent):
 
-                if ent.layer in self.entities:
-                        other = self.entities.pop(ent.layer)
-                        return True
-                else:
-                        return False    
+            if ent.layer in self.entities:
+                    other = self.entities.pop(ent.layer)
+                    return True
+            else:
+                    return False    
 
                                 
 
@@ -89,7 +90,6 @@ class GameGrid:
         self.size = size
 
     def get_entities(self, x, y):
-
         if x < 0 or x >= self.size or \
            y < 0 or y >= self.size:
                 return {}
@@ -111,6 +111,17 @@ class GameGrid:
         else:
             return self.cells[ent.pos.x][ent.pos.y].remove_entity(ent)
 
+    def find_nearest(self, x, y, layer, max_dist=4, selector = lambda ent : True):
+        for i in range(max_dist):
+            for j in range(max_dist):
+                this_x = x + i - max_dist/2
+                this_y = y + j - max_dist/2
+                dudes = self.get_entities(this_x,this_y)
+                if layer in dudes:
+                    if selector(dudes[layer]):
+                        return dudes[layer]
+        return None
+                
     def get_free_position(self, layer, tries=10):
         placed = False
         
@@ -213,7 +224,7 @@ class Engine:
             delta_list = {'type' : 'delta',
               'noobs' : noobs,
               'deads' : deads, 
-              'deltas': {},
+              'deltas': {},      
               'frame' : self.current_frame}
             gamestate = { 'type' : 'gs',
                                       'ents' : {}}
@@ -232,7 +243,7 @@ class Engine:
                     delta = entity.get_delta()
                     if len(delta):
                         delta_list['deltas'][entity.id] = delta
-                gamestate['ents'][entity.id] = entity.get_state()
+                    gamestate['ents'][entity.id] = entity.get_state()
                             
             self.current_state = { 'type' : 'gs',
                    'state' : gamestate,

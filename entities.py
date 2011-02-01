@@ -202,14 +202,49 @@ class Alien(Dude):
         Dude.__init__(self,owner)
         self.dude_class = 'alien'
         self.update_texture() 
-       
-    def update(self):
+        self.ai_state = 'roaming' 
 
-        #set dir 
-        if random.choice([True] + [False for x in range(5)]):
-            self.dir = random.choice([UP,DOWN,LEFT,RIGHT,ZERO_VECTOR])
+    def update(self):
+        if self.ai_state == 'roaming':
+            #set dir 
+            
+            def target_selector(target):
+                return isinstance(target,Shrub)
+            target = engine.grid.find_nearest(self.pos.x, self.pos.y, 
+                                             self.layer, max_dist=12,
+                                             selector=target_selector)
+            if target:
+                print 'chasing'
+                self.ai_state = 'chasing'
+                self.target = target
+            elif random.choice([True] + [False for x in range(5)]):
+                self.dir = random.choice([UP,DOWN,LEFT,RIGHT,ZERO_VECTOR])
+            #see if there are any plants in the area, if there are, go afer them
+        if self.ai_state == 'chasing':
+            to_target = self.target.pos - self.pos
+            if to_target.x < 0:
+                self.dir = LEFT
+            elif to_target.x > 0:
+                self.dir = RIGHT
+            elif to_target.y < 0:
+                self.dir = UP
+            elif to_target.y > 0:
+                self.dir = DOWN
+            if to_target.length_squared() <= 1:
+                self.dir = ZERO_VECTOR
+                print 'its close enough!'
+                self.act = 'use'
         Dude.update(self)
-                
+    
+    def use(self):
+        print 'using'
+        if self.target:
+            self.target.die()
+            self.target.parent.harvest()
+            self.target = None
+            self.ai_state = 'roaming'
+            self.act =  None
+    
 class Terrain(Entity):
     
     def __init__(self, pos):
@@ -223,31 +258,28 @@ class Terrain(Entity):
         
     def to_water(self):
         self.terrain_type = 'water'
-        self.update_tex()
         neighbors = engine.grid.get_neighbors(self.pos)
         for dir in neighbors:
             this_dir_ents = neighbors[dir]
-            for layer in this_dir_ents:
-                this_ent = this_dir_ents[layer]
+            if LAYER_GROUND in this_dir_ents:
+                this_ent = this_dir_ents[LAYER_GROUND]
                 if isinstance(this_ent, Terrain):
-                    this_dir_ents[layer].update_tex()
+                    this_ent.update_neighbor(self, dir)
+        self.update_tex()
 
 
-    def update_tex(self):        
-        neighbors =engine.grid.get_neighbors(self.pos)
+    def update_neighbor(self, neighbor, neighbor_dir):        
+        op_dir = DIR_OPPOSITES[neighbor_dir]
+        self.neighbor_types[op_dir] = neighbor.terrain_type
+        self.update_tex()
 
-        
-        for dir in ORDINALS:
-            if dir in neighbors:
-                if LAYER_GROUND in neighbors[dir]:
-                    self.neighbor_types[dir] = neighbors[dir][LAYER_GROUND].terrain_type
 
+    def update_tex(self):
         self.tex = '%s/%s/%s/%s/%s.png' % (self.terrain_type,
                                          self.neighbor_types[UP],
+                                         self.neighbor_types[RIGHT],
                                          self.neighbor_types[DOWN],
-                                         self.neighbor_types[LEFT],
-                                         self.neighbor_types[RIGHT])
-
+                                         self.neighbor_types[LEFT])
 
 
 
@@ -278,11 +310,11 @@ class Road(Entity):
 
 class Shrub(Mover):
 
-    def __init__(self, pos):
+    def __init__(self, pos,parent):
         Entity.__init__(self, pos, ENTITY_SIZE, LAYER_BLOCKS)
         self.plant_size = 0
         self.tex = '/plants/shrub/0.png'
-        
+        self.parent = parent        
     def grow(self):
         self.plant_size += 1
         self.tex = '/plants/shrub/1.png'
@@ -347,14 +379,22 @@ class PlowedPatch(Mover):
     def update_tex(self):        
         self.tex = 'plowed/%s/%s.png' % (self.state, self.type)
 
+    def harvest(self):
+        self.planted = None
+        self.plant_growth_ticks = None
+        self.growing = None
+
     def update(self):
         if self.plant_growth_ticks:
             self.plant_growth_ticks -= 1
             if self.plant_growth_ticks == 0:
                 if self.growing == None:
                     print 'shrubbin'
-                    self.growing = Shrub(self.pos)
-                    self.plant_growth_ticks = PlowedPatch.PLANT_GROWTH_TICKS
+                    try:
+                        self.growing = Shrub(self.pos,self)
+                        self.plant_growth_ticks = PlowedPatch.PLANT_GROWTH_TICKS
+                    except CellFull:
+                        self.plant_growth_ticks = 1
                     
                 else:
                     self.growing.grow()
@@ -384,6 +424,20 @@ class Flag(Mover):
         self.tex = team+'_flag.png'
         self.height= ENTITY_SIZE.x
 
+class Forest:
+
+    def __init__(self, pos_x, pos_y, width, height,edge=2):
+        halfwidth = width*0.5
+        halfheight = height*0.5
+        d_max = sqrt(halfwidth*halfwidth+\
+                     halfheight*halfheight)
+        for x in range(width):
+            for y in range(height):
+                if random.random() < 0.025:
+                    try:
+                        Carryable(vector2(pos_x+x, pos_y+y))
+                    except CellFull:
+                        pass
 
 class FruitPatch:
 
