@@ -1,21 +1,24 @@
 from PIL import Image
 import sys
 
-def chop(filename, square_size):
+def chop(filename, width, height):
 
     im = Image.open(filename)
     sx,sy = im.size
-    for x in range(sx/square_size):
-	for y in range(sy/square_size):
-	    coords =  (x*square_size,
-		    y*square_size, 
-		    (x+1)*square_size,
-		    (y+1)*square_size)
+    for x in range(sx/width):
+	for y in range(sy/height):
+	    coords =  (x*width,
+		    y*height, 
+		    (x+1)*width,
+		    (y+1)*height)
 	    cropped = im.crop(coords)
-	    cropped.save('%s cropped %d %d_%d.png' % (filename, square_size,x,y))
+	    cropped.save('%s cropped %d %d %d_%d.png' % (filename, width, height ,x,y))
 
 
 
 if __name__ == "__main__":
-    chop(sys.argv[1], int(sys.argv[2]))
+    if not len(sys.argv) > 3:
+	print "usage: image_chop.py image width height"
+    else:
+	chop(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]))
 	

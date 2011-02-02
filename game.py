@@ -44,6 +44,7 @@ class Game:
        
         
         FruitPatch(2,2,GRID_SIZE-4,GRID_SIZE-4)
+        Forest(2,2, GRID_SIZE-4, GRID_SIZE-4)
         for x in range(5):
             Alien(None) 
         

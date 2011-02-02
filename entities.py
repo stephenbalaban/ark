@@ -65,7 +65,13 @@ class Mover(Entity):
     def take_smash(self,  smasher):
         self.die()
 
-class Carryable(Mover):
+class Carryable:
+    pass
+
+class Plantable:
+    pass
+
+class Fruit(Carryable, Plantable, Mover):
 
     def __init__(self, pos):
         Entity.__init__(self, pos, ENTITY_SIZE, LAYER_BLOCKS)
@@ -106,6 +112,7 @@ class Dude(Mover):
     def get_delta(self):
         delta = Entity.get_delta(self)
         return delta 
+
     def can_push(self,other):
         can =  isinstance(other, WoodPile)
         can = can or isinstance(other, Flag)
@@ -139,18 +146,26 @@ class Dude(Mover):
            
             if not LAYER_BLOCKS in dudes:
 
-                if LAYER_GROUND_DETAIL in dudes:
-                    ent = dudes[LAYER_GROUND_DETAIL]
-                    if isinstance(ent, PlowedPatch):
-                        if ent.state == 'unplanted':
-                            self.carrying.pos = ent.pos
-                            ent.plant(self.carrying)
-                            self.carrying.carried_by = None
-                            self.carrying.height = 0.5
-                            self.carrying = None
-                            return
+                #check to see if we can plant this object                
+                if isinstance(self.carrying, Plantable):
+                    if LAYER_GROUND_DETAIL in dudes:
+                        ent = dudes[LAYER_GROUND_DETAIL]
+
+                        if isinstance(ent, PlowedPatch):
+                            if ent.state == 'unplanted':
+                                self.carrying.pos = ent.pos
+                                ent.plant(self.carrying)
+                                self.carrying.carried_by = None
+                                self.carrying.height = 0.5
+                                self.carrying = None
+                                return                        
+                elif isinstance(self.carrying, WoodPile):
+                    self.carrying.pos = target_pos
+                    engine.grid.add_entity(self.carrying)
+                    self.carrying.die()
+                    self.carrying = None
+                    Fence(target_pos)
                 else:
-                    print "can plant"
                     self.carrying.pos = target_pos
                     engine.grid.add_entity(self.carrying)
                     self.carrying.carried_by = None
@@ -163,11 +178,13 @@ class Dude(Mover):
         neighbors = engine.grid.get_neighbors(self.pos)
         if self.last_dir in neighbors:
             dudes = neighbors[self.last_dir]
+            print 'near', dudes
             if LAYER_BLOCKS in dudes:
                 other_guy = dudes[LAYER_BLOCKS]
+                print 'acting on', other_guy
                 if isinstance(other_guy, Tree):
                     other_guy.die()
-                    Carryable(other_guy.pos())
+                    WoodPile(other_guy.pos)
                 elif isinstance(other_guy, Carryable):
                     other_guy.carried_by = self
                     #he doesn't count in the grid any more
@@ -236,6 +253,9 @@ class Alien(Dude):
                 self.act = 'use'
         Dude.update(self)
     
+    def can_push(self, other):
+        return False
+
     def use(self):
         print 'using'
         if self.target:
@@ -404,7 +424,7 @@ class PlowedPatch(Mover):
 class Tree(Mover):
     def __init__(self, pos):
         Entity.__init__(self, pos, vector2(8,16), LAYER_BLOCKS)
-        elf.tex = 'full_tree.png'
+        self.tex = 'full_tree.png'
         self.height = ENTITY_SIZE.x*2
 
 class WoodPile(Mover, Carryable):
@@ -415,8 +435,33 @@ class WoodPile(Mover, Carryable):
         self.carried_by = None
         self.height = ENTITY_SIZE.x
 
-    def update(self):
-        Carryable.update(self)
+
+
+class Fence(Mover):
+
+    def __init__(self, pos):
+        Entity.__init__(self, pos, ENTITY_SIZE, LAYER_BLOCKS)
+        self.neighbor_fences = {}
+
+        neighbors = engine.grid.get_neighbors(pos)
+
+        for dir in ORDINALS:
+            self.neigbor_fences[dir] = 'no'
+            if dir in neighbors:
+                if LAYER_BLOCKS in neighbors[dir]:
+                    this_guy = neighbors[dir][LAYER_BLOCKS]
+                    if isinstance(this_guy, Fence):
+                        this_guy.neighbor_fences[DIR_OPPOSITES[dir]] = 'yes'
+                        this_guy.update_texture()
+                        self.neighbor_fernces[dir] = 'yes'
+
+        self.update_texture()
+
+    def update_texture(self):
+        self.tex = '%s/%s/%s/%s.png' % (self.neighbor_fences[UP],
+                                        self.neighbor_fences[RIGHT],
+                                        self.neighbor_fences[DOWN],
+                                         self.neighbor_fences[DOWN])
 
 class Flag(Mover):
     def __init__(self, pos, team):
@@ -435,7 +480,7 @@ class Forest:
             for y in range(height):
                 if random.random() < 0.025:
                     try:
-                        Carryable(vector2(pos_x+x, pos_y+y))
+                        Tree(vector2(pos_x+x, pos_y+y))
                     except CellFull:
                         pass
 
@@ -450,7 +495,7 @@ class FruitPatch:
             for y in range(height):
                 if random.random() < 0.025:
                     try:
-                        Carryable(vector2(pos_x+x, pos_y+y))
+                        Fruit(vector2(pos_x+x, pos_y+y))
                     except CellFull:
                         pass
 
