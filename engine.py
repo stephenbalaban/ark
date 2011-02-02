@@ -276,6 +276,7 @@ class Entity:
                  'id' : -1,
                  'lerp_targets' : {},
                  'lerp_frames' : {},
+                 'frame' : 0
                 }           
 
 
@@ -293,6 +294,7 @@ class Entity:
         self.height = 0
         self.lerp_targets = {}
         self.lerp_frames = {}
+        self.frame = 0
         engine.add_entity(self)
 
     def __setattr__(self, attr_name, value):

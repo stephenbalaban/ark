@@ -27,6 +27,16 @@ function get_entity_pos(ent){
     
         return [x,y,height, cx, cy];
 }
+
+function render_image(ctx,x,y,h,angle,img,s_x,s_y,scale){
+        ctx.translate(x,y-h);
+        ctx.rotate(angle);               
+        ctx.scale(scale,scale);
+        ctx.drawImage(img, -s_x, -s_y)
+        ctx.scale(1.0/scale,1.0/scale);
+        ctx.rotate(-angle);
+        ctx.translate(-x,-(y-h))
+}
 var animations = {
 
     'base' : function(contexts, ent) {
@@ -37,20 +47,13 @@ var animations = {
         var y = pos[1];
         var h = pos[2];
         
-        
-
-        var s_x = ent.size[0]; 
+        var s_x =   ent.size[0]; 
         var s_y = ent.size[1];
         var angle = ent.angle;
         var img = new Image();
         img.src = image_base + ent.tex;
-
-        var ctx = contexts[ent.layer]
-        ctx.translate(x,y-h);
-        ctx.rotate(angle);               
-        ctx.drawImage(img, -s_x, -s_y)
-        ctx.rotate(-angle);
-        ctx.translate(-x,-(y-h));
+        render_image(contexts[ent.layer],x,y,h,angle,img,s_x,s_y,base_scale);
+;
     },
 
     'dude' : function(contexts, ent) {
@@ -76,20 +79,14 @@ var animations = {
         var angle = ent.angle;
         var img = new Image();
 
-    if (! ent.frame)
-        ent.frame = 0;
-    if (walking){
+        if (walking){
             ent.frame =  (ent.frame+1) % 3;
-    }
+        }
 
         img.src = image_base + ent.tex+"/"+ent.frame+".png";
-
-    var ctx = contexts[ent.layer]
-        ctx.translate(x,y-h);
-        ctx.rotate(angle);               
-        ctx.drawImage(img, -s_x, -s_y)
-        ctx.rotate(-angle);
-        ctx.translate(-x,-y+h);
+        
+        var ctx = contexts[ent.layer]
+        render_image(ctx,x,y,h,angle,img,s_x,s_y,base_scale);
     } 
 
 

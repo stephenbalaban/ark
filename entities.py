@@ -178,10 +178,10 @@ class Dude(Mover):
         neighbors = engine.grid.get_neighbors(self.pos)
         if self.last_dir in neighbors:
             dudes = neighbors[self.last_dir]
-            print 'near', dudes
+            #print 'near', dudes
             if LAYER_BLOCKS in dudes:
                 other_guy = dudes[LAYER_BLOCKS]
-                print 'acting on', other_guy
+                #print 'acting on', other_guy
                 if isinstance(other_guy, Tree):
                     other_guy.die()
                     WoodPile(other_guy.pos)
@@ -462,7 +462,6 @@ class Fence(Mover, Entity):
                                         self.neighbor_fences[RIGHT],
                                         self.neighbor_fences[DOWN],
                                          self.neighbor_fences[LEFT])
-	print 'my tex is', self.tex
 
 class Flag(Mover):
     def __init__(self, pos, team):
@@ -503,7 +502,7 @@ class FruitPatch:
 
 class Building:
     def __init__(self, pos_x, pos_y, width, height):
-        print "building a building"
+        
         #add the baseline
         self.parts = {}
         for x in range(width):

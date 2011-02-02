@@ -14,10 +14,11 @@ var socket = 0;
 //on different layers. 
 var canvas_layers = {}
 //how big is the canvas?
-var canvas_width = 400;
-var canvas_height = 400;
-var entity_size = 16;
+var canvas_width = 800;
+var canvas_height = 800;
+var entity_size = 32;
 var camera_ent_id = -1;
+var base_scale = 2;
 //all the images are stored in the same directory
 //to save on bandwidth we know to prefix them all with this
 var image_base = '/static/images/';
