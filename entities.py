@@ -425,7 +425,7 @@ class Tree(Mover):
     def __init__(self, pos):
         Entity.__init__(self, pos, vector2(8,16), LAYER_BLOCKS)
         self.tex = 'full_tree.png'
-        self.height = ENTITY_SIZE.x*2
+        self.height = ENTITY_SIZE.x
 
 class WoodPile(Mover, Carryable):
     
@@ -437,7 +437,7 @@ class WoodPile(Mover, Carryable):
 
 
 
-class Fence(Mover):
+class Fence(Mover, Entity):
 
     def __init__(self, pos):
         Entity.__init__(self, pos, ENTITY_SIZE, LAYER_BLOCKS)
@@ -446,22 +446,23 @@ class Fence(Mover):
         neighbors = engine.grid.get_neighbors(pos)
 
         for dir in ORDINALS:
-            self.neigbor_fences[dir] = 'no'
+            self.neighbor_fences[dir] = 'no'
             if dir in neighbors:
                 if LAYER_BLOCKS in neighbors[dir]:
                     this_guy = neighbors[dir][LAYER_BLOCKS]
                     if isinstance(this_guy, Fence):
                         this_guy.neighbor_fences[DIR_OPPOSITES[dir]] = 'yes'
                         this_guy.update_texture()
-                        self.neighbor_fernces[dir] = 'yes'
+                        self.neighbor_fences[dir] = 'yes'
 
         self.update_texture()
 
     def update_texture(self):
-        self.tex = '%s/%s/%s/%s.png' % (self.neighbor_fences[UP],
+        self.tex = 'fence/%s/%s/%s/%s.png' % (self.neighbor_fences[UP],
                                         self.neighbor_fences[RIGHT],
                                         self.neighbor_fences[DOWN],
-                                         self.neighbor_fences[DOWN])
+                                         self.neighbor_fences[LEFT])
+	print 'my tex is', self.tex
 
 class Flag(Mover):
     def __init__(self, pos, team):
