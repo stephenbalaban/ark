@@ -14,6 +14,22 @@ LAYER_WATER = LAYER_GROUND+1
 LAYER_GROUND_DETAIL = LAYER_WATER+1
 LAYER_BLOCKS = LAYER_GROUND_DETAIL +1 
 
+class Air: 
+    def __init__(self,pos):
+        self.pos = pos
+
+    def can_smash(self, other):
+        return True
+
+    def smash(self, other):        
+        print 'air is smashing', other
+        if isinstance(other, Terrain):
+            if other.terrain_type == 'grass':
+                PlowedPatch(other.pos)
+
+        elif isinstance(other, Tree):
+            other.die()
+            WoodPile(other.pos)
 
 ACT_PLACE = 1
 class Mover(Entity):
@@ -58,7 +74,9 @@ class Mover(Entity):
     def push(self, victim):
         pass
     def smash(self, victim):
-        pass
+        self.pos = victim.pos
+
+
             
     def take_push(self, pusher, target):
         self.move(target)
@@ -68,7 +86,18 @@ class Mover(Entity):
 class Carryable:
     pass
 
+    def smash(self, victim):
+        self.carried_by = None
+        self.height = ENTITY_SIZE.x*0.5
+        Mover.smash(self, victim)
+        engine.grid.add_entity(self)    
+
+
+
 class Plantable:
+    pass
+
+class Craftable:
     pass
 
 class Fruit(Carryable, Plantable, Mover):
@@ -80,6 +109,25 @@ class Fruit(Carryable, Plantable, Mover):
         self.tex = "carried\\%s.png" % self.type
         self.height = ENTITY_SIZE.x*0.5
         self.carried_by = None
+
+    def can_smash(self, victim):
+        print 'want to smash', victim
+        can = isinstance(victim, PlowedPatch)
+        can = can or isinstance(victim, Terrain)
+        return can
+
+    def smash(self, victim):
+        print 'smashing', victim
+        #check to see if we can plant this object                
+        if isinstance(victim, PlowedPatch):
+            print 'going on a patch'
+            if victim.state == 'unplanted':
+                victim.plant(self)
+                self.tex = 'none.png'
+                return
+        self.carried_by = None 
+        Carryable.smash(self,victim)
+        
 
 class Dude(Mover):
 
@@ -135,66 +183,49 @@ class Dude(Mover):
         self.update_texture()
          
 
+
+                        
+
+
     def use(self):
+
+        target_pos = self.pos + self.last_dir
+        dudes = engine.grid.get_entities(target_pos.x, target_pos.y)
+        move = False
         
-
-        if self.carrying:
+        if self.carrying:  
+            smasher = self.carrying
             
-            target_pos = self.pos + self.last_dir
-            dudes = engine.grid.get_entities(target_pos.x, target_pos.y)
-
-           
-            if not LAYER_BLOCKS in dudes:
-
-                #check to see if we can plant this object                
-                if isinstance(self.carrying, Plantable):
-                    if LAYER_GROUND_DETAIL in dudes:
-                        ent = dudes[LAYER_GROUND_DETAIL]
-
-                        if isinstance(ent, PlowedPatch):
-                            if ent.state == 'unplanted':
-                                self.carrying.pos = ent.pos
-                                ent.plant(self.carrying)
-                                self.carrying.carried_by = None
-                                self.carrying.height = 0.5
-                                self.carrying = None
-                                return                        
-                elif isinstance(self.carrying, WoodPile):
-                    self.carrying.pos = target_pos
-                    engine.grid.add_entity(self.carrying)
-                    self.carrying.die()
-                    self.carrying = None
-                    Fence(target_pos)
-                else:
-                    self.carrying.pos = target_pos
-                    engine.grid.add_entity(self.carrying)
-                    self.carrying.carried_by = None
-                    self.carrying.height = ENTITY_SIZE.x*0.5
-                    self.carrying = None
+            for layer in [LAYER_BLOCKS, 
+                          LAYER_GROUND_DETAIL,
+                          LAYER_GROUND]:
+                if layer in dudes: 
+                    if smasher.can_smash(dudes[layer]):
+                        smasher.smash(dudes[layer])
+                        self.carrying = None
+                    break
             return
-       
-       
-        #check for an item to act on
+   
+    #check for an item to act on
         neighbors = engine.grid.get_neighbors(self.pos)
         if self.last_dir in neighbors:
             dudes = neighbors[self.last_dir]
-            #print 'near', dudes
-            if LAYER_BLOCKS in dudes:
-                other_guy = dudes[LAYER_BLOCKS]
-                #print 'acting on', other_guy
-                if isinstance(other_guy, Tree):
-                    other_guy.die()
-                    WoodPile(other_guy.pos)
-                elif isinstance(other_guy, Carryable):
-                    other_guy.carried_by = self
-                    #he doesn't count in the grid any more
-                    engine.grid.remove_entity(other_guy)
-                    other_guy.height = ENTITY_SIZE.x*2.5
-                    self.carrying = other_guy
-                    other_guy.pos = self.pos
-            elif not LAYER_GROUND_DETAIL in dudes:
-                PlowedPatch(self.pos+self.last_dir)
-
+            for layer in [LAYER_BLOCKS,
+                            LAYER_GROUND_DETAIL,
+                            LAYER_GROUND]:
+                if layer in dudes:
+                    other_guy = dudes[layer]
+                    if isinstance(other_guy, Carryable):
+                        other_guy.carried_by = self
+                        #he doesn't count in the grid any more
+                        engine.grid.remove_entity(other_guy)
+                        other_guy.height = ENTITY_SIZE.x*2.5
+                        self.carrying = other_guy
+                        other_guy.pos = self.pos
+                    else: 
+                        print "air smasing a ", other_guy
+                        Air(self.pos).smash(other_guy)                    
+                    break
 
     def update_texture(self):
         self.tex = ('%s/%s/%s' % (self.dude_class,
@@ -404,7 +435,7 @@ class PlowedPatch(Mover):
         self.plant_growth_ticks = None
         self.growing = None
 
-    def update(self):
+    def update(self):        
         if self.plant_growth_ticks:
             self.plant_growth_ticks -= 1
             if self.plant_growth_ticks == 0:
@@ -414,7 +445,8 @@ class PlowedPatch(Mover):
                         self.growing = Shrub(self.pos,self)
                         self.plant_growth_ticks = PlowedPatch.PLANT_GROWTH_TICKS
                     except CellFull:
-                        self.plant_growth_ticks = 1
+                        print "FUCK ME counldn't plant a plant"
+                        self.plant_growth_ticks = 0
                     
                 else:
                     self.growing.grow()
@@ -436,6 +468,22 @@ class WoodPile(Mover, Carryable):
         self.height = ENTITY_SIZE.x
 
 
+    def can_smash(self, other):
+        print 'wood wnats to smash', other
+        can = isinstance(other, Terrain)
+        can = can or isinstance(other, PlowedPatch)
+        return can
+
+    def smash(self, other):
+        if isinstance(other, Terrain):
+            print 'smashing the dirt'
+            Carryable.smash(self,other)
+           
+        elif isinstance(other, PlowedPatch):
+            print 'making a fence'
+            other.die()            
+            self.die()
+            Fence(other.pos) 
 
 class Fence(Mover, Entity):
 
