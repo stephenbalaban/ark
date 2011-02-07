@@ -112,7 +112,7 @@ class SocketConnectionHandler (tornado.websocket.WebSocketHandler):
         
     def open(self):
         print "Client",self.client.id," opened a socket. They are alive!"
-        self.client.send(engine.current_state)
+        self.client.send(engine.metagrid.current_state)
         self.client.spawn_dude()
         print "state sent!"
 

@@ -17,8 +17,7 @@ DOWN_RIGHT = DOWN+RIGHT
 DIAGONALS = [UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT]
 ALL_DIRS = DIAGONALS + ORDINALS
 ENTITY_SIZE = vector2(8,8)
-GRID_SIZE = 32
-
+GRID_SIZE =  32
 class ClientManager:
     
     def __init__(self):
@@ -46,7 +45,7 @@ class ClientManager:
 class CellFull(Exception): pass
 class GridCell:
         
-        def __init__(self, num_layers):
+        def __init__(self):
 
             self.entities = {}
 
@@ -82,9 +81,9 @@ class GridCell:
 
 class GameGrid:
 
-    def __init__(self, num_layers, size):
+    def __init__(self, size):
 
-        self.cells =  [[ GridCell(num_layers)
+        self.cells =  [[ GridCell()
                          for  y in range(size)]
                             for x in range(size)]
         self.size = size
@@ -148,19 +147,41 @@ class GameGrid:
 
 
 class Engine:
+    "The engine controls the whole game, updating entities and shit"
+    def __init__(self):
+        self.noobs = []
+        self.next_id = []
+        self.current_frame = 0  
+        self.metagrid = MetaGridCell()
+
+    def get_metagrid_cell(self, x, y):
+        return self.metagrid
+
+    def add_entity(self, new_guy):
+        self.metagrid.add_entity(new_guy)
+        return
+        self.noobs += [new_guy]
+        new_guy.id = self.next_id
+        self.next_id += 1       
+                
+    def add_client(self, client):
+        self.metagrid.add_client(client)
+
+    def remove_entity(self, ent):
+        self.metagrid.remove_entity(ent)
+  
+    def update(self):
+        self.metagrid.update() 
+
+class MetaGridCell:
         """encapsulates the behavior of the entire game"""
         def __init__(self):
                 self.client_manager = ClientManager()        
                 self.dude_map = {}
-                self.next_id = 0
                 self.noobs = []
+                self.next_id = 1
+                self.grid = GameGrid(GRID_SIZE)
                 self.current_frame = 0
-                self.grid = GameGrid(4, 256)
-
-        def set_game(self, game):
-                "Sets self.game. Game entities can use " \
-                "this property to mess with the game as a whole. "
-                self.game = game
                 
         def add_client(self, client):
                 #add this guy to the list of clients
@@ -174,7 +195,11 @@ class Engine:
                 self.grid.add_entity(entity)
 
 
-        def add_noobs(self):
+        def remove_entity(self, entity):
+                self.dude_map[entity.id] = None
+                self.grid.remove_entity(entity)
+
+        def _add_noobs(self):
                 noob_map = {}
                 for noob in self.noobs:
                         self.dude_map[noob.id] = noob
@@ -184,7 +209,7 @@ class Engine:
                 return noob_map
 
 
-        def get_entities_in_radius(self, pos, radius):
+        def _get_entities_in_radius(self, pos, radius):
 
                 results = []
                 for id in self.dude_map:
@@ -195,11 +220,8 @@ class Engine:
                 return results
 
 
-        def remove_entity(self, entity):
-                self.dude_map[entity.id] = None
-                self.grid.remove_entity(entity)
 
-        def update_entity_map(self):
+        def _update_entity_map(self):
                 # prune out the dead entities by building a new entity map
                 
                 new_map = {}
@@ -211,7 +233,7 @@ class Engine:
                         else:
                                 deads += [id]
                 self.dude_map = new_map
-                noobs = self.add_noobs()
+                noobs = self._add_noobs()
                 self.current_frame += 1
 
                 return noobs, deads
@@ -220,7 +242,7 @@ class Engine:
                 
         def update(self):
                 
-            noobs, deads = self.update_entity_map()
+            noobs, deads = self._update_entity_map()
             delta_list = {'type' : 'delta',
               'noobs' : noobs,
               'deads' : deads, 
@@ -307,9 +329,9 @@ class Entity:
         self.__dict__[attr_name] =  value
 
     def move(self, new_pos):
-        engine.grid.remove_entity(self)
+        engine.metagrid.grid.remove_entity(self)
         self.pos = new_pos
-        engine.grid.add_entity(self)
+        engine.metagrid.grid.add_entity(self)
     
     def update(self):
         pass 

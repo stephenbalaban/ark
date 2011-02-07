@@ -71,19 +71,4 @@ class Game:
     def update(self):
         engine.update()
         
-        score_msg = self.get_score_msg()
-        if score_msg != self.old_score_msg:
-            #print score_msg
-            engine.client_manager.broadcast(score_msg)
-            self.old_score_msg = score_msg
 
-
-    def get_score_msg(self):
-        scores = []
-        for client_id in engine.client_manager.clients:
-            client = engine.client_manager.clients[client_id]
-            scores += [{'player' : client.name,
-                        'kills' : client.kill_count}]
-        return {'type' :  'score',
-                'scores' : scores}
-            

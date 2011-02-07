@@ -40,10 +40,10 @@ class Mover(Entity):
             target = self.pos + push_dir;
             other_target = target+push_dir;
 
-            ents = engine.grid.get_entities(target.x,
+            ents = engine.metagrid.grid.get_entities(target.x,
                                             target.y)
 
-            other_ents = engine.grid.get_entities(other_target.x,
+            other_ents = engine.metagrid.grid.get_entities(other_target.x,
                                                    other_target.y)
             blocked = False
             if  self.layer in ents:
@@ -90,7 +90,7 @@ class Carryable:
         self.carried_by = None
         self.height = ENTITY_SIZE.x*0.5
         Mover.smash(self, victim)
-        engine.grid.add_entity(self)    
+        engine.metagrid.grid.add_entity(self)    
 
 
 
@@ -133,7 +133,7 @@ class Dude(Mover):
 
     def __init__(self,owner):
 
-        pos = engine.grid.get_free_position(LAYER_BLOCKS)
+        pos = engine.metagrid.grid.get_free_position(LAYER_BLOCKS)
 
         Entity.__init__(self, pos, ENTITY_SIZE, LAYER_BLOCKS )
 
@@ -190,7 +190,7 @@ class Dude(Mover):
     def use(self):
 
         target_pos = self.pos + self.last_dir
-        dudes = engine.grid.get_entities(target_pos.x, target_pos.y)
+        dudes = engine.metagrid.grid.get_entities(target_pos.x, target_pos.y)
         move = False
         
         if self.carrying:  
@@ -207,7 +207,7 @@ class Dude(Mover):
             return
    
     #check for an item to act on
-        neighbors = engine.grid.get_neighbors(self.pos)
+        neighbors = engine.metagrid.grid.get_neighbors(self.pos)
         if self.last_dir in neighbors:
             dudes = neighbors[self.last_dir]
             for layer in [LAYER_BLOCKS,
@@ -218,7 +218,7 @@ class Dude(Mover):
                     if isinstance(other_guy, Carryable):
                         other_guy.carried_by = self
                         #he doesn't count in the grid any more
-                        engine.grid.remove_entity(other_guy)
+                        engine.metagrid.grid.remove_entity(other_guy)
                         other_guy.height = ENTITY_SIZE.x*2.5
                         self.carrying = other_guy
                         other_guy.pos = self.pos
@@ -258,9 +258,9 @@ class Alien(Dude):
             
             def target_selector(target):
                 return isinstance(target,Shrub)
-            target = engine.grid.find_nearest(self.pos.x, self.pos.y, 
-                                             self.layer, max_dist=12,
-                                             selector=target_selector)
+            target = engine.metagrid.grid.find_nearest(self.pos.x, self.pos.y, 
+                                                 self.layer, max_dist=12,
+                                                 selector=target_selector)
             if target:
                 print 'chasing'
                 self.ai_state = 'chasing'
@@ -309,7 +309,7 @@ class Terrain(Entity):
         
     def to_water(self):
         self.terrain_type = 'water'
-        neighbors = engine.grid.get_neighbors(self.pos)
+        neighbors = engine.metagrid.grid.get_neighbors(self.pos)
         for dir in neighbors:
             this_dir_ents = neighbors[dir]
             if LAYER_GROUND in this_dir_ents:
@@ -342,7 +342,7 @@ class Lake:
 
         for i in range(length):
             for j in range(width):
-                ents = engine.grid.get_entities(x+i,y+j)
+                ents = engine.metagrid.grid.get_entities(x+i,y+j)
                 if LAYER_GROUND in ents:
                     ents[LAYER_GROUND].to_water()
 
@@ -379,7 +379,7 @@ class PlowedPatch(Mover):
     def __init__(self, pos):
         Entity.__init__(self, pos, ENTITY_SIZE, LAYER_GROUND_DETAIL)
         #check for neighbors above and below, changing them if necessary
-        neighbors = engine.grid.get_neighbors(self.pos)
+        neighbors = engine.metagrid.grid.get_neighbors(self.pos)
         has_neighbors = {UP:False, DOWN: False}
         for dir in [UP, DOWN]:
             if dir in neighbors:
@@ -491,7 +491,7 @@ class Fence(Mover, Entity):
         Entity.__init__(self, pos, ENTITY_SIZE, LAYER_BLOCKS)
         self.neighbor_fences = {}
 
-        neighbors = engine.grid.get_neighbors(pos)
+        neighbors = engine.metagrid.grid.get_neighbors(pos)
 
         for dir in ORDINALS:
             self.neighbor_fences[dir] = 'no'
