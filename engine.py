@@ -1,6 +1,6 @@
 import random
 from vector2 import *
-
+import time
 TICK_PERIOD = 250
 UP = vector2(0,-1)
 DOWN = vector2(0,1)
@@ -17,7 +17,8 @@ DOWN_RIGHT = DOWN+RIGHT
 DIAGONALS = [UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT]
 ALL_DIRS = DIAGONALS + ORDINALS
 ENTITY_SIZE = vector2(8,8)
-GRID_SIZE =  32
+GRID_SIZE = 8 
+
 class ClientManager:
     
     def __init__(self):
@@ -110,16 +111,7 @@ class GameGrid:
         else:
             return self.cells[ent.pos.x][ent.pos.y].remove_entity(ent)
 
-    def find_nearest(self, x, y, layer, max_dist=4, selector = lambda ent : True):
-        for i in range(max_dist):
-            for j in range(max_dist):
-                this_x = x + i - max_dist/2
-                this_y = y + j - max_dist/2
-                dudes = self.get_entities(this_x,this_y)
-                if layer in dudes:
-                    if selector(dudes[layer]):
-                        return dudes[layer]
-        return None
+  
                 
     def get_free_position(self, layer, tries=10):
         placed = False
@@ -132,18 +124,68 @@ class GameGrid:
                 return vector2(x,y)
         return None
 
+class MetaGrid:
+
+    def __init__(self):
+
+        self.cells = {}
+        
+    def get_cell(self, x, y):
+        g_x = x - (x%GRID_SIZE)
+        g_y = y - (y%GRID_SIZE)
+
+        if not (g_x,g_y) in self.cells:
+            print 'Spawning a cell at %d, %d' % (g_x,g_y)
+            self.cells[(g_x,g_y)] = MetaGridCell((g_x,g_y))
+        return self.cells[(g_x, g_y)] 
+
+    def add_entity(self, new_guy): 
+        self.get_cell(new_guy.pos.x, new_guy.pos.y).add_entity(new_guy) 
+
+    def remove_entity(self, dead_guy):
+        self.get_cell(dead_guy.pos.x, dead_guy.pos.y).remove_entity(dead_guy)
+
+    def move_entity(self, mover, new_pos):
+        self.get_cell(mover.pos.y, mover.pos.y).remove_entity(mover)
+        mover.pos = new_pos
+        self.get_cell(new_pos.x, new_pos.y).add_entity(mover)
+        
+    def get_entities(self, x, y):
+        return self.get_cell(x,y).grid.get_entities(x,y)
+
     def get_neighbors(self, pos):
         neighbors = {}
-        if pos.x >= 0:
-            neighbors[LEFT] = self.get_entities(pos.x-1, pos.y)
-        if pos.x < GRID_SIZE:
-            neighbors[RIGHT] = self.get_entities(pos.x+1, pos.y)
-        if pos.y >= 0:
-            neighbors[UP] = self.get_entities(pos.x, pos.y-1)
-        if pos.y < GRID_SIZE:
-            neighbors[DOWN] =self.get_entities(pos.x, pos.y+1)  
+
+        neighbors[LEFT] = self.get_entities(pos.x-1, pos.y)
+        neighbors[RIGHT] = self.get_entities(pos.x+1, pos.y)
+        neighbors[UP] = self.get_entities(pos.x, pos.y-1)
+        neighbors[DOWN] =self.get_entities(pos.x, pos.y+1)  
 
         return neighbors
+
+    def get_free_position(self, layer, tries=10):
+        keys = [k for k in self.cells]
+        return self.cells[random.choice(keys)].get_free_position(layer)
+
+    def add_client(self, client):
+        self.get_cell(client.dude.pos.x,
+                      client.dude.pos.y).add_client(client)
+    def update(self):
+        keys = [k for k in self.cells]
+        random.shuffle(keys)
+        for key in keys:
+            self.cells[key].update()
+                    
+
+    def find_nearest(self, x, y, layer, max_dist=4, selector = lambda ent : True):
+        for i in range(max_dist):
+            for j in range(max_dist):
+                this_x = x + i - max_dist/2
+                this_y = y + j - max_dist/2
+                dudes = self.get_entities(this_x,this_y)
+                if layer in dudes:
+                    if selector(dudes[layer]):
+                        return dudes[layer]
 
 
 class Engine:
@@ -152,59 +194,77 @@ class Engine:
         self.noobs = []
         self.next_id = []
         self.current_frame = 0  
-        self.metagrid = MetaGridCell()
-
-    def get_metagrid_cell(self, x, y):
-        return self.metagrid
+        self.metagrid = MetaGrid()
+        
 
     def add_entity(self, new_guy):
         self.metagrid.add_entity(new_guy)
-        return
-        self.noobs += [new_guy]
-        new_guy.id = self.next_id
-        self.next_id += 1       
-                
+        
     def add_client(self, client):
-        self.metagrid.add_client(client)
+        self.metagrid.get_cell(client.dude.pos.x,
+                                client.dude.pos.y).add_client(client)
 
     def remove_entity(self, ent):
         self.metagrid.remove_entity(ent)
-  
+ 
+    def get_entities(self, x, y):
+        return self.metagrid.get_entities(x,y)
+
     def update(self):
-        self.metagrid.update() 
+        start = time.time()
+        self.metagrid.update()
+        stop = time.time()
+        print 'Update took %.3f seconds' % (stop - start)
+        
 
 class MetaGridCell:
         """encapsulates the behavior of the entire game"""
-        def __init__(self):
+        def __init__(self,pos):
                 self.client_manager = ClientManager()        
                 self.dude_map = {}
                 self.noobs = []
-                self.next_id = 1
+                self.deads = {}
+                self.pos = pos
                 self.grid = GameGrid(GRID_SIZE)
                 self.current_frame = 0
+                self.current_state = None
+                self.updaters = {} 
                 
         def add_client(self, client):
                 #add this guy to the list of clients
                 self.client_manager.add_client(client)
-                
+                client.send(self.current_state)
+
 
         def add_entity(self, entity):
-                self.next_id += 1
-                self.noobs += [entity]
-                entity.id = self.next_id
+
+                if hasattr(entity,'id') and entity.id in self.deads:
+                    del self.deads[entity.id]
+                else:
+                    self.noobs += [entity]
+                    entity.id = self.make_entity_id()
+
+
                 self.grid.add_entity(entity)
 
-
+        def make_entity_id(self):
+            return ''.join([random.choice(['0123456789abcedfeABCDEF']) for x in range(32)])
+    
         def remove_entity(self, entity):
-                self.dude_map[entity.id] = None
+                self.deads[entity.id] = entity
                 self.grid.remove_entity(entity)
+                
+
+        def get_free_position(self, layer):
+            return self.grid.get_free_position(layer)
 
         def _add_noobs(self):
                 noob_map = {}
                 for noob in self.noobs:
                         self.dude_map[noob.id] = noob
                         noob_map[noob.id] = noob.get_state()
-
+                        if isinstance(noob, Updater):
+                            self.updaters[noob] = True
                 self.noobs = []
                 return noob_map
 
@@ -224,24 +284,25 @@ class MetaGridCell:
         def _update_entity_map(self):
                 # prune out the dead entities by building a new entity map
                 
-                new_map = {}
                 deads = []
+                new_map = {}
                 for id in self.dude_map:
                         entity = self.dude_map[id]
-                        if (entity):
-                                new_map[id] = entity
+                        if (entity and not entity.id in self.deads):
+                            new_map[id] = entity
                         else:
-                                deads += [id]
+                            deads += [id]
+                            if isinstance(entity,Updater):
+                                del self.updaters[self.deads[id]]
                 self.dude_map = new_map
                 noobs = self._add_noobs()
                 self.current_frame += 1
-
+                self.deads = {}
                 return noobs, deads
 
                           
                 
         def update(self):
-                
             noobs, deads = self._update_entity_map()
             delta_list = {'type' : 'delta',
               'noobs' : noobs,
@@ -254,10 +315,8 @@ class MetaGridCell:
                 client = self.client_manager.clients[client_id]
                 client.update()
 
-            for ent_id in self.dude_map:
-                entity = self.dude_map[ent_id]
-                if entity:
-                    entity.update()
+            for entity in self.updaters:
+                entity.update()
 
             for ent_id in self.dude_map:
                 entity = self.dude_map[ent_id]
@@ -329,9 +388,7 @@ class Entity:
         self.__dict__[attr_name] =  value
 
     def move(self, new_pos):
-        engine.metagrid.grid.remove_entity(self)
-        self.pos = new_pos
-        engine.metagrid.grid.add_entity(self)
+        engine.metagrid.move_entity(self,new_pos)
     
     def update(self):
         pass 
@@ -367,6 +424,8 @@ class Entity:
         self.delta = {}
         return out_delta
                 
+class Updater: pass
+
 def clamp (min_, x, max_): 
     if x < min_:
         return min_

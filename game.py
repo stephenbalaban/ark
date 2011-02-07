@@ -14,7 +14,7 @@ class Game:
     def make_maze(self):
 
         #make the boundaries
-        walls = True
+        walls =False 
         add_road=False;
         
         forest_size = 4
@@ -43,10 +43,10 @@ class Game:
                     pass
        
         
-        FruitPatch(2,2,GRID_SIZE-4,GRID_SIZE-4)
-        Forest(2,2, GRID_SIZE-4, GRID_SIZE-4)
-        for x in range(5):
-            Alien(None) 
+        #FruitPatch(2,2,GRID_SIZE-4,GRID_SIZE-4)
+        #Forest(2,2, GRID_SIZE-4, GRID_SIZE-4)
+        #for x in range(5):
+        #    Alien(None) 
         
         #Flag(engine.grid.get_free_position(LAYER_BLOCKS), "red")
         #Flag(engine.grid.get_free_position(LAYER_BLOCKS),"blue")

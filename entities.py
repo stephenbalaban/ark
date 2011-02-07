@@ -40,10 +40,10 @@ class Mover(Entity):
             target = self.pos + push_dir;
             other_target = target+push_dir;
 
-            ents = engine.metagrid.grid.get_entities(target.x,
+            ents = engine.metagrid.get_entities(target.x,
                                             target.y)
 
-            other_ents = engine.metagrid.grid.get_entities(other_target.x,
+            other_ents = engine.metagrid.get_entities(other_target.x,
                                                    other_target.y)
             blocked = False
             if  self.layer in ents:
@@ -129,11 +129,13 @@ class Fruit(Carryable, Plantable, Mover):
         Carryable.smash(self,victim)
         
 
-class Dude(Mover):
+class Dude(Mover, Updater):
+    
 
     def __init__(self,owner):
 
-        pos = engine.metagrid.grid.get_free_position(LAYER_BLOCKS)
+        pos = engine.metagrid.get_free_position(LAYER_BLOCKS)
+        print 'spawning a dude at', pos
 
         Entity.__init__(self, pos, ENTITY_SIZE, LAYER_BLOCKS )
 
@@ -190,7 +192,7 @@ class Dude(Mover):
     def use(self):
 
         target_pos = self.pos + self.last_dir
-        dudes = engine.metagrid.grid.get_entities(target_pos.x, target_pos.y)
+        dudes = engine.get_entities(target_pos.x,target_pos.y)
         move = False
         
         if self.carrying:  
@@ -207,7 +209,7 @@ class Dude(Mover):
             return
    
     #check for an item to act on
-        neighbors = engine.metagrid.grid.get_neighbors(self.pos)
+        neighbors = engine.metagrid.get_neighbors(self.pos)
         if self.last_dir in neighbors:
             dudes = neighbors[self.last_dir]
             for layer in [LAYER_BLOCKS,
@@ -218,7 +220,7 @@ class Dude(Mover):
                     if isinstance(other_guy, Carryable):
                         other_guy.carried_by = self
                         #he doesn't count in the grid any more
-                        engine.metagrid.grid.remove_entity(other_guy)
+                        engine.metagrid.remove_entity(other_guy)
                         other_guy.height = ENTITY_SIZE.x*2.5
                         self.carrying = other_guy
                         other_guy.pos = self.pos
@@ -258,7 +260,7 @@ class Alien(Dude):
             
             def target_selector(target):
                 return isinstance(target,Shrub)
-            target = engine.metagrid.grid.find_nearest(self.pos.x, self.pos.y, 
+            target = engine.metagrid.find_nearest(self.pos.x, self.pos.y, 
                                                  self.layer, max_dist=12,
                                                  selector=target_selector)
             if target:
@@ -373,13 +375,13 @@ class Shrub(Mover):
 
 
 
-class PlowedPatch(Mover):
+class PlowedPatch(Mover, Updater):
 
     PLANT_GROWTH_TICKS = 20
     def __init__(self, pos):
         Entity.__init__(self, pos, ENTITY_SIZE, LAYER_GROUND_DETAIL)
         #check for neighbors above and below, changing them if necessary
-        neighbors = engine.metagrid.grid.get_neighbors(self.pos)
+        neighbors = engine.metagrid.get_neighbors(self.pos)
         has_neighbors = {UP:False, DOWN: False}
         for dir in [UP, DOWN]:
             if dir in neighbors:

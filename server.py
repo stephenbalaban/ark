@@ -31,6 +31,9 @@ class ImageHandler (tornado.web.RequestHandler):
 
             
 class Client:    
+
+    next_id = 1
+
     def __init__(self, socket):
 
         self.updates =  0 
@@ -46,25 +49,34 @@ class Client:
                                     "Wussomatic",
                                     "Llamatastic",
                                     "Failarious"])
-        engine.add_client(self)
         self.death_count = 0
         self.kill_count = 0
         self.disconnected = False
-        
+        self.id = Client.next_id
+        Client.next_id += 1 
         print "client",self.id,"spawned."
         
     
     def spawn_dude(self):
-        self.dude =  Dude(self)
+        self.dude = Dude(self)
         self.dude.on_die = self.handle_player_die
         self.send({'type' : 'client_info', 
             'camera_ent_id' : self.dude.id})
+        engine.metagrid.add_client(self)
 
+
+    def follow_dude(self, dude):
+        self.following = dude
     def update(self):
         if self.dude == None:
             print "dudeless"
             return
-    
+   
+
+        #check to make sure the guy can see what's around him
+        for dir in ALL_DIRS:
+            t = self.dude.pos+dir*GRID_SIZE
+            engine.metagrid.get_cell(t.x, t.y)
         self.dude.dir = self.dir
         self.dude.act = self.act
         self.dir = ZERO_VECTOR
@@ -91,6 +103,7 @@ class Client:
             self.dude.die(self)
         
     def send(self, message):
+        #print 'sending', message
         self.socket.write_message(message)
         
     def on_message(self, message):                        
@@ -112,9 +125,7 @@ class SocketConnectionHandler (tornado.websocket.WebSocketHandler):
         
     def open(self):
         print "Client",self.client.id," opened a socket. They are alive!"
-        self.client.send(engine.metagrid.current_state)
         self.client.spawn_dude()
-        print "state sent!"
 
 game = Game()
 game.make_maze()
