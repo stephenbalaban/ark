@@ -5,10 +5,12 @@ import tornado.websocket
 import os
 import random
 import math
+import json
 
 from entities import *
 from engine import *
 from game import *
+from scribit import log, logged, timed
 
 DIRS = { 'LEFT' : LEFT, 'DOWN' : DOWN, 'RIGHT' : RIGHT, 'UP' : UP}
 class  MainHandler (tornado.web.RequestHandler):
@@ -32,15 +34,15 @@ class ImageHandler (tornado.web.RequestHandler):
             
 class Client:    
 
-    next_id = 1
 
     def __init__(self, socket):
-
+        "Creating a new client." 
         self.updates =  0 
         self.socket = socket        
         self.dir = ZERO_VECTOR 
         socket.on_message = self.on_message
-        
+       
+        self.watching = {}
         self.act = None
         self.bomb = None
         self.bomb_cooldown = 0
@@ -52,38 +54,57 @@ class Client:
         self.death_count = 0
         self.kill_count = 0
         self.disconnected = False
-        self.id = Client.next_id
-        Client.next_id += 1 
-        print "client",self.id,"spawned."
-        
-    
+        self.id = engine.make_id() 
+        log ("%s joined the game" % self)
+
+    def __repr__ (self):
+        return 'Client %s' % self.id
+
     def spawn_dude(self):
         self.dude = Dude(self)
         self.dude.on_die = self.handle_player_die
         self.send({'type' : 'client_info', 
-            'camera_ent_id' : self.dude.id})
+                    'camera_ent_id' : self.dude.id})
         engine.metagrid.add_client(self)
 
 
     def follow_dude(self, dude):
         self.following = dude
+
+    def delta_matters(self, delta):
+        return len(delta['deltas']) or\
+               len(delta['noobs']) or\
+                len(delta['deads'])
     def update(self):
         if self.dude == None:
-            print "dudeless"
             return
    
-
         #check to make sure the guy can see what's around him
-        for dir in ALL_DIRS:
+        watching = {}
+        for dir in ALL_DIRS + [ZERO_VECTOR]:
             t = self.dude.pos+dir*GRID_SIZE
-            engine.metagrid.get_cell(t.x, t.y)
+            cell = engine.metagrid.get_cell(t.x, t.y)
+            if not cell in self.watching:                
+                state = cell.current_state
+                if state:
+                    log('sending info for cell '+repr(cell.pos))
+                    self.send(state)
+                    watching[cell] = True
+            else:
+                watching[cell] = True
+
+        self.watching = watching
+        for cell in self.watching:
+            if cell.last_delta:
+                if self.delta_matters(cell.last_delta):
+                    self.send(cell.last_delta)  
+
         self.dude.dir = self.dir
         self.dude.act = self.act
         self.dir = ZERO_VECTOR
         self.act = None
              
     def handle_player_die(self):
-        print self.name,"died"
         self.death_count += 1
         if not self.disconnected:
             self.spawn_dude()
@@ -92,22 +113,21 @@ class Client:
     def on_kill(self, victim):
         if victim.owner == self:
             self.kill_count -= 1
-            print self.name, "comitted suicide."
         else:
             self.kill_count += 1
-            print self.name, "killed",victim.owner.name
             
     def disconnect(self):
         self.disconnected = True
         if self.dude:
             self.dude.die(self)
-        
+
+    @logged 
     def send(self, message):
-        #print 'sending', message
         self.socket.write_message(message)
-        
+
+    @logged    
     def on_message(self, message):                        
-        msg = eval(message)
+        msg = json.loads(message)
         if 'dir' in msg:
             self.dir = DIRS[msg['dir']]
         elif 'act' in msg:

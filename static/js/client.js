@@ -124,7 +124,9 @@ function socket_message_handler (event) {
 //This message contains the entire state of the game
 //i.e. the position, location &c of all entities
 function handle_gamestate(state) {
-    new_gamestate = state.state;
+    for (var ent_id in state.state.ents) {
+        new_gamestate.ents[ent_id] = state.state.ents[ent_id];
+    }
     new_gamestate.draw_frame = draw_frame_number + DRAWS_PER_TURN;
     game_frame_number = state.frame;
 }

@@ -1,6 +1,9 @@
 import random
 from vector2 import *
 import time
+
+from scribit import log, logged, timed
+
 TICK_PERIOD = 250
 UP = vector2(0,-1)
 DOWN = vector2(0,1)
@@ -18,6 +21,8 @@ DIAGONALS = [UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT]
 ALL_DIRS = DIAGONALS + ORDINALS
 ENTITY_SIZE = vector2(8,8)
 GRID_SIZE = 8 
+ID_CHARS = [chr(x) for x in range(256) 
+                if (chr(x).isalpha() or chr(x).isdigit())]
 
 class ClientManager:
     
@@ -58,14 +63,14 @@ class GridCell:
                 return ents
 
         def add_entity(self, ent):
-                "Tries to add the entity. Returns false if "\
-                "that layer is full."
-                if ent.layer in self.entities:
-                        raise CellFull("couldn't add %s at %d, %d ,%d"\
-                                                ", a %s was there" % (ent, 
-        ent.pos.x, ent.pos.y, ent.layer, self.entities[ent.layer]))
-                self.entities[ent.layer] = ent
-                return True
+            "Tries to add the entity. Returns false if "\
+            "that layer is full."
+            if ent.layer in self.entities:
+                    raise CellFull("couldn't add %s at %d, %d ,%d"\
+                                            ", a %s was there" % (ent, 
+    ent.pos.x, ent.pos.y, ent.layer, self.entities[ent.layer]))
+            self.entities[ent.layer] = ent
+            return True
 
         def remove_entity(self, ent):
 
@@ -75,45 +80,37 @@ class GridCell:
             else:
                     return False    
 
-                                
-
-                
-
-
 class GameGrid:
 
-    def __init__(self, size):
+    def __init__(self, size, pos):
 
-        self.cells =  [[ GridCell()
-                         for  y in range(size)]
-                            for x in range(size)]
+        self.cells = {}
+        
+        for  y in range(size):
+            for x in range(size):
+                self.cells[(pos[0] +x,pos[1]+y)] = GridCell()
+
         self.size = size
+        self.pos = pos
 
     def get_entities(self, x, y):
-        if x < 0 or x >= self.size or \
-           y < 0 or y >= self.size:
-                return {}
-        else:
-                return self.cells[x][y].get_entities()
+        return self.cells[(x,y)].get_entities()
 
 
     def add_entity(self, ent):
-        if ent.pos.x < 0 or ent.pos.x >= self.size or \
-           ent.pos.y < 0 or ent.pos.y >= self.size:
-            return False
-        else:
-            return self.cells[ent.pos.x][ent.pos.y].add_entity(ent)
+        return self.cells[(ent.pos.x,ent.pos.y)].add_entity(ent)
 
     def remove_entity(self, ent):
-        if ent.pos.x < 0 or ent.pos.x >= self.size or \
-           ent.pos.y < 0 or ent.pos.y >= self.size:
-            return False
-        else:
-            return self.cells[ent.pos.x][ent.pos.y].remove_entity(ent)
+        key = (ent.pos.x, ent.pos.y)
+        if not key in self.cells:
+            import pdb
+            pdb.set_trace()
+        return self.cells[(ent.pos.x, ent.pos.y)].remove_entity(ent)
 
-  
-                
+
+    @timed
     def get_free_position(self, layer, tries=10):
+        "GameGrid at %s getting free position for layer %s" % (self.pos, layer)
         placed = False
         
         while not placed and tries:
@@ -127,15 +124,14 @@ class GameGrid:
 class MetaGrid:
 
     def __init__(self):
-
         self.cells = {}
-        
+           
     def get_cell(self, x, y):
         g_x = x - (x%GRID_SIZE)
         g_y = y - (y%GRID_SIZE)
 
         if not (g_x,g_y) in self.cells:
-            print 'Spawning a cell at %d, %d' % (g_x,g_y)
+            log ('Spawning a cell at %d, %d' % (g_x,g_y))
             self.cells[(g_x,g_y)] = MetaGridCell((g_x,g_y))
         return self.cells[(g_x, g_y)] 
 
@@ -145,8 +141,9 @@ class MetaGrid:
     def remove_entity(self, dead_guy):
         self.get_cell(dead_guy.pos.x, dead_guy.pos.y).remove_entity(dead_guy)
 
+    @logged
     def move_entity(self, mover, new_pos):
-        self.get_cell(mover.pos.y, mover.pos.y).remove_entity(mover)
+        self.get_cell(mover.pos.x, mover.pos.y).remove_entity(mover)
         mover.pos = new_pos
         self.get_cell(new_pos.x, new_pos.y).add_entity(mover)
         
@@ -165,6 +162,8 @@ class MetaGrid:
 
     def get_free_position(self, layer, tries=10):
         keys = [k for k in self.cells]
+        if len(keys) == 0:
+            return self.get_cell(0,0).get_free_position(layer)
         return self.cells[random.choice(keys)].get_free_position(layer)
 
     def add_client(self, client):
@@ -210,11 +209,12 @@ class Engine:
     def get_entities(self, x, y):
         return self.metagrid.get_entities(x,y)
 
+    def make_id(self):
+        return ''.join([random.choice(ID_CHARS) for x in range(32)])
+
+    @timed
     def update(self):
-        start = time.time()
         self.metagrid.update()
-        stop = time.time()
-        print 'Update took %.3f seconds' % (stop - start)
         
 
 class MetaGridCell:
@@ -225,30 +225,36 @@ class MetaGridCell:
                 self.noobs = []
                 self.deads = {}
                 self.pos = pos
-                self.grid = GameGrid(GRID_SIZE)
+                self.grid = GameGrid(GRID_SIZE, pos)
                 self.current_frame = 0
                 self.current_state = None
+                self.last_delta = None
                 self.updaters = {} 
-                
+    
+        def __repr__(self):
+            return "MetaGridCell at %d,%d." % self.pos                
+
         def add_client(self, client):
                 #add this guy to the list of clients
                 self.client_manager.add_client(client)
-                client.send(self.current_state)
+                #client.send(self.current_state)
 
 
         def add_entity(self, entity):
 
-                if hasattr(entity,'id') and entity.id in self.deads:
+            if hasattr(entity,'id'):
+                if entity.id in self.deads:
                     del self.deads[entity.id]
-                else:
-                    self.noobs += [entity]
-                    entity.id = self.make_entity_id()
-
-
-                self.grid.add_entity(entity)
+                    self.grid.add_entity(entity)
+                    return
+            else:
+                entity.id = engine.make_id()
+            self.noobs += [entity]
+            self.grid.add_entity(entity)
 
         def make_entity_id(self):
-            return ''.join([random.choice(['0123456789abcedfeABCDEF']) for x in range(32)])
+            return ''.join([random.choice('0123456789abcedfeABCDEF') 
+                            for x in range(32)])
     
         def remove_entity(self, entity):
                 self.deads[entity.id] = entity
@@ -259,6 +265,8 @@ class MetaGridCell:
             return self.grid.get_free_position(layer)
 
         def _add_noobs(self):
+                if len(self.noobs):
+                    log ("Adding %d noobs." % len(self.noobs))
                 noob_map = {}
                 for noob in self.noobs:
                         self.dude_map[noob.id] = noob
@@ -332,11 +340,7 @@ class MetaGridCell:
             
             #tell everyone about the current gamestate
             #but don't bother if there are no changes
-            if len(delta_list['deltas']) !=  0 \
-            or len(delta_list['noobs']) != 0 \
-            or len(delta_list['deads']) != 0:
-                self.client_manager.broadcast(delta_list)
-            
+            self.last_delta = delta_list
 
 
 engine = Engine()

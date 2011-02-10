@@ -3,11 +3,7 @@ from vector2 import *
 from engine import *
 
 
-from random import *
-from vector2 import *
-from engine import *
-
-
+from scribit import log, timed, logged
 
 LAYER_GROUND = 0
 LAYER_WATER = LAYER_GROUND+1
@@ -135,8 +131,8 @@ class Dude(Mover, Updater):
     def __init__(self,owner):
 
         pos = engine.metagrid.get_free_position(LAYER_BLOCKS)
-        print 'spawning a dude at', pos
-
+        log ("Spawning a dude at %s." % pos)
+        
         Entity.__init__(self, pos, ENTITY_SIZE, LAYER_BLOCKS )
 
         self.net_vars['anim'] = True
@@ -203,6 +199,7 @@ class Dude(Mover, Updater):
                           LAYER_GROUND]:
                 if layer in dudes: 
                     if smasher.can_smash(dudes[layer]):
+                        log('%s can smash %s' % (smasher, dudes[layer]))
                         smasher.smash(dudes[layer])
                         self.carrying = None
                     break

@@ -34,7 +34,7 @@ class Game:
             Road(pos, False)
             
         #self.add_horiz_block_line(horiz_road_adder, 1, GRID_SIZE-2, GRID_SIZE/2)
-
+        return 
         for x in range(GRID_SIZE):
             for y in range(GRID_SIZE):
                 try:
