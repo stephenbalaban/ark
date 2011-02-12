@@ -73,13 +73,13 @@ class Game:
 
     #@logged    
     def new_metagrid_cell(self, new_cell):
-        #add terrain
+        #add terrain and stuff on it
         choices = {'none' : 1.0,
-                    'water' : 0.95,
-                    'trees' : 0.8,
-                    'fruit' : 0.25}
-        #choice = random.choice(choices.keys())
-        choice = 'none'
+                    'water' : 0.85,
+                    'trees' : 0.75,
+                    'fruit' : 0.05}
+        choice = random.choice(choices.keys())
+        #choice = 'none'
         for x in range(GRID_SIZE):
             for y in range(GRID_SIZE):
                 p = vector2(new_cell.pos[0]+x, new_cell.pos[1]+y)
@@ -92,6 +92,5 @@ class Game:
                     elif choice == 'fruit':
                         Fruit(p)
                     
-        #now put stuff on this terrain
 
         

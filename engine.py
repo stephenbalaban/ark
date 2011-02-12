@@ -124,8 +124,9 @@ class MetaGrid:
         
         return res
 
-    def add_entity(self, new_guy): 
-        self.get_cell(new_guy.pos.x, new_guy.pos.y).add_entity(new_guy) 
+    def add_entity(self, new_guy,moving=False): 
+        self.get_cell(new_guy.pos.x, 
+                        new_guy.pos.y).add_entity(new_guy,moving) 
 
     def remove_entity(self, dead_guy, moving=False):
         cell = self.get_cell(dead_guy.pos.x, dead_guy.pos.y)
@@ -184,14 +185,14 @@ class Engine:
         self.metagrid = MetaGrid()
         self.client_manager = ClientManager() 
 
-    def add_entity(self, new_guy):
-        self.metagrid.add_entity(new_guy)
+    def add_entity(self, new_guy, moving=False):
+        self.metagrid.add_entity(new_guy, moving)
         
     def add_client(self, client):
         self.client_manager.add_client(client)
 
-    def remove_entity(self, ent):
-        self.metagrid.remove_entity(ent)
+    def remove_entity(self, ent, moving=True):
+        self.metagrid.remove_entity(ent, moving)
  
     def get_entities(self, x, y):
         return self.metagrid.get_entities(x,y)
@@ -414,7 +415,8 @@ class Entity:
     
     def update(self):
         pass 
-        
+      
+    
     def change_tex(self, new_tex):
         self.tex = new_tex
 

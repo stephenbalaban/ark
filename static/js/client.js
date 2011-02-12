@@ -64,9 +64,11 @@ function draw() {
         update_message += "<br>";
     }
 
+    
     update_message += "Entities: "+entity_count+"<bar>";
 
-    $("#messages").html(update_message);
+    //$("#messages").html(update_message);
+    //
     for (var ent_id  in new_gamestate.ents)  {
         var ent = new_gamestate.ents[ent_id];
         

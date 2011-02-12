@@ -9,7 +9,9 @@ LAYER_GROUND = 0
 LAYER_WATER = LAYER_GROUND+1
 LAYER_GROUND_DETAIL = LAYER_WATER+1
 LAYER_BLOCKS = LAYER_GROUND_DETAIL +1 
+LAYER_CARRIED = LAYER_BLOCKS + 1
 
+CARRIED_HEIGHT= ENTITY_SIZE.x*3.5
 class Air: 
     def __init__(self,pos):
         self.pos = pos
@@ -80,13 +82,13 @@ class Mover(Entity):
         self.die()
 
 class Carryable:
-    pass
 
     def smash(self, victim):
         self.carried_by = None
         self.height = ENTITY_SIZE.x*0.5
+        self.layer = LAYER_BLOCKS
         Mover.smash(self, victim)
-        engine.metagrid.add_entity(self)    
+        engine.metagrid.add_entity(self, moving=True)    
 
 
 
@@ -107,16 +109,13 @@ class Fruit(Carryable, Plantable, Mover):
         self.carried_by = None
 
     def can_smash(self, victim):
-        print 'want to smash', victim
         can = isinstance(victim, PlowedPatch)
         can = can or isinstance(victim, Terrain)
         return can
 
     def smash(self, victim):
-        print 'smashing', victim
         #check to see if we can plant this object                
         if isinstance(victim, PlowedPatch):
-            print 'going on a patch'
             if victim.state == 'unplanted':
                 victim.plant(self)
                 self.tex = 'none.png'
@@ -215,16 +214,20 @@ class Dude(Mover, Updater):
                 if layer in dudes:
                     other_guy = dudes[layer]
                     if isinstance(other_guy, Carryable):
-                        other_guy.carried_by = self
-                        #he doesn't count in the grid any more
-                        engine.metagrid.remove_entity(other_guy)
-                        other_guy.height = ENTITY_SIZE.x*2.5
-                        self.carrying = other_guy
-                        other_guy.pos = self.pos
+                        self.carry_item(other_guy)
                     else: 
-                        print "air smasing a ", other_guy
-                        Air(self.pos).smash(other_guy)                    
+                        Air(self.pos).smash(other_guy)
+                    #once we've encounterd an object, we're done
                     break
+
+    def carry_item(self, item):
+        item.carried_by = self
+        item.height = CARRIED_HEIGHT 
+        engine.remove_entity(item, moving=True)
+        item.layer = LAYER_CARRIED
+        item.pos = self.pos
+        engine.add_entity(item, moving=True) 
+        self.carrying = item 
 
     def update_texture(self):
         self.tex = ('%s/%s/%s' % (self.dude_class,
@@ -305,7 +308,8 @@ class Terrain(Entity):
         for dir in ORDINALS:
             self.neighbor_types[dir] = 'grass'
         self.update_tex()
-        
+       
+    
     def to_water(self):
         self.terrain_type = 'water'
         neighbors = engine.metagrid.get_neighbors(self.pos)
@@ -314,9 +318,9 @@ class Terrain(Entity):
             if LAYER_GROUND in this_dir_ents:
                 this_ent = this_dir_ents[LAYER_GROUND]
                 if isinstance(this_ent, Terrain):
+                    self.neighbor_types[dir] = this_ent.terrain_type
                     this_ent.update_neighbor(self, dir)
         self.update_tex()
-
 
     def update_neighbor(self, neighbor, neighbor_dir):        
         op_dir = DIR_OPPOSITES[neighbor_dir]
@@ -439,12 +443,10 @@ class PlowedPatch(Mover, Updater):
             self.plant_growth_ticks -= 1
             if self.plant_growth_ticks == 0:
                 if self.growing == None:
-                    print 'shrubbin'
                     try:
                         self.growing = Shrub(self.pos,self)
                         self.plant_growth_ticks = PlowedPatch.PLANT_GROWTH_TICKS
                     except CellFull:
-                        print "FUCK ME counldn't plant a plant"
                         self.plant_growth_ticks = 0
                     
                 else:
@@ -468,18 +470,15 @@ class WoodPile(Mover, Carryable):
 
 
     def can_smash(self, other):
-        print 'wood wnats to smash', other
         can = isinstance(other, Terrain)
         can = can or isinstance(other, PlowedPatch)
         return can
 
     def smash(self, other):
         if isinstance(other, Terrain):
-            print 'smashing the dirt'
             Carryable.smash(self,other)
            
         elif isinstance(other, PlowedPatch):
-            print 'making a fence'
             other.die()            
             self.die()
             Fence(other.pos) 
