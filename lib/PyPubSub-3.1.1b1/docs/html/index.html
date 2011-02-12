@@ -1,0 +1,253 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Pubsub Home page &mdash; Python PubSub Website</title>
+    <link rel="stylesheet" href="_static/split_tocs.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <!--[if lte IE 8]><link rel="stylesheet" href="_static/ie_split_tocs.css" type="text/css" /><![endif]-->
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '3.1.0b1',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="top" title="Python PubSub Website" href="#" />
+    <link rel="next" title="About" href="about.html" /> 
+  </head>
+  <body>
+  <div class="docsheader">
+    <h3>Python PubSub Website</h3>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="about.html" title="About"
+             accesskey="N">next</a> |</li>
+        <li>Trail:</li>
+          <li> &raquo; <a href="#">Pubsub Home page</a></li> 
+      </ul>
+    </div>
+  </div>
+ 
+      <div class="splitsidebar">
+        <div class="mainsidebarpanel">
+            <h3><a href="#">Site Contents</a></h3>
+            <ul class="current">
+<li class="toctree-l1 current"><a class="current reference" href="">Home Page</a></li>
+<li class="toctree-l1"><a class="reference" href="about.html">About</a><ul>
+<li class="toctree-l2"><a class="reference" href="projectsusing.html">Pubsub Users</a></li>
+<li class="toctree-l2"><a class="reference" href="history.html">History</a></li>
+<li class="toctree-l2"><a class="reference" href="development.html">Development</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference" href="download.html">Download</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="changelog.html">Changelog</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="apidocs/index.html">API Documentation</a><ul>
+<li class="toctree-l2"><a class="reference" href="apidocs/examples.html">Examples</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="apidocs/concepts.html">Concepts</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="apidocs/basic_use.html">Basic Use</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="apidocs/more_advanced_use.html">Advanced Use</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="apidocs/docs4v1.html">Legacy (v1) API</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="recipes/index.html">Pubsub Recipes</a><ul>
+<li class="toctree-l2"><a class="reference" href="recipes/upgrade_v1tov3.html">Upgrade from v1</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="recipes/arg1_to_kwargs.html">Convert Arg1 to Kwargs</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div> 
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="pubsub-home-page">
+<h1>Pubsub Home page<a class="headerlink" href="#pubsub-home-page" title="Permalink to this headline">¶</a></h1>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Latest API released is v3.1.1b1 from May 2010</p>
+</div>
+<p>The Python Pubsub package provides a publish - subscribe API that allows data to
+be sent between independent parts of your application. For instance, between the
+GUI components and the Application Controller. Using publish - subscribe in your
+application can dramatically simplify its design and improve testability. Robin
+Dunn, the creator of wxPython, summerizes it nicely:</p>
+<blockquote>
+Basically you just have some part(s) of your program
+subscribe to a particular topic and have some other part(s)
+of your program publish messages with that topic.  All the
+plumbing is taken care of by pubsub.  &#8211; <em>Robin Dunn, Jun 2007</em></blockquote>
+<p>Schematically:</p>
+<div align="center" class="align-center"><img alt="Sketch showing how pubsub fits into a Python application" class="align-center" src="_images/pubsub_concept.png" style="width: 450px;" /></div>
+<p>Using publish - subscribe in an application can sometimes
+dramatically simplify its design and improve testability. This is
+explained further in the <a class="reference" href="apidocs/index.html#label-usage"><em>API Documentation</em></a> section.</p>
+<div class="section" id="contributing">
+<h2>Contributing<a class="headerlink" href="#contributing" title="Permalink to this headline">¶</a></h2>
+<p>Please consider contributing to this project! More details in the
+<a class="reference" href="development.html#label-contributing"><em>Contributing</em></a> section.</p>
+</div>
+<div class="section" id="site-table-of-contents">
+<h2>Site Table of Contents<a class="headerlink" href="#site-table-of-contents" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The following TOC Tree should be hidden (it is visible, and
+more accessible, in the sidebar) but a bug in Sphinx 0.6.5 requires
+it be visible (adding <tt class="docutils literal"><span class="pre">:hidden:</span></tt> causes sphinx-build to crash)</p>
+</div>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference" href="">Home Page</a></li>
+<li class="toctree-l1"><a class="reference" href="about.html">About</a><ul>
+<li class="toctree-l2"><a class="reference" href="about.html#who-where">Who, Where</a></li>
+<li class="toctree-l2"><a class="reference" href="about.html#acknowledgements">Acknowledgements</a></li>
+<li class="toctree-l2"><a class="reference" href="about.html#more-info">More Info</a><ul>
+<li class="toctree-l3"><a class="reference" href="projectsusing.html">Pubsub Users</a></li>
+<li class="toctree-l3"><a class="reference" href="history.html">History</a></li>
+<li class="toctree-l3"><a class="reference" href="development.html">Development</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference" href="installation.html#system-requirements">System Requirements</a></li>
+<li class="toctree-l2"><a class="reference" href="installation.html#license">License</a></li>
+<li class="toctree-l2"><a class="reference" href="installation.html#details">Details</a><ul>
+<li class="toctree-l3"><a class="reference" href="download.html">Download</a></li>
+<li class="toctree-l3"><a class="reference" href="changelog.html">Changelog</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="apidocs/index.html">API Documentation</a><ul>
+<li class="toctree-l2"><a class="reference" href="apidocs/index.html#status">Status</a></li>
+<li class="toctree-l2"><a class="reference" href="apidocs/index.html#versions">Versions</a></li>
+<li class="toctree-l2"><a class="reference" href="apidocs/index.html#api-documentation-default-api">API Documentation (Default API)</a><ul>
+<li class="toctree-l3"><a class="reference" href="apidocs/examples.html">Examples</a></li>
+<li class="toctree-l3"><a class="reference" href="apidocs/concepts.html">Concepts</a></li>
+<li class="toctree-l3"><a class="reference" href="apidocs/basic_use.html">Basic Use</a></li>
+<li class="toctree-l3"><a class="reference" href="apidocs/more_advanced_use.html">Advanced Use</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="apidocs/index.html#api-documentation-legacy-api">API Documentation (Legacy API)</a><ul>
+<li class="toctree-l3"><a class="reference" href="apidocs/docs4v1.html">Legacy (v1) API</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="recipes/index.html">Pubsub Recipes</a><ul>
+<li class="toctree-l2"><a class="reference" href="recipes/index.html#migrations">Migrations</a></li>
+<li class="toctree-l2"><a class="reference" href="recipes/index.html#guidelines">Guidelines</a></li>
+<li class="toctree-l2"><a class="reference" href="recipes/index.html#design-patterns">Design Patterns</a><ul>
+<li class="toctree-l3"><a class="reference" href="recipes/upgrade_v1tov3.html">Upgrade from v1</a></li>
+<li class="toctree-l3"><a class="reference" href="recipes/arg1_to_kwargs.html">Convert Arg1 to Kwargs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="splitsidebar">
+        <div class="localsidebarpanel">
+            <h3>Page Contents</h3>
+            <ul>
+<li><a class="reference" href="#">Pubsub Home page</a><ul>
+<li><a class="reference" href="#contributing">Contributing</a></li>
+<li><a class="reference" href="#site-table-of-contents">Site Table of Contents</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/index.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="about.html" title="About"
+             >next</a> |</li>
+        <li>Trail:</li>
+          <li> &raquo; <a href="#">Pubsub Home page</a></li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Oliver Schoenborn.
+      Last updated on May 05, 2010.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>

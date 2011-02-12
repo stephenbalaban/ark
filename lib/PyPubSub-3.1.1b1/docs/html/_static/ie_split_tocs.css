@@ -1,0 +1,10 @@
+/**
+ * Remove the fixed items. Use this when IE 6 or earlier. 
+ *
+ * Copyright (c) Oliver Schoenborn, 2009
+ */
+
+
+div.localsidebarpanel {
+    width: 163px;
+}

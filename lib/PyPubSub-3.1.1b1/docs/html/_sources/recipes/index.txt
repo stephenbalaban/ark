@@ -1,0 +1,52 @@
+
+Pubsub Recipes
+===============
+
+This section discusses various pubsub "recipes", ie techniques,
+suggested practices, patterns, etc.
+
+
+.. _label-migrations:
+
+Migrations
+-----------
+
+There are two supported APIs available in pubsub:
+
+* default (v3): a powerful API that supports two messaging protocols;
+  developed mostly after pubsub was factored out of wxPython.
+* v1: version 1, the *original* API developed when pubsub was still
+  one module, part of wxPython. The pubsub package *includes* the module
+  that was originally wx.lib.pubsub, almost verbatim.
+
+The section :ref:`label-upgrade_for_wx` may be helpful to application
+developers who wish to migrate an application from using the v1 API to
+using the more powerful v3 API.
+
+The section :ref:`label-trans_arg1_to_kwargs` may
+be helpful in migrating an application based on the 'arg1' protocol
+to the more rigorous 'kwargs' protocol, both available only in v3
+API.
+
+
+Guidelines
+----------
+
+Write this section
+
+Avoid using the *arg1* messaging protocol. The *kwargs* protocol, the default,
+is more expressive, and makes it easier to document your topic message data.
+
+
+Design Patterns
+----------------
+
+Write this section
+
+
+.. toctree::
+   :hidden:
+   
+   upgrade_v1tov3
+   arg1_to_kwargs
+   

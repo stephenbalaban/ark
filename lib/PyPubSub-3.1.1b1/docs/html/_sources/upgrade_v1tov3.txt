@@ -1,0 +1,253 @@
+.. _label-upgrade_v1tov3:
+
+Upgrading from v1: 15 Micro-Steps
+==================================
+
+Here are 15 small steps that you can follow when upgrading an 
+application based on version 1 of pubsub, to using under version 3. This 
+may seem like a lot, but each step is one very well define little task. 
+Moreover, only a small subset of the steps are things you do to the 
+code. 
+
+Fortunately, even for an application that uses lots of listeners 
+and does tons of calls to sendMessage(), it is not a complicated 
+process. Pubsub provides some assistance in migrating code from pubsub version 1 
+to version 3. Note that if you think of better ways, or have used a reliable 
+open-source tool to help accelerate the process, please send in your 
+thoughts! 
+
+There are several optional steps as well, but those are not specific 
+to an upgrade, they are mentioned here for convenience. 
+
+Example transition: 50 listeners, 60 messages, in 5k LOC, took an hours (stages 0 to 3). 
+
+
+Suggested steps: 4 simple stages
+---------------------------------
+
+Stage 0: Use old pubsub from new pubsub
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The PyPubSub library contains the pubsub module from ``wx.lib`` almost 
+verbatim. Just to be on the safe side, first transition your application 
+from using the pubsub stored in ``wx.lib`` to using the one your installed
+in site-packages:
+
+1.  **RUN** your application to make sure it runs, try out a few features. This 
+    will greatly increase the likelyhood that any of the following changes are 
+    related to the transition. 
+    
+2.  **CHANGE** all ``wx.lib.pubsub`` import statements to use 
+    ``from pubsub import pub``. E.g. ``from wx.lib.pubsub import Publisher 
+    as pub`` would become ``from pubsub import pub``.
+    
+3.  **ADD** the following lines to the *main script* of your application, 
+    **before** any imports that might themselves make use of pubsub::
+
+      import pubsubconf
+      pubsubconf.setVersion(1)
+
+4.  **RUN** your application again and try out the same features as you did
+    in 0a. There should be no problems. If there are, post on the 
+    `help forum <http://sourceforge.net/forum/forum.php?forum_id=699099>`_
+
+    
+Stage 1: Homogenization
+^^^^^^^^^^^^^^^^^^^^^^^
+
+In this stage, you're starting to make use of pubsub3, but (behind the 
+scenes) with some temporary adapter code to make the not-yet-conforming
+sendMessage() calls usable from within pubsub3. This step is the easiest
+way I have found of satisfying the "topic argument inheritence" requirement
+of pubsub3. 
+
+5.  **CHOOSE** one argument name that all listeners will use. The name cannot 
+    be ``data`` as it is already used in ``sendMessage()``. For instance,
+    ``msg``.  This is a temporary measure, so something unique (ie, easy to 
+    search for) is sufficient. The remainder assumes you chose ``msg``.
+    
+6.  **CHANGE** the first argument of all your listeners to what you chose in 
+    previous step, with default value of None. 
+    
+    - You can probably locate all listeners by doing a *keyword search in 
+      files* for the string ``subscribe(``.
+    - Don't forget to make the associated adjustments in the code of each
+      listener that needs changing. You only need to change the name, not
+      the ``.data`` etc.
+
+    For instance::
+    
+      def listener1(bla):   -> def listener1(msg=None): 
+                              + change 'bla' -> 'msg' in listener2 code
+      def listener2(msg):   -> def listener2(msg=None): 
+      def listener3():      -> def listener3(msg=None):
+
+7.  **REPLACE** the line ``pubsubconf.setVersion(1)`` that you added earlier, 
+    by ``pubsubconf.transitionV1ToV3('msg')``.
+    
+8.  **RUN** your application, and correct any errors: 
+
+    * in your listeners, related to the new argument name
+    * use of accessory API functions such as ``getMessageCount()`` which 
+      are no longer available in version 3. You may have to comment out that
+      code for now. 
+  
+    **REPEAT** this step until there are no more errors. 
+
+
+Stage 2: keyword arguments in sendMessage
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+At this point, you know you are using the pubsub 3 API, modulo
+a couple of "adapter" functions doing some work for you. In this stage you 
+are making the ``sendMessage()`` calls conform to the pubsub3 API. 
+
+9.  **ADD** the 'msg' keyword name to every ``sendMessage()`` that sends data 
+    with the message. Don't forget to do this in your unit tests as well. 
+    
+10. **REMOVE** the argument of any *all-topics* listeners. Such listeners were
+    subscribed via ``pub.subscribe(listener)`` or ``pub.subscribe(listener, pub.ALL_TOPICS)``
+    instead of the usual ``pub.subscribe(listener, topic)``. For instance, 
+    ``def listener1(msg=None)`` (see step 4) would become ``def listener1()``.
+    
+11. **CHANGE** the ``pubsubconf.transitionV1ToV3`` call to be
+    ``pubsubconf.transitionV1ToV3('msg', step=2)``.
+    This will change the requirements imposed on listeners: in pubsub 3, 
+    listeners can have any signature: regular parameters, keyword arguments, 
+    and ``*args`` and ``**kwargs``. 
+    
+12. **RUN** your application, and correct any errors: the only ones should be
+    listeners or sendMessage() calls that you forgot to adjust as per 
+    steps 9 and 10. 
+    
+Troubleshooting: 
+
+- if you get an exception raised regarding *unexpected keyword argument 'msg'*, you
+  probably forgot step 9;
+- if you get an exception about a sendMessage *takes exactly 2 arguments (3 given)*, 
+  you probably forgot to change the sendMessage() call listed at the bottom of the 
+  traceback.
+
+
+Stage 3: Remove .data
+^^^^^^^^^^^^^^^^^^^^^
+
+In this step you will remove the '.data' that appears in all listeners that 
+use their ``msg=None`` argument. 
+
+13. **REMOVE** the '.data' wherever it is used, in all listeners
+
+14. **REMOVE** the call to pubsubconf lines added earlier, especially the line
+    with the call to ``pubsubconf.transitionV1ToV3()``, they are no longer required.
+    
+15. **RUN** your application, and correct any errors related to step 13
+    
+
+Optional steps for more advanced users
+----------------------------------------
+
+After stage 3, you have a topic tree in which each topic has the same 
+topic message arguments specification (TMAS): one argument (*msg*), optional. 
+You can see this by adding the following lines somewhere in your application, 
+after all your subscriptions have been executed::
+
+    # print the topic tree, plus the argument spec and 
+    # subscribed listeners for each topic:
+    from pubsubutils import printTreeDocs
+    printTreeDocs(extra='aL')
+
+The main shortcoming of your topic tree so far is that listeners 
+can get any data via their *msg* argument, making it easy to send 
+the wrong data to a listener. It is best to 'divide' your data
+into pieces that are specific to each topic, as you would if you 
+had used pubsub version 3 from the start. 
+
+
+Stage 4 (optional): Split data between different arguments
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To take full advantage of pubsub3, you should now split your listener 
+argument (*msg*) into one or more arguments. It will be handy to refer 
+to your topic tree printout for convenience.
+    
+1.  **SELECT** a leaf topic (one that doesn't have subtopics), and determine
+    how the data currently given in associated ``sendMessage()`` calls could 
+    be divided among several keyword arguments. You may want to split off 
+    just one piece of data: for instance, if data was a pair (a,b) and b is
+    only used by leaf topic, then split off b, as shown in the next step. 
+   
+2.  **ADD** relevant arguments to all ``sendMessage()`` for topic just affected. 
+    For instance, 
+    
+      sendMessage('topicA', msg=(a,b))      # OLD
+      sendMessage('topicA', msg=(a,), b=b)  # NEW
+    
+3.  **ADD** those arguments to all listeners of the selected topic. Make 
+    the necessary adjustements to each listener's code. Leave other 
+    topic listeners unchanged::
+    
+      # OLD:
+      def listenerA(msg=None):
+          ...use msg[0] and msg[1]...
+      
+      # NEW:
+      def listenerA(msg=None, b=None):
+          ...use msg[0] and b...
+
+4.  **RUN** your application and correct any errors resulting from above 
+    changes.
+    
+5.  **REPEAT** from 16 until satisfied, first with other leaf topics, then 
+    making your way up the tree of topics, until your *msg* arguments are 
+    unused in the listeners' code. 
+    
+6.  **REMOVE** all the unused ``msg`` arguments. 
+
+7.  **REMOVE** default values from arguments that are *required* data. Note 
+    that all listeners of the associate topic must have the same argument 
+    names for both required and optional arguments. For instance to indicate 
+    that *a* is required::
+
+      # OLD:
+      def listenerA1(a=None, b=None) # both a and b are optional
+      def listenerA2(a=None, b=None) # both a and b are optional
+
+      # NEW:
+      def listenerA1(a, b=None)      # only b is optional
+      def listenerA2(a, b=None)      # must be same signature as listenerA1
+
+
+Stage 5 (optional): topic tree specification
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The previous stage allows you to make it clear, on both the sending and 
+receiving ends, what data is being sent with each message. However, thus
+far, you have left it up to pubsub3 to infer the TMAS from the first listener
+subscribed. It is best to specify this explicitly, and to document your
+topics. 
+ 
+8.  **ADD** a line next to the printTreeDocs statement, for printing the 
+    topic tree specification (TTS), for instance
+    ``pubsubutils.printTreeSpec(fileObj='MyTopicTree.py')``.
+
+9.  **RUN** your application so all the listeners get subscribed, and exit. 
+
+10. **EDIT** ``MyTopicTree.py``:
+
+    - add a doc string to each topic class
+    - replace the string for each arg with appropriate description
+    - specify which arguments are required 
+    
+11. **ADD** the following at the beginning of your application::
+
+      from MyTopicTree import MyTopicTree
+      pubsub.addTopicDefnProvider( MyTopicTree() )
+    
+12. **RUN** your application again. Correct errors, mostly related to 
+    some listeners no longer satisfying the TMAS for the topic they are 
+    subscribing to. 
+    
+13. **ADD** a call to ``pubsubconf.setTopicUnspecifiedFatal()`` so that 
+    TMAS inference is turned off. This will cause subscription/sendMessage
+    calls for a topic that is not specified
+    in MyTopicTree to raise an exception.

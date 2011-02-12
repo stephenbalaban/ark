@@ -1,0 +1,38 @@
+
+.. _label-api-v1-docs:
+
+Legacy (v1) API
+=================
+
+This section describes Version 1 of the pubsub API (versions are discussed in
+:ref:`api-versions` section). The pubsub package must be configured
+for version 1 API *before* any other pubsub module is imported from it, by using
+the :mod:`pubsub.setupv1` module from the top-level script of your application::
+
+    from pubsub import setupv1
+
+This can then be followed by ::
+
+    from pubsub import pub
+
+in the same module. Other modules do not need the setupv1 ipmort.
+
+
+The :data:`pub` Singleton
+-------------------------
+
+.. automodule:: pubsub.pubsub1.pub
+
+   .. autoclass:: PublisherClass
+
+   .. data:: Publisher
+
+      Singleton instance of PublisherClass
+
+Other objects in :mod:`pubsub`
+------------------------------
+
+   .. autoclass:: Message
+
+   .. autofunction:: getStrAllTopics
+

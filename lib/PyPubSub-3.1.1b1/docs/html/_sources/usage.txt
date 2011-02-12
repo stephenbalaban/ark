@@ -1,0 +1,77 @@
+.. _label-usage:
+
+Usage
+=====
+
+.. warning::
+
+   This documentation is under construction. Meanwhile, please refer to the source 
+   code and examples. AND, feel free to send me ideas of what to document :)
+
+Status 
+-------
+
+The following part of the `pubsub` API can be considered production/stable:
+
+- :func:`pub.subscribe`
+- :func:`pub.sendMessage`
+- :exc:`pub.ListenerInadequate`
+- :exc:`pub.MissingReqdArgs`
+- :exc:`pub.UnknownOptArgs`
+- :func:`pub.addTopicDefnProvider`
+- :const:`pub.ALL_TOPICS`
+- :const:`pub.AUTO_ARG`
+- :data:`pub.topics`
+- :func:`pub.setNotification`
+- :func:`pub.newTopic`
+- :func:`pub.getTopics`
+- :func:`pub.delTopic`
+- :func:`pub.isValid`
+- :func:`pub.validate`
+- :func:`pub.unsubscribe`
+- :func:`pub.isSubscribed`
+- :func:`pub.unsubAllFromTopic`
+- :func:`pub.unsubAll`
+- :const:`pub.PUBSUB_VERSION`
+
+
+Any other function, variable, class, module or method should be considered 
+alpha vis-a-vis its naming or call protocol. For instance a function name may 
+change if issues reported by users indicate its name is misleading.
+
+
+Documentation
+--------------
+
+The User Manual consists of the following sections.
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+
+   concepts
+   basic_use
+   more_advanced_use
+   api_reference
+   changelog
+
+
+Versions 
+---------
+
+Note that there are are three major "versions" of pubsub. Version 1 is still
+maintained as it is the one in use in wxPython, where pubsub originated. 
+Version 2 is no longer maintained as it was superseded by version 3. Version 3
+has been around for over a year and has reached maturity. It will continue 
+to be maintained. The default version selected is version 3, but you can 
+select an older major version via::
+
+    # in top level script/module:
+    import pubsubconf
+    pubsubconf.setVersion(1) # or 2 or 3 (default)
+
+Note: if your application uses pubsub version 1, you have the choice of 
+setting an option in pubsub to make it continue to use version 1, without 
+all the benefits of the latest version. OR, you may have upgrade your code. 
+Some :ref:`suggested steps are available <label-upgrade_v1tov3>`.
+

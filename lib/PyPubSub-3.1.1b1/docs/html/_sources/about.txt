@@ -1,0 +1,42 @@
+About 
+======
+
+
+Who, Where
+-----------
+
+The main developer of the package is Oliver Schoenborn, but Robb Shecter 
+started it all back in early 2000's. The code is now hosted on
+SourceForge.net at http://www.sf.net/projects/pubsub, and has an entry
+in Cheeseshop at http://pypi.python.org/pypi/PyPubSub.
+
+As listed in the :ref:`label_contributing` section, contributions of any
+form are welcome. Even questions help progress the project.
+
+:author: Oliver Schoenborn <schoenborno at (@) users.sf.net>
+
+
+Acknowledgements
+----------------
+
+Thanks to SourceForge.net for hosting the project, to Robb Shechter to have 
+given me the chance to take over this project from him many years ago, to 
+all those users of pubsub who ask questions, make suggestions, point out 
+bugs, etc. 
+
+.. image:: http://sflogo.sourceforge.net/sflogo.php?group_id=197063&amp;type=2
+   :alt: SourceForge.net Logo
+   :width: 125
+   :height: 37
+   :target: http://sourceforge.net
+
+
+More Info
+---------
+
+.. toctree::
+
+   projectsusing
+   history
+   development
+

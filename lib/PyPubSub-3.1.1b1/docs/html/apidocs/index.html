@@ -1,0 +1,307 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>API Documentation &mdash; Python PubSub Website</title>
+    <link rel="stylesheet" href="../_static/split_tocs.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <!--[if lte IE 8]><link rel="stylesheet" href="../_static/ie_split_tocs.css" type="text/css" /><![endif]-->
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.1.0b1',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="top" title="Python PubSub Website" href="../index.html" />
+    <link rel="next" title="Examples" href="examples.html" />
+    <link rel="prev" title="Changelog" href="../changelog.html" /> 
+  </head>
+  <body>
+  <div class="docsheader">
+    <h3>Python PubSub Website</h3>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="examples.html" title="Examples"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../changelog.html" title="Changelog"
+             accesskey="P">previous</a> |</li>
+        <li>Trail:</li>
+          <li> &raquo; <a href="#">API Documentation</a></li> 
+      </ul>
+    </div>
+  </div>
+ 
+      <div class="splitsidebar">
+        <div class="mainsidebarpanel">
+            <h3><a href="../index.html">Site Contents</a></h3>
+            <ul class="current">
+<li class="toctree-l1"><a class="reference" href="../index.html">Home Page</a></li>
+<li class="toctree-l1"><a class="reference" href="../about.html">About</a><ul>
+<li class="toctree-l2"><a class="reference" href="../projectsusing.html">Pubsub Users</a></li>
+<li class="toctree-l2"><a class="reference" href="../history.html">History</a></li>
+<li class="toctree-l2"><a class="reference" href="../development.html">Development</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="../installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference" href="../download.html">Download</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="../changelog.html">Changelog</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference" href="">API Documentation</a><ul>
+<li class="toctree-l2"><a class="reference" href="examples.html">Examples</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="concepts.html">Concepts</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="basic_use.html">Basic Use</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="more_advanced_use.html">Advanced Use</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="docs4v1.html">Legacy (v1) API</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="../recipes/index.html">Pubsub Recipes</a><ul>
+<li class="toctree-l2"><a class="reference" href="../recipes/upgrade_v1tov3.html">Upgrade from v1</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="../recipes/arg1_to_kwargs.html">Convert Arg1 to Kwargs</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div> 
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="api-documentation">
+<span id="label-usage"></span><h1>API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This documentation is a little bit out of date. Though it is
+progressing slowly. You may find it more useful to refer to the
+source code doc strings and the examples in the <tt class="docutils literal"><span class="pre">examples</span></tt>
+folder of the source distribution.</p>
+</div>
+<div class="section" id="status">
+<h2>Status<a class="headerlink" href="#status" title="Permalink to this headline">¶</a></h2>
+<p>The following part of the <strong>pubsub</strong> API is unlikely to change:</p>
+<ul class="simple">
+<li>pub.addNotificationHandler</li>
+<li>pub.addTopicDefnProvider</li>
+<li>pub.ALL_TOPICS</li>
+<li>pub.AUTO_TOPIC</li>
+<li>pub.clearNotificationHandlers</li>
+<li>pub.clearTopicDefnProviders</li>
+<li>pub.delTopic</li>
+<li>pub.ExcHandlerError</li>
+<li>pub.getAssociatedTopics</li>
+<li>pub.getDefaultTopicMgr</li>
+<li>pub.getListenerExcHandler</li>
+<li>pub.getListenerID</li>
+<li>pub.getNotificationFlags</li>
+<li>pub.getOrCreateTopic</li>
+<li>pub.getTopic</li>
+<li>pub.isSubscribed</li>
+<li>pub.isValid</li>
+<li>pub.Listener</li>
+<li>pub.ListenerInadequate</li>
+<li>pub.ListenerNotValidatable</li>
+<li>pub.ListenerSpecIncomplete</li>
+<li>pub.ListenerSpecInvalid</li>
+<li>pub.newTopic</li>
+<li>pub.Publisher</li>
+<li>pub.PUBSUB_VERSION</li>
+<li>pub.SenderMissingReqdArgs</li>
+<li>pub.SenderUnknownOptArgs</li>
+<li>pub.sendMessage</li>
+<li>pub.setListenerExcHandler</li>
+<li>pub.setNotificationFlags</li>
+<li>pub.setTopicUnspecifiedFatal</li>
+<li>pub.subscribe</li>
+<li>pub.SVN_VERSION</li>
+<li>pub.Topic</li>
+<li>pub.topics</li>
+<li>pub.topicsMap</li>
+<li>pub.UndefinedSubtopic</li>
+<li>pub.UndefinedTopic</li>
+<li>pub.unsubAll</li>
+<li>pub.unsubscribe</li>
+<li>pub.utilsSettings</li>
+<li>pub.validate</li>
+<li>pub.VERSION_STR</li>
+</ul>
+<p>The following may change:</p>
+<ul class="simple">
+<li>pub.TOPIC_TREE_FROM_CLASS</li>
+<li>pub.TOPIC_TREE_FROM_MODULE</li>
+<li>pub.TOPIC_TREE_FROM_STRING</li>
+<li>pub.exportTopicTree</li>
+<li>pub.importTopicTree</li>
+<li>pub.ITopicDefnProvider</li>
+<li>pub.ITopicTreeTraverser</li>
+<li>pub.registerTopicDefnProviderType</li>
+<li>pub.TopicDefnProvider</li>
+</ul>
+<p>Any other function, variable, class, module or method may change name or
+call protocol until its use stabilizes.</p>
+</div>
+<div class="section" id="versions">
+<span id="api-versions"></span><h2>Versions<a class="headerlink" href="#versions" title="Permalink to this headline">¶</a></h2>
+<p>There are two supported APIs available in pubsub: the default API, and a
+legacy API named &#8220;version 1&#8221; or v1 for short.</p>
+<p>The default API was developed after the original API
+was used in larger applications and found to provide inadequate support
+for message validation, debugging and documenting, all important
+considerations in larger projects. The various pages under the API
+section of this site document the default API.</p>
+<p>The legacy API was developed as part of wxPython, where pubsub originated.
+The legacy API is activated by importing pubsub&#8217;s setupv1 module before
+the first pubsub import statement. See <a class="reference" href="docs4v1.html#label-api-v1-docs"><em>Legacy (v1) API</em></a>
+for documentation on the v1 API of pubsub.</p>
+<p>If you wish to transition an appication from using the legacy v1 API to
+using the default API, take a look at the <a class="reference" href="../recipes/index.html#label-migrations"><em>Migrations</em></a> page.</p>
+</div>
+<div class="section" id="api-documentation-default-api">
+<span id="label-api-v3-docs"></span><h2>API Documentation (Default API)<a class="headerlink" href="#api-documentation-default-api" title="Permalink to this headline">¶</a></h2>
+<p>The User Manual consists of the following sections.</p>
+<ul>
+<li class="toctree-l1"><a class="reference" href="examples.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference" href="examples.html#hello-world">Hello World</a></li>
+<li class="toctree-l2"><a class="reference" href="examples.html#more-examples">More Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="concepts.html">Concepts</a><ul>
+<li class="toctree-l2"><a class="reference" href="concepts.html#messages">Messages</a></li>
+<li class="toctree-l2"><a class="reference" href="concepts.html#topics">Topics</a></li>
+<li class="toctree-l2"><a class="reference" href="concepts.html#listeners">Listeners</a></li>
+<li class="toctree-l2"><a class="reference" href="concepts.html#publishing">Publishing</a></li>
+<li class="toctree-l2"><a class="reference" href="concepts.html#kwargs-messaging-protocol">Kwargs Messaging Protocol</a></li>
+<li class="toctree-l2"><a class="reference" href="concepts.html#arg1-messaging-protocol">Arg1 Messaging Protocol</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="basic_use.html">Basic Use</a><ul>
+<li class="toctree-l2"><a class="reference" href="basic_use.html#form-basic-topic-tree">Form basic topic tree</a></li>
+<li class="toctree-l2"><a class="reference" href="basic_use.html#subscribe-and-publish">Subscribe and Publish</a></li>
+<li class="toctree-l2"><a class="reference" href="basic_use.html#examples">Examples</a></li>
+<li class="toctree-l2"><a class="reference" href="basic_use.html#guidelines">Guidelines</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="more_advanced_use.html">Advanced Use</a><ul>
+<li class="toctree-l2"><a class="reference" href="more_advanced_use.html#topic-tree-specification">Topic Tree Specification</a></li>
+<li class="toctree-l2"><a class="reference" href="more_advanced_use.html#notification">Notification</a></li>
+<li class="toctree-l2"><a class="reference" href="more_advanced_use.html#exception-handling">Exception Handling</a></li>
+<li class="toctree-l2"><a class="reference" href="more_advanced_use.html#multi-threading">Multi-threading</a></li>
+<li class="toctree-l2"><a class="reference" href="more_advanced_use.html#multi-processing">Multi-processing</a></li>
+<li class="toctree-l2"><a class="reference" href="more_advanced_use.html#utilities">Utilities</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="api-documentation-legacy-api">
+<h2>API Documentation (Legacy API)<a class="headerlink" href="#api-documentation-legacy-api" title="Permalink to this headline">¶</a></h2>
+<p>See <a class="reference" href="docs4v1.html#label-api-v1-docs"><em>Legacy (v1) API</em></a>.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="splitsidebar">
+        <div class="localsidebarpanel">
+            <h3>Page Contents</h3>
+            <ul>
+<li><a class="reference" href="#">API Documentation</a><ul>
+<li><a class="reference" href="#status">Status</a></li>
+<li><a class="reference" href="#versions">Versions</a></li>
+<li><a class="reference" href="#api-documentation-default-api">API Documentation (Default API)</a><ul>
+</ul>
+</li>
+<li><a class="reference" href="#api-documentation-legacy-api">API Documentation (Legacy API)</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../_sources/apidocs/index.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="examples.html" title="Examples"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../changelog.html" title="Changelog"
+             >previous</a> |</li>
+        <li>Trail:</li>
+          <li> &raquo; <a href="#">API Documentation</a></li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Oliver Schoenborn.
+      Last updated on May 05, 2010.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>

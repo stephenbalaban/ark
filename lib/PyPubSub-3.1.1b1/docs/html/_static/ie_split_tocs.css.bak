@@ -1,0 +1,36 @@
+/**
+ * Remove the fixed items. Use this when IE 6 or earlier. 
+ *
+ * Copyright (c) Oliver Schoenborn, 2009
+ */
+
+div.mainsidebarpanel {
+    position: fixed;
+    /* float: left;
+    overflow: auto;
+
+    margin: 0;
+    padding: 10px 5px 0 10px;
+    height: 100%;
+    width: 210px;
+    */
+}
+
+div.localsidebarpanel {
+    position: relative;
+    /*
+    float: right;
+    overflow: auto;
+    left: 230px;
+*/
+    margin: 0 0 0 300px;
+    padding: 10px 5px 0 10px;
+    width: 110px;
+
+    background-color: rgb(142,42,242);
+    /*
+    border-left: 1px solid #98dbcc;
+    font-size: 80%;
+    */
+}
+

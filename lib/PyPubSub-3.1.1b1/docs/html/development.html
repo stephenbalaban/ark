@@ -1,0 +1,296 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Development &mdash; Python PubSub Website</title>
+    <link rel="stylesheet" href="_static/split_tocs.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <!--[if lte IE 8]><link rel="stylesheet" href="_static/ie_split_tocs.css" type="text/css" /><![endif]-->
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '3.1.0b1',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="top" title="Python PubSub Website" href="index.html" />
+    <link rel="up" title="About" href="about.html" />
+    <link rel="next" title="Installation" href="installation.html" />
+    <link rel="prev" title="History" href="history.html" /> 
+  </head>
+  <body>
+  <div class="docsheader">
+    <h3>Python PubSub Website</h3>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="history.html" title="History"
+             accesskey="P">previous</a> |</li>
+        <li>Trail:</li>
+          <li> &raquo; <a href="about.html" accesskey="U">About</a></li>
+          <li> &raquo; <a href="#">Development</a></li> 
+      </ul>
+    </div>
+  </div>
+ 
+      <div class="splitsidebar">
+        <div class="mainsidebarpanel">
+            <h3><a href="index.html">Site Contents</a></h3>
+            <ul class="current">
+<li class="toctree-l1"><a class="reference" href="index.html">Home Page</a></li>
+<li class="toctree-l1 current"><a class="reference" href="about.html">About</a><ul class="current">
+<li class="toctree-l2"><a class="reference" href="projectsusing.html">Pubsub Users</a></li>
+<li class="toctree-l2"><a class="reference" href="history.html">History</a></li>
+<li class="toctree-l2 current"><a class="current reference" href="">Development</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference" href="download.html">Download</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="changelog.html">Changelog</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="apidocs/index.html">API Documentation</a><ul>
+<li class="toctree-l2"><a class="reference" href="apidocs/examples.html">Examples</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="apidocs/concepts.html">Concepts</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="apidocs/basic_use.html">Basic Use</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="apidocs/more_advanced_use.html">Advanced Use</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="apidocs/docs4v1.html">Legacy (v1) API</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="recipes/index.html">Pubsub Recipes</a><ul>
+<li class="toctree-l2"><a class="reference" href="recipes/upgrade_v1tov3.html">Upgrade from v1</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="recipes/arg1_to_kwargs.html">Convert Arg1 to Kwargs</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div> 
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="development">
+<h1>Development<a class="headerlink" href="#development" title="Permalink to this headline">¶</a></h1>
+<p>This page is intended mostly for developers.</p>
+<div class="section" id="roadmap">
+<h2>Roadmap<a class="headerlink" href="#roadmap" title="Permalink to this headline">¶</a></h2>
+<p>List of things I would like to add to pubsub:</p>
+<ul class="simple">
+<li>completed implementation of support for pubsub over UDP sockets, which
+would allow two pubsub-apps to publish and subscribe to messages of other
+applications (pseudo-code already in src/contrib)</li>
+<li>complete implementation of multi-threading helper class, no change
+required to pubsub, rather just utility class to help user
+(pseudo-code already in src/contrib)</li>
+<li>determine and fix performance bottlenecks</li>
+<li>figure out a good way to prevent wrapped listener subscriptions from being DOA
+(pubsub only keeps weak reference to listener, so if listener subscribe like
+<tt class="docutils literal"><span class="pre">pub.subscribe(</span> <span class="pre">wrapper(yourListener)</span> <span class="pre">)</span></tt> then listener will be unsubscribed
+as soon as subscribe returns; you need
+<tt class="docutils literal"><span class="pre">refListener</span> <span class="pre">=</span> <span class="pre">wrapper(yourListener);</span> <span class="pre">pub.subscribe(refListener)</span></tt>)</li>
+<li>finish the src/contrib/monitor implementation to monitor pubsub messages,
+or some way of monitoring message sending</li>
+</ul>
+</div>
+<div class="section" id="contributing">
+<span id="label-contributing"></span><h2>Contributing<a class="headerlink" href="#contributing" title="Permalink to this headline">¶</a></h2>
+<p>Contributions are welcome! There are many ways you could contribute:</p>
+<ul class="simple">
+<li>bug fixes</li>
+<li>new features</li>
+<li>test results on different platforms</li>
+<li>documentation</li>
+<li>screencasts! (of applications using pubsub with output when user clicks)</li>
+<li>example topic trees (using <tt class="docutils literal"><span class="pre">pubsubutils.printTopicTree()</span></tt> in latest
+version, or <tt class="docutils literal"><span class="pre">print</span> <span class="pre">Publisher</span></tt> in versions 1)</li>
+<li>other improvements</li>
+<li>money!</li>
+</ul>
+<p>Please contact me via email (schoenborno, at
+users.sf.net) or by posting on the forums (links in the
+<a class="reference" href="download.html#label-support"><em>Support</em></a> section).</p>
+</div>
+<div class="section" id="scripts-available">
+<h2>Scripts Available<a class="headerlink" href="#scripts-available" title="Permalink to this headline">¶</a></h2>
+<p>The following is likely to be useful to pubsub developers and contributors only.</p>
+<dl class="docutils">
+<dt><em>Testing</em>:</dt>
+<dd><p class="first">The package currently gets tested on Windows XP only. The tests can be
+run automatically by running <strong>runtests.bat</strong> from the <tt class="docutils literal"><span class="pre">tests</span></tt>
+folder of a source distribution.</p>
+<p class="last">If anyone is able to run the test suite on other platforms, please let
+me know of the results. A Linux person will have no
+trouble running the equivalent batch commands on Linux.</p>
+</dd>
+<dt><em>Documentation</em>:</dt>
+<dd>The documentation can be generated on Windows by running
+<strong>gendocs.bat</strong> from the <tt class="docutils literal"><span class="pre">docs</span></tt> folder of a source
+distribution (but see the note about Sphinx patch in next section).
+For Linux, again you should be able to
+just copy the commands form the <tt class="docutils literal"><span class="pre">.bat</span></tt> file to a shell window.</dd>
+<dt><em>Performance</em>:</dt>
+<dd>A small performance test is available in the <tt class="docutils literal"><span class="pre">tests</span></tt> folder.
+On Windows, run it via <strong>runperf.bat</strong>.</dd>
+</dl>
+</div>
+<div class="section" id="system-requirements">
+<h2>System Requirements<a class="headerlink" href="#system-requirements" title="Permalink to this headline">¶</a></h2>
+<p>In addition to the <a class="reference" href="installation.html#label-install-reqs"><em>System Requirements</em></a>, the following are required:</p>
+<ul>
+<li><p class="first">To run unit tests:</p>
+<ul class="simple">
+<li>nose &gt;= 0.10</li>
+<li>coverage &gt;= 3.1b1</li>
+</ul>
+</li>
+<li><p class="first">To generate these docs:</p>
+<ul>
+<li><p class="first">sphinx &gt;= 0.6.3; note that sphinx must be patched as per post on
+sphinx-dev:</p>
+<div class="highlight-python"><pre>--- C:/Python24/Lib/site-packages/Sphinx-0.6.5-py2.4.egg_orig/sphinx/environment.py	Thu Mar 18 09:59:23 2010
++++ C:/Python24/Lib/site-packages/Sphinx-0.6.5-py2.4.egg/sphinx/environment.py	Thu Mar 18 09:57:40 2010
+@@ -933,12 +933,12 @@
+             node['refuri'] = node['anchorname'] or '#'
+         return toc
+ 
+-    def get_toctree_for(self, docname, builder, collapse):
++    def get_toctree_for(self, docname, builder, **tmplKw):
+         """Return the global TOC nodetree."""
+         doctree = self.get_doctree(self.config.master_doc)
+         for toctreenode in doctree.traverse(addnodes.toctree):
+             result = self.resolve_toctree(docname, builder, toctreenode,
+-                                          prune=True, collapse=collapse)
++                                          prune=True, **tmplKw)
+             if result is not None:
+                 return result
+ 
+</pre>
+</div>
+<div class="highlight-python"><pre>--- C:/Python24/Lib/site-packages/Sphinx-0.6.5-py2.4.egg_orig/sphinx/builders/html.py	Thu Mar 18 09:59:25 2010
++++ C:/Python24/Lib/site-packages/Sphinx-0.6.5-py2.4.egg/sphinx/builders/html.py	Thu Mar 18 09:55:40 2010
+@@ -623,9 +623,9 @@
+         if self.indexer is not None and title:
+             self.indexer.feed(pagename, title, doctree)
+ 
+-    def _get_local_toctree(self, docname, collapse=True):
++    def _get_local_toctree(self, docname, **tmplKw):
+         return self.render_partial(self.env.get_toctree_for(
+-            docname, self, collapse))['fragment']
++            docname, self, **tmplKw))['fragment']
+ 
+     def get_outfilename(self, pagename):
+         return path.join(self.outdir, os_path(pagename) + self.out_suffix)
+</pre>
+</div>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="splitsidebar">
+        <div class="localsidebarpanel">
+            <h3>Page Contents</h3>
+            <ul>
+<li><a class="reference" href="#">Development</a><ul>
+<li><a class="reference" href="#roadmap">Roadmap</a></li>
+<li><a class="reference" href="#contributing">Contributing</a></li>
+<li><a class="reference" href="#scripts-available">Scripts Available</a></li>
+<li><a class="reference" href="#system-requirements">System Requirements</a></li>
+</ul>
+</li>
+</ul>
+
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/development.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="history.html" title="History"
+             >previous</a> |</li>
+        <li>Trail:</li>
+          <li> &raquo; <a href="about.html" >About</a></li>
+          <li> &raquo; <a href="#">Development</a></li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Oliver Schoenborn.
+      Last updated on May 05, 2010.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>

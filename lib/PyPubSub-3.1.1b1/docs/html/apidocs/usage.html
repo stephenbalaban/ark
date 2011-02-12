@@ -1,0 +1,199 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Usage &mdash; PubSub v3.1.0a1 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.1.0a1',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="top" title="PubSub v3.1.0a1 documentation" href="../index.html" />
+    <link rel="next" title="Concepts" href="concepts.html" />
+    <link rel="prev" title="Installation" href="../installation.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="concepts.html" title="Concepts"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../installation.html" title="Installation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">PubSub v3.1.0a1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="usage">
+<span id="label-usage"></span><h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This documentation is under construction. Meanwhile, please refer to the source
+code and examples. AND, feel free to send me ideas of what to document :)</p>
+</div>
+<div class="section" id="status">
+<h2>Status<a class="headerlink" href="#status" title="Permalink to this headline">¶</a></h2>
+<p>The following part of the <cite>pubsub</cite> API can be considered production/stable:</p>
+<ul class="simple">
+<li><tt class="xref docutils literal"><span class="pre">pub.subscribe()</span></tt></li>
+<li><tt class="xref docutils literal"><span class="pre">pub.sendMessage()</span></tt></li>
+<li><tt class="xref docutils literal"><span class="pre">pub.ListenerInadequate</span></tt></li>
+<li><tt class="xref docutils literal"><span class="pre">pub.MissingReqdArgs</span></tt></li>
+<li><tt class="xref docutils literal"><span class="pre">pub.UnknownOptArgs</span></tt></li>
+<li><tt class="xref docutils literal"><span class="pre">pub.addTopicDefnProvider()</span></tt></li>
+<li><tt class="xref docutils literal"><span class="pre">pub.ALL_TOPICS</span></tt></li>
+<li><tt class="xref docutils literal"><span class="pre">pub.AUTO_ARG</span></tt></li>
+<li><tt class="xref docutils literal"><span class="pre">pub.topics</span></tt></li>
+<li><tt class="xref docutils literal"><span class="pre">pub.setNotification()</span></tt></li>
+<li><tt class="xref docutils literal"><span class="pre">pub.newTopic()</span></tt></li>
+<li><tt class="xref docutils literal"><span class="pre">pub.getTopics()</span></tt></li>
+<li><tt class="xref docutils literal"><span class="pre">pub.delTopic()</span></tt></li>
+<li><tt class="xref docutils literal"><span class="pre">pub.isValid()</span></tt></li>
+<li><tt class="xref docutils literal"><span class="pre">pub.validate()</span></tt></li>
+<li><tt class="xref docutils literal"><span class="pre">pub.unsubscribe()</span></tt></li>
+<li><tt class="xref docutils literal"><span class="pre">pub.isSubscribed()</span></tt></li>
+<li><tt class="xref docutils literal"><span class="pre">pub.unsubAllFromTopic()</span></tt></li>
+<li><tt class="xref docutils literal"><span class="pre">pub.unsubAll()</span></tt></li>
+<li><tt class="xref docutils literal"><span class="pre">pub.PUBSUB_VERSION</span></tt></li>
+</ul>
+<p>Any other function, variable, class, module or method should be considered
+alpha vis-a-vis its naming or call protocol. For instance a function name may
+change if issues reported by users indicate its name is misleading.</p>
+</div>
+<div class="section" id="documentation">
+<h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h2>
+<p>The User Manual consists of the following sections.</p>
+</div>
+<div class="section" id="versions">
+<h2>Versions<a class="headerlink" href="#versions" title="Permalink to this headline">¶</a></h2>
+<p>Note that there are are three major &#8220;versions&#8221; of pubsub. Version 1 is still
+maintained as it is the one in use in wxPython, where pubsub originated.
+Version 2 is no longer maintained as it was superseded by version 3. Version 3
+has been around for over a year and has reached maturity. It will continue
+to be maintained. The default version selected is version 3, but you can
+select an older major version via:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># in top level script/module:</span>
+<span class="k">import</span> <span class="nn">pubsubconf</span>
+<span class="n">pubsubconf</span><span class="o">.</span><span class="n">setVersion</span><span class="p">(</span><span class="mf">1</span><span class="p">)</span> <span class="c"># or 2 or 3 (default)</span>
+</pre></div>
+</div>
+<p>Note: if your application uses pubsub version 1, you have the choice of
+setting an option in pubsub to make it continue to use version 1, without
+all the benefits of the latest version. OR, you may have upgrade your code.
+Some <a class="reference" href="upgrade_v1tov3.html#label-upgrade-v1tov3"><em>suggested steps are available</em></a>.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="../index.html">Table Of Contents</a></h3>
+            <ul class="current">
+<li class="toctree-l1"><a class="reference" href="../index.html">Pubsub Home page</a></li>
+<li class="toctree-l1"><a class="reference" href="../about.html">About</a><ul>
+<li class="toctree-l2"><a class="reference" href="../about.html#who-where">Who, Where</a></li>
+<li class="toctree-l2"><a class="reference" href="../about.html#hello-world">Hello World</a></li>
+<li class="toctree-l2"><a class="reference" href="../about.html#projects-using-pubsub">Projects using Pubsub</a></li>
+<li class="toctree-l2"><a class="reference" href="../about.html#history">History</a></li>
+<li class="toctree-l2"><a class="reference" href="../about.html#acknowledgements">Acknowledgements</a></li>
+<li class="toctree-l2"><a class="reference" href="../about.html#contributing">Contributing</a></li>
+<li class="toctree-l2"><a class="reference" href="../about.html#support">Support</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="../installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference" href="../installation.html#system-requirements">System Requirements</a></li>
+<li class="toctree-l2"><a class="reference" href="../installation.html#license">License</a></li>
+<li class="toctree-l2"><a class="reference" href="../installation.html#download">Download</a></li>
+<li class="toctree-l2"><a class="reference" href="../installation.html#testing-docs-etc">Testing, docs, etc</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference" href="">Usage</a><ul>
+<li class="toctree-l2"><a class="reference" href="#status">Status</a></li>
+<li class="toctree-l2"><a class="reference" href="#documentation">Documentation</a><ul>
+<li class="toctree-l3"><a class="reference" href="concepts.html">Concepts</a></li>
+<li class="toctree-l3"><a class="reference" href="basic_use.html">Basic Use</a></li>
+<li class="toctree-l3"><a class="reference" href="more_advanced_use.html">Advancing to the Next Step</a></li>
+<li class="toctree-l3"><a class="reference" href="api_reference.html">Pypubsub API Reference</a></li>
+<li class="toctree-l3"><a class="reference" href="changelog.html">Changelog</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="#versions">Versions</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="../installation.html"
+                                  title="previous chapter">Installation</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="concepts.html"
+                                  title="next chapter">Concepts</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../_sources/apidocs/usage.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="concepts.html" title="Concepts"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../installation.html" title="Installation"
+             >previous</a> |</li>
+        <li><a href="../index.html">PubSub v3.1.0a1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Oliver Schoenborn.
+      Last updated on Nov 07, 2009.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

@@ -43,3 +43,6 @@ Thumbs.db
 *.swo
 *.swn
 *.swn
+#build stuff
+###############
+build

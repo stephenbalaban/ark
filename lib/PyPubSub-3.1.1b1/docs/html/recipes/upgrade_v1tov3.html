@@ -1,0 +1,436 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Upgrade from v1 &mdash; Python PubSub Website</title>
+    <link rel="stylesheet" href="../_static/split_tocs.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <!--[if lte IE 8]><link rel="stylesheet" href="../_static/ie_split_tocs.css" type="text/css" /><![endif]-->
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.1.0b1',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="top" title="Python PubSub Website" href="../index.html" />
+    <link rel="up" title="Pubsub Recipes" href="index.html" />
+    <link rel="next" title="Convert Arg1 to Kwargs" href="arg1_to_kwargs.html" />
+    <link rel="prev" title="Pubsub Recipes" href="index.html" /> 
+  </head>
+  <body>
+  <div class="docsheader">
+    <h3>Python PubSub Website</h3>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="arg1_to_kwargs.html" title="Convert Arg1 to Kwargs"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Pubsub Recipes"
+             accesskey="P">previous</a> |</li>
+        <li>Trail:</li>
+          <li> &raquo; <a href="index.html" accesskey="U">Pubsub Recipes</a></li>
+          <li> &raquo; <a href="#">Upgrade from v1</a></li> 
+      </ul>
+    </div>
+  </div>
+ 
+      <div class="splitsidebar">
+        <div class="mainsidebarpanel">
+            <h3><a href="../index.html">Site Contents</a></h3>
+            <ul class="current">
+<li class="toctree-l1"><a class="reference" href="../index.html">Home Page</a></li>
+<li class="toctree-l1"><a class="reference" href="../about.html">About</a><ul>
+<li class="toctree-l2"><a class="reference" href="../projectsusing.html">Pubsub Users</a></li>
+<li class="toctree-l2"><a class="reference" href="../history.html">History</a></li>
+<li class="toctree-l2"><a class="reference" href="../development.html">Development</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="../installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference" href="../download.html">Download</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="../changelog.html">Changelog</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="../apidocs/index.html">API Documentation</a><ul>
+<li class="toctree-l2"><a class="reference" href="../apidocs/examples.html">Examples</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="../apidocs/concepts.html">Concepts</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="../apidocs/basic_use.html">Basic Use</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="../apidocs/more_advanced_use.html">Advanced Use</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="../apidocs/docs4v1.html">Legacy (v1) API</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference" href="index.html">Pubsub Recipes</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference" href="">Upgrade from v1</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="arg1_to_kwargs.html">Convert Arg1 to Kwargs</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div> 
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="upgrade-from-v1">
+<span id="label-upgrade-for-wx"></span><h1>Upgrade from v1<a class="headerlink" href="#upgrade-from-v1" title="Permalink to this headline">¶</a></h1>
+<p>This section describes how to upgrade an application that uses
+the <a class="reference" href="../apidocs/docs4v1.html#label-api-v1-docs"><em>version 1 (v1) API</em></a> to use
+<a class="reference" href="../apidocs/index.html#label-api-v3-docs"><em>version 3 (v3)</em></a> of pubsub API.</p>
+<div class="section" id="suggested-steps">
+<h2>Suggested Steps<a class="headerlink" href="#suggested-steps" title="Permalink to this headline">¶</a></h2>
+<p>If your application uses only the <tt class="docutils literal"><span class="pre">Publisher.sendMessage</span></tt> and
+<tt class="docutils literal"><span class="pre">Publisher.subscribe</span></tt> functions, your job will be very simple (if it
+isn&#8217;t, post on the pubsub Support forum).</p>
+<ol class="arabic simple" start="0">
+<li>Get the version of pubsub used by your application:</li>
+</ol>
+<blockquote>
+<ol class="arabic">
+<li><p class="first">start a python interpreter session (same version as used by your app)</p>
+</li>
+<li><p class="first">copy your app&#8217;s pubsub import statement; for instance</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">from</span> <span class="nn">wx.lib.pubsub</span> <span class="k">import</span> <span class="n">pub</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">then :</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">pub</span><span class="o">.</span><span class="n">VERSION_STR</span>
+<span class="go">1.0.xxxxxxxx</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</blockquote>
+<ol class="arabic">
+<li><p class="first">If the printout starts with a number greater than 1 (unlike the above
+example), your application is already using v3 of pubsub, there is nothing
+else to do. You may want to try <tt class="docutils literal"><span class="pre">print</span> <span class="pre">pub.getMsgProtocol()</span></tt>: if this
+prints <em>kwargs</em> you are already using the most advanced pubsub API. If it
+prints <em>arg1</em> then consider migrating to <em>kwargs</em> protocol as described
+in <a class="reference" href="arg1_to_kwargs.html#label-trans-arg1-to-kwargs"><em>Convert Arg1 to Kwargs</em></a>.  <strong>DONE</strong>.</p>
+</li>
+<li><p class="first">If the printout starts with &#8220;1&#8221; (as in the above example), then jump
+to step 3. Otherwise, the print statement must have led to a traceback
+message (if not, see <a class="reference" href="../download.html#label-support"><em>Support</em></a>), so</p>
+<blockquote>
+<ol class="arabic simple">
+<li>download and install the standalone pubsub</li>
+<li>do a search/replace for <tt class="docutils literal"><span class="pre">wx.lib.pubsub</span></tt> with <tt class="docutils literal"><span class="pre">pubsub</span></tt> in
+your application code</li>
+<li>add a <tt class="docutils literal"><span class="pre">from</span> <span class="pre">pubsub</span> <span class="pre">import</span> <span class="pre">setupv1</span></tt> in your application&#8217;s
+startup script, <em>before</em> the first pubsub import</li>
+<li>continue from 3.2 below</li>
+</ol>
+</blockquote>
+</li>
+<li><p class="first">Do the following:</p>
+<blockquote>
+<ol class="arabic simple">
+<li>add a <tt class="docutils literal"><span class="pre">from</span> <span class="pre">wx.lib.pubsub</span> <span class="pre">import</span> <span class="pre">setupv1</span></tt> in your application&#8217;s
+startup script, <em>before</em> the first pubsub import</li>
+<li>confirm that all works well: it should because the setupv1 import
+causes a module to be loaded that has almost exact same code as
+wx.lib.pubsub</li>
+<li>do a search/replace of <tt class="docutils literal"><span class="pre">Publisher.</span></tt> for <tt class="docutils literal"><span class="pre">pub.</span></tt></li>
+<li>confirm that all works well</li>
+<li>change <tt class="docutils literal"><span class="pre">setupv1</span></tt> to <tt class="docutils literal"><span class="pre">setuparg1</span></tt></li>
+<li>check that all works well: if problem, look at the
+<a class="reference" href="#label-differences"><em>Differences</em></a> section</li>
+</ol>
+</blockquote>
+</li>
+</ol>
+<p>For instance, if yourApp.py is your application&#8217;s startup script, and
+contains</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">from</span> <span class="nn">wx.lib.pubsub</span> <span class="k">import</span> <span class="n">Publisher</span>
+
+<span class="n">Publisher</span><span class="o">.</span><span class="n">sendMessage</span><span class="p">(</span><span class="s">&#39;hello&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>then after step 3.3 the above lines would be</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">from</span> <span class="nn">wx.lib.pubsub</span> <span class="k">import</span> <span class="n">setuparg1</span>
+<span class="k">from</span> <span class="nn">wx.lib.pubsub</span> <span class="k">import</span> <span class="n">pub</span>
+
+<span class="n">pub</span><span class="o">.</span><span class="n">sendMessage</span><span class="p">(</span><span class="s">&#39;hello&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Notes:</p>
+<ul class="simple">
+<li>If you are using wxPython version &lt;= 2.8.10.0, wx.lib.pubsub is a module
+which adheres to v1 API but does not support v3 API.</li>
+<li>If your application runs without a console window and you don&#8217;t
+catch all Exception exceptions, you may not
+have time to see the exception traceback that the Python interpreter
+prints at exit. Start your GUI app from a console, or have a
+catch-Exception and print the error in your GUI.</li>
+</ul>
+<p>See the test file <tt class="docutils literal"><span class="pre">tests/trans1to3/test_trans_step_1.py</span></tt> in the
+source distribution for an example application after this step has
+been executed.</p>
+</div>
+<div class="section" id="differences">
+<span id="label-differences"></span><h2>Differences<a class="headerlink" href="#differences" title="Permalink to this headline">¶</a></h2>
+<p>Each subsection describes a difference between the v1 and v3 <em>arg1</em> API.
+Differences with v3 <em>kwargs</em> API are not covered as going straight fromm
+v1 to v3 <em>kwargs</em> is not supported.</p>
+<div class="section" id="main-access-point">
+<h3>Main access point<a class="headerlink" href="#main-access-point" title="Permalink to this headline">¶</a></h3>
+<p>The main interface to pubsub in v1 was via <tt class="docutils literal"><span class="pre">pubsub.Publisher</span></tt>, which was a
+singleton instance of a PublisherClass class. Pubsub supported the following
+ways of accessing pubsub functionality:</p>
+<p>Version 1.x:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">from</span> <span class="nn">wx.lib.pubsub</span> <span class="k">import</span> <span class="n">Publisher</span>
+<span class="n">Publisher</span><span class="o">.</span><span class="n">function</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>     <span class="c"># OR:</span>
+<span class="n">Publisher</span><span class="p">()</span><span class="o">.</span><span class="n">function</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Version &gt;= 3.0:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">from</span> <span class="nn">wx.lib.pubsub</span> <span class="k">import</span> <span class="n">pub</span>    <span class="c"># OR:</span>
+<span class="k">from</span> <span class="nn">pubsub</span> <span class="k">import</span> <span class="n">Publisher</span> <span class="c"># alias for &quot;pub&quot;</span>
+<span class="n">pub</span><span class="o">.</span><span class="n">function</span><span class="p">()</span> <span class="c"># only!</span>
+</pre></div>
+</div>
+<p>Ie,</p>
+<ul class="simple">
+<li>the (IMO) clunky syntax of <tt class="docutils literal"><span class="pre">Publisher().function()</span></tt> is no longer
+supported in pubsub after v1. A global search replace will easily take
+care of this.</li>
+<li>a shorter form of import is available, <tt class="docutils literal"><span class="pre">from</span> <span class="pre">pubsub</span> <span class="pre">import</span> <span class="pre">pub</span></tt></li>
+</ul>
+</div>
+<div class="section" id="sendmessage">
+<h3>sendMessage<a class="headerlink" href="#sendmessage" title="Permalink to this headline">¶</a></h3>
+<p>Version 1.x:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">sendMessage</span><span class="p">(</span><span class="n">topic</span> <span class="o">=</span> <span class="n">ALL_TOPICS</span><span class="p">,</span> <span class="n">data</span>  <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="n">onTopicNeverCreated</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Version &gt;= 3.0:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">sendMessage</span><span class="p">(</span><span class="n">topicName</span><span class="p">,</span> <span class="n">data</span>  <span class="o">=</span> <span class="bp">None</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Changes:</p>
+<ul class="simple">
+<li>In v1, <tt class="docutils literal"><span class="pre">sendMessage()</span></tt>, without any arguments, can be used. This will send
+a message of topic &#8220;ALL_TOPICS&#8221;. In v3, you must explicitly give
+<tt class="docutils literal"><span class="pre">pub.ALL_TOPICS</span></tt> for the <tt class="docutils literal"><span class="pre">topicName</span></tt> argument.</li>
+<li>In v1, <tt class="docutils literal"><span class="pre">onTopicNeverCreated</span></tt> is a callback that can be given to
+sendMessage, to call if the topic doesn&#8217;t yet exist, to help with
+debugging of messages. This is limited for many reasons so it has been
+removed. There are several way of replacing it in v3:<ul>
+<li>via the pubsub notification mechanism: you derive
+a class from <tt class="docutils literal"><span class="pre">pubsub.utils.IgnoreNotificationsMixin</span></tt>, override the
+the <tt class="docutils literal"><span class="pre">notifyNewTopic()</span></tt> to do the same as <tt class="docutils literal"><span class="pre">onTopicNeverCreated</span></tt>,
+and call <tt class="docutils literal"><span class="pre">pubsub.addNotificationHandler(</span> <span class="pre">YourHandler()</span> <span class="pre">)</span></tt>.</li>
+<li>by printing the topic tree</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="subscribe">
+<h3>subscribe<a class="headerlink" href="#subscribe" title="Permalink to this headline">¶</a></h3>
+<p>Version 1.x:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">subscribe</span><span class="p">(</span><span class="n">listener</span><span class="p">,</span> <span class="n">topic</span> <span class="o">=</span> <span class="n">ALL_TOPICS</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Version &gt;= 3.0:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">subscribe</span><span class="p">(</span><span class="n">listener</span><span class="p">,</span> <span class="n">topicName</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Change: In v1, <tt class="docutils literal"><span class="pre">subscribe(listener)</span></tt> can be used to subscribe a callable
+to the &#8220;ALL_TOPICS&#8221; topic. In v3, you must explicitly give
+<tt class="docutils literal"><span class="pre">pub.ALL_TOPICS</span></tt> for the <tt class="docutils literal"><span class="pre">topicName</span></tt> argument, ie a topic name is
+always required. This follows the &#8220;explicit is better&#8221; philosophy of Python.</p>
+</div>
+<div class="section" id="unsubscribe">
+<h3>unsubscribe<a class="headerlink" href="#unsubscribe" title="Permalink to this headline">¶</a></h3>
+<p>Version 1.x:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">unsubscribe</span><span class="p">(</span><span class="n">listener</span><span class="p">,</span> <span class="n">topics</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Version &gt;= 3.0:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">unsubscribe</span><span class="p">(</span><span class="n">listener</span><span class="p">,</span> <span class="n">topicName</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Change: In v1, <tt class="docutils literal"><span class="pre">unsubscribe(listener)</span></tt> can be used to unsubscribe a
+callable from all topics that it is subscribed to. This is redundant
+since this functionality is available via <tt class="docutils literal"><span class="pre">unsubAll</span></tt> function, so this
+capability has been removed and a topic name is always required.
+Furthermore, in v1 the <tt class="docutils literal"><span class="pre">topics</span></tt> argument could be a list of topic names,
+a convenience to unsubscribe a listener from several topics. Again, this
+is available via the unsubAll function so it has been removed.
+Change any calls of the form <tt class="docutils literal"><span class="pre">unsubscribe(listener)</span></tt> or
+<tt class="docutils literal"><span class="pre">unsubscribe(listener,</span> <span class="pre">list</span> <span class="pre">of</span> <span class="pre">topics)</span></tt> to use <tt class="docutils literal"><span class="pre">unsubAll</span></tt></p>
+</div>
+<div class="section" id="issubscribed">
+<h3>isSubscribed<a class="headerlink" href="#issubscribed" title="Permalink to this headline">¶</a></h3>
+<p>Version 1.x:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">isSubscribed</span><span class="p">(</span><span class="n">listener</span><span class="p">,</span> <span class="n">topic</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Version &gt;= 3.0:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">isSubscribed</span><span class="p">(</span><span class="n">listener</span><span class="p">,</span> <span class="n">topicName</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Change: In v1, leaving topic=None cause <tt class="docutils literal"><span class="pre">isSubscribed(listener)</span></tt> to check
+whether listener was subscribed to anything. This test is no longer
+available via isSubscribed post v1 due to the way listeners are registered.
+However, <tt class="docutils literal"><span class="pre">getAssociatedTopics(listener)</span> <span class="pre">!=</span> <span class="pre">[]</span></tt> provides the same answer.</p>
+</div>
+<div class="section" id="unsuball">
+<h3>unsubAll<a class="headerlink" href="#unsuball" title="Permalink to this headline">¶</a></h3>
+<p>Version 1.x:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">unsubAll</span><span class="p">(</span><span class="n">topics</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="n">onNoSuchTopic</span> <span class="o">=</span> <span class="bp">None</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Version &gt;= 3.0:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">unsubAll</span><span class="p">(</span><span class="n">topicName</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="n">listenerFilter</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="n">topicFilter</span> <span class="o">=</span> <span class="bp">None</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Change: as with sendMessage, the callback is no longer accepted. The
+equivalent functionality could be obtained similarly, see the sendMessage
+discussion, specifically, about pubsub notification handling.</p>
+</div>
+<div class="section" id="getassociatedtopics">
+<h3>getAssociatedTopics<a class="headerlink" href="#getassociatedtopics" title="Permalink to this headline">¶</a></h3>
+<p>Version 1.x:</p>
+<div class="highlight-python"><pre>returns list of topic names (names in tuple format)</pre>
+</div>
+<p>Version &gt;= 3.0:</p>
+<div class="highlight-python"><pre>returns list of pub.Topic objects</pre>
+</div>
+</div>
+<div class="section" id="validate">
+<h3>validate<a class="headerlink" href="#validate" title="Permalink to this headline">¶</a></h3>
+<p>Version 1.x:</p>
+<div class="highlight-python"><pre>raises TypeError</pre>
+</div>
+<p>Version &gt;= 3.0:</p>
+<div class="highlight-python"><pre>raises ListenerInadequate</pre>
+</div>
+</div>
+<div class="section" id="getmessagecount-getdeliverycount">
+<h3>getMessageCount, getDeliveryCount<a class="headerlink" href="#getmessagecount-getdeliverycount" title="Permalink to this headline">¶</a></h3>
+<p>Both are no longer available as equivalent metrics can be obtained
+via the use of a notification handler&#8217;s <tt class="docutils literal"><span class="pre">notifySend()</span></tt> method,
+and filtering the calls:</p>
+<ul class="simple">
+<li>message count: count only when stage = &#8216;pre&#8217;</li>
+<li>delivery count: count only when stage = &#8216;in&#8217;</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="splitsidebar">
+        <div class="localsidebarpanel">
+            <h3>Page Contents</h3>
+            <ul>
+<li><a class="reference" href="#">Upgrade from v1</a><ul>
+<li><a class="reference" href="#suggested-steps">Suggested Steps</a></li>
+<li><a class="reference" href="#differences">Differences</a><ul>
+<li><a class="reference" href="#main-access-point">Main access point</a></li>
+<li><a class="reference" href="#sendmessage">sendMessage</a></li>
+<li><a class="reference" href="#subscribe">subscribe</a></li>
+<li><a class="reference" href="#unsubscribe">unsubscribe</a></li>
+<li><a class="reference" href="#issubscribed">isSubscribed</a></li>
+<li><a class="reference" href="#unsuball">unsubAll</a></li>
+<li><a class="reference" href="#getassociatedtopics">getAssociatedTopics</a></li>
+<li><a class="reference" href="#validate">validate</a></li>
+<li><a class="reference" href="#getmessagecount-getdeliverycount">getMessageCount, getDeliveryCount</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../_sources/recipes/upgrade_v1tov3.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="arg1_to_kwargs.html" title="Convert Arg1 to Kwargs"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Pubsub Recipes"
+             >previous</a> |</li>
+        <li>Trail:</li>
+          <li> &raquo; <a href="index.html" >Pubsub Recipes</a></li>
+          <li> &raquo; <a href="#">Upgrade from v1</a></li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Oliver Schoenborn.
+      Last updated on May 05, 2010.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>

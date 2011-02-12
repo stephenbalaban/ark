@@ -1,0 +1,338 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Advancing to the Next Step &mdash; PubSub v3.0a8 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.0a8',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PubSub v3.0a8 documentation" href="index.html" />
+    <link rel="up" title="Usage" href="usage.html" />
+    <link rel="next" title="Pypubsub API Reference" href="api_reference.html" />
+    <link rel="prev" title="Basic Use" href="basic_use.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="api_reference.html" title="Pypubsub API Reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="basic_use.html" title="Basic Use"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PubSub v3.0a8 documentation</a> &raquo;</li>
+          <li><a href="usage.html" accesskey="U">Usage</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="advancing-to-the-next-step">
+<h1>Advancing to the Next Step<a class="headerlink" href="#advancing-to-the-next-step" title="Permalink to this headline">¶</a></h1>
+<p>Once you get the basic ideas of how to create topic hierarchies, register listeners
+and send messages, and what kinds of things can go wrong, you may want to make use of
+the following capabilities.</p>
+<div class="section" id="topic-tree-specification">
+<h2>Topic Tree Specification<a class="headerlink" href="#topic-tree-specification" title="Permalink to this headline">¶</a></h2>
+<p><em>Topic Specification</em> can be used to have better control over your topic hierarchy.
+If you don&#8217;t specify your application&#8217;s topics, pubsub infers them from the first
+subscribed listener of each topic. E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">listener1</span><span class="p">(</span><span class="n">arg1</span><span class="p">,</span>      <span class="n">arg2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span> <span class="k">pass</span>
+<span class="k">def</span> <span class="nf">listener2</span><span class="p">(</span><span class="n">arg1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">arg2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span> <span class="k">pass</span>
+
+<span class="n">pub</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">listener1</span><span class="p">,</span> <span class="s">&#39;topic.sub&#39;</span><span class="p">)</span>
+<span class="n">pub</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="n">listener2</span><span class="p">,</span> <span class="s">&#39;topic.sub&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Because listener1 is the first to be subscribed to &#8216;topic.sub&#8217; topic, pubsub uses it to
+infer the specification of &#8216;topic.sub&#8217;: the specification is &#8220;messages of that topic
+<em>must</em> provide data for arg1, and <em>may</em> provide data for arg2&#8221;. The second listener
+subscribed, listener2, is allowed to subscribe because it is compatible with the
+topic&#8217;s specification created at the previous call. What if your intent was that arg1 is
+optional as well, i.e. the signature of listener1 is wrong (it should provide a default
+value for arg1)? Or what if per chance listener2 gets subscribed first (could happen if
+both are subscribed in different modules whose load order changes)?</p>
+<p>There are two ways to go about this:</p>
+<ul class="simple">
+<li>Call <tt class="docutils literal"><span class="pre">pub.newTopic()</span></tt> to explicitly create the topic; this must happen before
+any listener subscribes to it</li>
+<li>Use one or more <em>Topic definition providers</em> (TDP)</li>
+</ul>
+<div class="section" id="topic-definition-providers">
+<h3>Topic Definition Providers<a class="headerlink" href="#topic-definition-providers" title="Permalink to this headline">¶</a></h3>
+<p>The base class that defines the <em>Topic Definition Provider</em> API is
+<tt class="docutils literal"><span class="pre">pubsubutils.ITopicTreeDefnProvider</span></tt>. An implementation that uses a Python
+syntax to describe the topic tree, ie using Python classes and class variables, is
+available as <tt class="docutils literal"><span class="pre">pubsubutils.TopicTreeDefnSimple</span></tt>.  Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">from</span> <span class="nn">pubsubutils</span> <span class="k">import</span> <span class="n">TopicTreeDefnSimple</span>
+
+<span class="k">class</span> <span class="nc">MainTopicTree</span><span class="p">(</span><span class="n">TopicTreeDefnSimple</span><span class="p">):</span>
+    <span class="k">class</span> <span class="nc">topic1</span><span class="p">:</span>
+        <span class="sd">&#39;&#39;&#39;Explain what this topic is for&#39;&#39;&#39;</span>
+        <span class="n">optArg1</span> <span class="o">=</span> <span class="s">&#39;explain what this optional arg is for&#39;</span>
+
+        <span class="k">class</span> <span class="nc">subtopic2</span><span class="p">:</span>
+            <span class="sd">&#39;&#39;&#39;Explain what this subtopic is for&#39;&#39;&#39;</span>
+            <span class="n">reqArg1</span> <span class="o">=</span> <span class="s">&#39;explain what this required arg is for&#39;</span>
+            <span class="n">_required</span> <span class="o">=</span> <span class="s">&#39;reqArg1&#39;</span>
+
+            <span class="k">class</span> <span class="nc">subsubtopic3</span><span class="p">:</span>
+                <span class="sd">&#39;&#39;&#39;Explain what this subtopic is for&#39;&#39;&#39;</span>
+                <span class="n">reqArg2</span> <span class="o">=</span> <span class="s">&#39;explain what this second required arg is for&#39;</span>
+                <span class="n">reqArg3</span> <span class="o">=</span> <span class="s">&#39;explain what this third required arg is for&#39;</span>
+                <span class="n">optArg2</span> <span class="o">=</span> <span class="s">&#39;explain what this second optional arg is for&#39;</span>
+                <span class="n">_required</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;reqArg2&#39;</span><span class="p">,</span> <span class="s">&#39;reqArg3&#39;</span><span class="p">)</span>
+
+<span class="k">from</span> <span class="nn">pubsub</span> <span class="k">import</span> <span class="n">pub</span>
+<span class="n">pub</span><span class="o">.</span><span class="n">addTopicDefnProvider</span><span class="p">(</span> <span class="n">MainTopicTree</span><span class="p">()</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>The use cases supported are:</p>
+<ul>
+<li><p class="first">Formalization of Topic tree:</p>
+<ul class="simple">
+<li>You have not used the above yet;</li>
+<li>You have a preliminary topic tree which gets created for you by pubsub
+based on listeners that you subscribe (default when <tt class="docutils literal"><span class="pre">pub.addTopicDefnProvider()</span></tt>
+not called);</li>
+<li>You then want to formalize the tree such that can you specify clearly
+what arguments are required and optional, verify that there are no
+erroneous branches (due to a typo in a topic name), and document each
+topic and argument;</li>
+<li>You want to keep expanding the tree, without always having to update formal
+topic tree specification</li>
+</ul>
+<p>To handle this, you would use the above example code. Note that a preliminary tree
+can be obtained from your application via <tt class="docutils literal"><span class="pre">pubsubutils.printTreeSpec()</span></tt>.</p>
+</li>
+<li><p class="first">Constrain the Topic tree:</p>
+<ul class="simple">
+<li>Your application reaches a milestone, such that you want to &#8220;freeze&#8221; the tree;</li>
+<li>You don&#8217;t want to allow any other topics to be created;</li>
+<li>If new topics are needed they will be few such that it&#8217;s ok to require that
+they be first specified via a definition provider</li>
+</ul>
+<p>To handle this, you would add to the above example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">pubsubconf</span><span class="o">.</span><span class="n">setTopicUnspecifiedFatal</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then any attempt to work with a topic that does not exist will raise an
+<tt class="docutils literal"><span class="pre">pub.TopicUnspecifiedError</span></tt>.</p>
+</li>
+<li><p class="first">Allow application components to extend the tree:</p>
+<ul class="simple">
+<li>Your application defines a basic tree</li>
+<li>Your applications uses a plugin mechanism to support extensions to itself,
+or your application consists of several disjoint architectural components
+that communicate exclusively via pubsub (presumably, one of those components
+is the &#8220;core&#8221; part of the application).</li>
+<li>The plugins or components should be able to add subtopics to the tree
+without the having to edit the main TDP of the tree.</li>
+</ul>
+<p>The <tt class="docutils literal"><span class="pre">pub.addTopicDefnProvider()</span></tt> can be called as many times as you wish.
+When an unknown topic is required, each TDP will be queried for it. This
+means that plugins need merely to call this function with their part of the
+topic tree. For instance:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">PluginATree</span><span class="p">(</span><span class="n">TopicDefnProviderSimple</span><span class="p">):</span>
+    <span class="k">class</span> <span class="nc">topic1</span><span class="p">:</span>
+        <span class="k">class</span> <span class="nc">subtopic2</span><span class="p">:</span>
+            <span class="k">class</span> <span class="nc">subsubtopic4</span><span class="p">:</span>
+                <span class="sd">&#39;&#39;&#39;Describe new subtopic created by plugin&#39;&#39;&#39;</span>
+                <span class="n">optArg2</span> <span class="o">=</span> <span class="s">&#39;explain what this second optional arg is for&#39;</span>
+        <span class="k">class</span> <span class="nc">subtopic5</span><span class="p">:</span>
+            <span class="sd">&#39;&#39;&#39;This is a new subtopic of topic1 so the plugin can...&#39;&#39;&#39;</span>
+            <span class="c"># no additional args</span>
+
+    <span class="k">class</span> <span class="nc">topic2</span><span class="p">:</span>
+        <span class="sd">&#39;&#39;&#39;New root topic used only by plugin&#39;&#39;&#39;</span>
+        <span class="n">optArg1</span> <span class="o">=</span> <span class="s">&#39;...&#39;</span>
+</pre></div>
+</div>
+<p>This works because any topic that does not have a docstring is not considered
+to be a specification.</p>
+</li>
+</ul>
+<p>Note that the representation of a Topic Tree Specification need only adhere to
+the <tt class="docutils literal"><span class="pre">ITopicTreeDefnProvider</span></tt> interface.  Other implementations are possible,
+e.g. one using XML from an XML file would be useful.</p>
+</div>
+</div>
+<div class="section" id="notification">
+<h2>Notification<a class="headerlink" href="#notification" title="Permalink to this headline">¶</a></h2>
+<p>Pubsub can call a specified handler everytime certain types of calls are made to it:</p>
+<ul class="simple">
+<li><em>subscribe</em>:    whenever a listener subscribes to a topic</li>
+<li><em>unsubscribe</em>:  whenever a listener unsubscribes from a topic</li>
+<li><em>deadListener</em>: whenever pubsub finds out that a listener has died</li>
+<li><em>send</em>:         whenever the user calls sendMessage()</li>
+<li><em>newTopic</em>:     whenever the user defines a new topic</li>
+<li><em>delTopic</em>:     whenever the user undefines a topic</li>
+</ul>
+<p>A handler class is available already: <tt class="docutils literal"><span class="pre">pubsubutils.NotifyByPubsubMessage</span></tt>.
+This handler takes each notification received and generates a pubsub
+message in the &#8220;pubsub.*&#8221; branch. Your application gives the handler <em>class</em>
+(whether or not it is NotifyByPubsubMessage) to pubsubconf at initialization (first
+time pubsub is loaded into your application) by calling <tt class="docutils literal"><span class="pre">pubsubconf.setNotifierClass</span></tt>.</p>
+<p>Therefore, to use notification via this notifier, you must register one or more
+listeners for the various special topics. A default listener of
+all those topics is available, <tt class="docutils literal"><span class="pre">pubsubutils.DefaultLogger</span></tt>, which registers
+its methods as listeners of the pubsub topics. These listeners merely print
+a message to stdout.</p>
+<p>A shortcut is available from pubsubutils, to do all of the above. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c">#import pubsubconf              # optional</span>
+<span class="c">#...use pubsubconf functions... # optional</span>
+
+<span class="k">import</span> <span class="nn">pubsubutils</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">pubsubutils</span><span class="o">.</span><span class="n">useDefaultLoggingNotification</span><span class="p">()</span>
+<span class="c"># probably no point in calling pubsubconf functions after this</span>
+</pre></div>
+</div>
+<p>You can make your own pubsub notification handler by deriving from
+<tt class="docutils literal"><span class="pre">pubsubutils.INotificationHandler</span></tt> and giving it to <tt class="docutils literal"><span class="pre">setNotifierClass</span></tt>.</p>
+</div>
+<div class="section" id="exception-handling">
+<span id="id1"></span><h2>Exception Handling<a class="headerlink" href="#exception-handling" title="Permalink to this headline">¶</a></h2>
+<p>How to recover from exceptions raised in listeners</p>
+</div>
+<div class="section" id="multi-threading">
+<h2>Multi-threading<a class="headerlink" href="#multi-threading" title="Permalink to this headline">¶</a></h2>
+<p>In development: passing messages between threads</p>
+<p>Preliminary ideas (<strong>sorry for scribbliness, notes written while on the bus</strong>):</p>
+<div class="section" id="send-from-thread">
+<h3>Send from thread<a class="headerlink" href="#send-from-thread" title="Permalink to this headline">¶</a></h3>
+<div align="center" class="align-center"><img alt="Sketch showing how a thread could publish via pubsub" class="align-center" src="_images/send_from_thread.jpg" /></div>
+</div>
+<div class="section" id="send-to-thread">
+<h3>Send to thread<a class="headerlink" href="#send-to-thread" title="Permalink to this headline">¶</a></h3>
+<div align="center" class="align-center"><img alt="Sketch showing how thread could receive message from pubsub" class="align-center" src="_images/send_to_thread.jpg" /></div>
+</div>
+</div>
+<div class="section" id="multi-processing">
+<h2>Multi-processing<a class="headerlink" href="#multi-processing" title="Permalink to this headline">¶</a></h2>
+<p>In progress: passing messages between python scripts spawned from a master
+application, to support transparent publish-subscribe of real multi-processing
+python applications (ie not limited by GIL). Consider:</p>
+<ul class="simple">
+<li>mmap module: mentioned on <a class="reference" href="http://bytes.com/forum/thread25421.html">http://bytes.com/forum/thread25421.html</a></li>
+<li>pyprocessing package: <a class="reference" href="http://pyprocessing.berlios.de/doc/index.html">http://pyprocessing.berlios.de/doc/index.html</a></li>
+<li>pp package: <a class="reference" href="http://www.parallelpython.com/">http://www.parallelpython.com/</a></li>
+</ul>
+<p>and possibly other items on <a class="reference" href="http://wiki.python.org/moin/ParallelProcessing">http://wiki.python.org/moin/ParallelProcessing</a>.</p>
+</div>
+<div class="section" id="utilities">
+<h2>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Print:<ul>
+<li>current specification: <tt class="docutils literal"><span class="pre">pubsubutils.printTreeSpec()</span></tt></li>
+<li>current tree: <tt class="docutils literal"><span class="pre">pubsubutils.printTreeDocs()</span></tt></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li class="toctree-l1"><a class="reference" href="overview.html">Overview</a><ul>
+<li class="toctree-l2"><a class="reference" href="overview.html#what-who-why-where">What, Who, Why, Where</a></li>
+<li class="toctree-l2"><a class="reference" href="overview.html#pubsub-users">Pubsub Users</a></li>
+<li class="toctree-l2"><a class="reference" href="overview.html#history">History</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="quickstart.html">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference" href="quickstart.html#hello-world">Hello World</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference" href="installation.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference" href="installation.html#license">License</a></li>
+<li class="toctree-l2"><a class="reference" href="installation.html#installing">Installing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="usage.html">Usage</a><ul>
+<li class="toctree-l2"><a class="reference" href="usage.html#status">Status</a></li>
+<li class="toctree-l2"><a class="reference" href="usage.html#documentation">Documentation</a></li>
+<li class="toctree-l2"><a class="reference" href="usage.html#support">Support</a></li>
+<li class="toctree-l2"><a class="reference" href="usage.html#bug-reports">Bug reports</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="changelog.html">Changelog</a></li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="basic_use.html"
+                                  title="previous chapter">Basic Use</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="api_reference.html"
+                                  title="next chapter">Pypubsub API Reference</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/more_advanced_use.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="api_reference.html" title="Pypubsub API Reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="basic_use.html" title="Basic Use"
+             >previous</a> |</li>
+        <li><a href="index.html">PubSub v3.0a8 documentation</a> &raquo;</li>
+          <li><a href="usage.html" >Usage</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Oliver Schoenborn.
+      Last updated on Oct 19, 2009.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

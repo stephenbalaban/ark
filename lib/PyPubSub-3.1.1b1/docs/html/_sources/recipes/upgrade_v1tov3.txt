@@ -1,0 +1,269 @@
+
+.. _label-upgrade_for_wx:
+
+===================
+Upgrade from v1
+===================
+
+This section describes how to upgrade an application that uses
+the :ref:`version 1 (v1) API <label-api-v1-docs>` to use
+:ref:`version 3 (v3) <label-api-v3-docs>` of pubsub API.
+
+.. note:
+  Most pubsub
+  users will only need to change some import statements. For those who
+  made use of other parts of the v1 API, the :ref:`label_differences`
+  section also lists all the differences between the two API.
+
+
+Suggested Steps
+================
+
+If your application uses only the ``Publisher.sendMessage`` and
+``Publisher.subscribe`` functions, your job will be very simple (if it
+isn't, post on the pubsub Support forum).
+
+0. Get the version of pubsub used by your application:
+
+  #. start a python interpreter session (same version as used by your app)
+  #. copy your app's pubsub import statement; for instance ::
+
+       >>> from wx.lib.pubsub import pub
+
+  #. then :
+
+       >>> print pub.VERSION_STR
+       1.0.xxxxxxxx
+       >>>
+
+1. If the printout starts with a number greater than 1 (unlike the above
+   example), your application is already using v3 of pubsub, there is nothing
+   else to do. You may want to try ``print pub.getMsgProtocol()``: if this
+   prints *kwargs* you are already using the most advanced pubsub API. If it
+   prints *arg1* then consider migrating to *kwargs* protocol as described
+   in :ref:`label-trans_arg1_to_kwargs`.  **DONE**.
+
+2. If the printout starts with "1" (as in the above example), then jump
+   to step 3. Otherwise, the print statement must have led to a traceback
+   message (if not, see :ref:`label_support`), so
+
+    #. download and install the standalone pubsub
+    #. do a search/replace for ``wx.lib.pubsub`` with ``pubsub`` in
+       your application code
+    #. add a ``from pubsub import setupv1`` in your application's
+       startup script, *before* the first pubsub import
+    #. continue from 3.2 below
+
+3. Do the following:
+
+    #. add a ``from wx.lib.pubsub import setupv1`` in your application's
+       startup script, *before* the first pubsub import
+    #. confirm that all works well: it should because the setupv1 import
+       causes a module to be loaded that has almost exact same code as
+       wx.lib.pubsub
+    #. do a search/replace of ``Publisher.`` for ``pub.``
+    #. confirm that all works well
+    #. change ``setupv1`` to ``setuparg1``
+    #. check that all works well: if problem, look at the
+       :ref:`label_differences` section
+
+For instance, if yourApp.py is your application's startup script, and
+contains ::
+
+    from wx.lib.pubsub import Publisher
+
+    Publisher.sendMessage('hello')
+
+then after step 3.3 the above lines would be ::
+
+    from wx.lib.pubsub import setuparg1
+    from wx.lib.pubsub import pub
+
+    pub.sendMessage('hello')
+
+Notes:
+
+- If you are using wxPython version <= 2.8.10.0, wx.lib.pubsub is a module
+  which adheres to v1 API but does not support v3 API.
+- If your application runs without a console window and you don't
+  catch all Exception exceptions, you may not
+  have time to see the exception traceback that the Python interpreter
+  prints at exit. Start your GUI app from a console, or have a
+  catch-Exception and print the error in your GUI.
+
+See the test file :file:`tests/trans1to3/test_trans_step_1.py` in the
+source distribution for an example application after this step has
+been executed.
+
+
+.. _label_differences:
+
+Differences
+=============
+
+Each subsection describes a difference between the v1 and v3 *arg1* API.
+Differences with v3 *kwargs* API are not covered as going straight fromm
+v1 to v3 *kwargs* is not supported. 
+
+Main access point
+-------------------
+
+The main interface to pubsub in v1 was via ``pubsub.Publisher``, which was a
+singleton instance of a PublisherClass class. Pubsub supported the following
+ways of accessing pubsub functionality:
+
+Version 1.x::
+
+  from wx.lib.pubsub import Publisher
+  Publisher.function(...)     # OR:
+  Publisher().function(...)
+
+Version >= 3.0::
+
+  from wx.lib.pubsub import pub    # OR:
+  from pubsub import Publisher # alias for "pub"
+  pub.function() # only!
+
+Ie,
+
+- the (IMO) clunky syntax of ``Publisher().function()`` is no longer
+  supported in pubsub after v1. A global search replace will easily take
+  care of this.
+- a shorter form of import is available, ``from pubsub import pub``
+
+
+sendMessage
+-----------
+
+Version 1.x::
+
+  sendMessage(topic = ALL_TOPICS, data  = None, onTopicNeverCreated=None)
+
+Version >= 3.0::
+
+  sendMessage(topicName, data  = None)
+
+Changes:
+
+- In v1, ``sendMessage()``, without any arguments, can be used. This will send
+  a message of topic "ALL_TOPICS". In v3, you must explicitly give
+  ``pub.ALL_TOPICS`` for the ``topicName`` argument.
+- In v1, ``onTopicNeverCreated`` is a callback that can be given to
+  sendMessage, to call if the topic doesn't yet exist, to help with
+  debugging of messages. This is limited for many reasons so it has been 
+  removed. There are several way of replacing it in v3: 
+  
+  - via the pubsub notification mechanism: you derive
+    a class from ``pubsub.utils.IgnoreNotificationsMixin``, override the
+    the ``notifyNewTopic()`` to do the same as ``onTopicNeverCreated``,
+    and call ``pubsub.addNotificationHandler( YourHandler() )``.
+  - by printing the topic tree
+
+
+subscribe
+---------
+
+Version 1.x::
+
+  subscribe(listener, topic = ALL_TOPICS)
+
+Version >= 3.0::
+
+  subscribe(listener, topicName)
+
+Change: In v1, ``subscribe(listener)`` can be used to subscribe a callable
+to the "ALL_TOPICS" topic. In v3, you must explicitly give
+``pub.ALL_TOPICS`` for the ``topicName`` argument, ie a topic name is
+always required. This follows the "explicit is better" philosophy of Python.
+
+
+unsubscribe
+-----------
+
+Version 1.x::
+
+  unsubscribe(listener, topics=None)
+
+Version >= 3.0::
+
+  unsubscribe(listener, topicName)
+
+Change: In v1, ``unsubscribe(listener)`` can be used to unsubscribe a
+callable from all topics that it is subscribed to. This is redundant
+since this functionality is available via ``unsubAll`` function, so this
+capability has been removed and a topic name is always required.
+Furthermore, in v1 the ``topics`` argument could be a list of topic names,
+a convenience to unsubscribe a listener from several topics. Again, this
+is available via the unsubAll function so it has been removed.
+Change any calls of the form ``unsubscribe(listener)`` or
+``unsubscribe(listener, list of topics)`` to use ``unsubAll``
+
+
+isSubscribed
+------------
+
+Version 1.x::
+
+    isSubscribed(listener, topic=None)
+
+Version >= 3.0::
+
+    isSubscribed(listener, topicName)
+
+Change: In v1, leaving topic=None cause ``isSubscribed(listener)`` to check
+whether listener was subscribed to anything. This test is no longer
+available via isSubscribed post v1 due to the way listeners are registered.
+However, ``getAssociatedTopics(listener) != []`` provides the same answer.
+
+
+unsubAll
+---------
+
+Version 1.x::
+
+    unsubAll(topics = None, onNoSuchTopic = None)
+
+Version >= 3.0::
+
+    unsubAll(topicName = None, listenerFilter = None, topicFilter = None)
+
+Change: as with sendMessage, the callback is no longer accepted. The
+equivalent functionality could be obtained similarly, see the sendMessage
+discussion, specifically, about pubsub notification handling.
+
+
+getAssociatedTopics
+-------------------
+
+Version 1.x::
+
+  returns list of topic names (names in tuple format)
+
+Version >= 3.0::
+
+  returns list of pub.Topic objects
+
+
+validate
+--------
+
+Version 1.x::
+
+  raises TypeError
+
+Version >= 3.0::
+
+  raises ListenerInadequate
+
+
+getMessageCount, getDeliveryCount
+---------------------------------
+
+Both are no longer available as equivalent metrics can be obtained 
+via the use of a notification handler's ``notifySend()`` method,
+and filtering the calls:
+
+- message count: count only when stage = 'pre'
+- delivery count: count only when stage = 'in'
+
+

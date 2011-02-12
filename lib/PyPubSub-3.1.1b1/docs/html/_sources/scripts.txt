@@ -1,0 +1,24 @@
+Scripts Available
+------------------
+
+The following is likely to be useful to pubsub developers and contributors only.
+
+*Testing*:
+    The package currently gets tested on Windows XP only. The tests can be
+    run automatically by running :command:`runtests.bat` from the :file:`tests`
+    folder of a source distribution.
+
+    If anyone is able to run the test suite on other platforms, please let
+    me know of the results. A Linux person will have no
+    trouble running the equivalent batch commands on Linux.
+
+*Documentation*:
+    The documentation can be generated on Windows by running
+    :command:`gendocs.bat` from the :file:`docs` folder of a source
+    distribution. For Linux, again you should be able to
+    just copy the commands form the :file:`.bat` file to a shell window.
+
+*Performance*:
+    A small performance test is available in the :file:`tests` folder.
+    On Windows, run it via :command:`runperf.bat`.
+

@@ -1,0 +1,218 @@
+Advanced Use
+===============
+
+.. warning:: The topics of discussion in this section all relate to parts 
+   of the API that have evolved significantly in since it was first written.
+
+Once you get the basic ideas of how to create topic hierarchies, register listeners 
+and send messages, and what kinds of things can go wrong, you may want to make use of
+the following capabilities. 
+
+   
+Topic Tree Specification
+------------------------
+
+*Topic Specification* can be used to have better control over your topic hierarchy. 
+If you don't specify your application's topics, pubsub infers them from the first 
+subscribed listener of each topic. E.g.::
+
+    def listener1(arg1,      arg2=None): pass
+    def listener2(arg1=None, arg2=None): pass
+    
+    pub.subscribe(listener1, 'topic.sub') 
+    pub.subscribe(listener2, 'topic.sub')
+    
+Because listener1 is the first to be subscribed to 'topic.sub' topic, pubsub uses it to 
+infer the specification of 'topic.sub': the specification is "messages of that topic 
+*must* provide data for arg1, and *may* provide data for arg2". The second listener 
+subscribed, listener2, is allowed to subscribe because it is compatible with the 
+topic's specification created at the previous call. What if your intent was that arg1 is 
+optional as well, i.e. the signature of listener1 is wrong (it should provide a default 
+value for arg1)? Or what if per chance listener2 gets subscribed first (could happen if 
+both are subscribed in different modules whose load order changes)?
+
+There are two ways to go about this: 
+
+- Call ``pub.newTopic()`` to explicitly create the topic; this must happen before
+  any listener subscribes to it
+- Use one or more *Topic definition providers* (TDP)  
+
+
+Topic Definition Providers
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The base class that defines the *Topic Definition Provider* API is 
+``pubsubutils.ITopicTreeDefnProvider``. An implementation that uses a Python 
+syntax to describe the topic tree, ie using Python classes and class variables, is 
+available as ``pubsubutils.TopicTreeDefnSimple``.  Example::  
+
+    from pubsubutils import TopicTreeDefnSimple
+    
+    class MainTopicTree(TopicTreeDefnSimple):
+        class topic1:
+            '''Explain what this topic is for'''
+            optArg1 = 'explain what this optional arg is for'
+            
+            class subtopic2:
+                '''Explain what this subtopic is for'''
+                reqArg1 = 'explain what this required arg is for'
+                _required = 'reqArg1'
+                
+                class subsubtopic3:
+                    '''Explain what this subtopic is for'''
+                    reqArg2 = 'explain what this second required arg is for'
+                    reqArg3 = 'explain what this third required arg is for'
+                    optArg2 = 'explain what this second optional arg is for'
+                    _required = ('reqArg2', 'reqArg3')
+        
+    from pubsub import pub
+    pub.addTopicDefnProvider( MainTopicTree() )
+
+The use cases supported are: 
+
+- Formalization of Topic tree: 
+
+  - You have not used the above yet;
+  - You have a preliminary topic tree which gets created for you by pubsub 
+    based on listeners that you subscribe (default when ``pub.addTopicDefnProvider()``
+    not called); 
+  - You then want to formalize the tree such that can you specify clearly 
+    what arguments are required and optional, verify that there are no 
+    erroneous branches (due to a typo in a topic name), and document each 
+    topic and argument;
+  - You want to keep expanding the tree, without always having to update formal 
+    topic tree specification 
+
+  To handle this, you would use the above example code. Note that a preliminary tree 
+  can be obtained from your application via ``pubsubutils.printTreeSpec()``.
+  
+- Constrain the Topic tree:
+
+  - Your application reaches a milestone, such that you want to "freeze" the tree;
+  - You don't want to allow any other topics to be created; 
+  - If new topics are needed they will be few such that it's ok to require that
+    they be first specified via a definition provider
+  
+  To handle this, you would add to the above example:: 
+
+    pubsubconf.setTopicUnspecifiedFatal(True)
+
+  Then any attempt to work with a topic that does not exist will raise an 
+  ``pub.TopicUnspecifiedError``.
+
+- Allow application components to extend the tree:
+
+  - Your application defines a basic tree
+  - Your applications uses a plugin mechanism to support extensions to itself, 
+    or your application consists of several disjoint architectural components 
+    that communicate exclusively via pubsub (presumably, one of those components
+    is the "core" part of the application). 
+  - The plugins or components should be able to add subtopics to the tree
+    without the having to edit the main TDP of the tree. 
+    
+  The ``pub.addTopicDefnProvider()`` can be called as many times as you wish.
+  When an unknown topic is required, each TDP will be queried for it. This 
+  means that plugins need merely to call this function with their part of the 
+  topic tree. For instance::
+  
+    class PluginATree(TopicDefnProviderSimple):
+        class topic1:
+            class subtopic2:
+                class subsubtopic4:
+                    '''Describe new subtopic created by plugin'''
+                    optArg2 = 'explain what this second optional arg is for'
+            class subtopic5:
+                '''This is a new subtopic of topic1 so the plugin can...'''
+                # no additional args
+                
+        class topic2: 
+            '''New root topic used only by plugin'''
+            optArg1 = '...'
+           
+  This works because any topic that does not have a docstring is not considered 
+  to be a specification. 
+
+Note that the representation of a Topic Tree Specification need only adhere to 
+the ``ITopicTreeDefnProvider`` interface.  Other implementations are possible, 
+e.g. one using XML from an XML file would be useful.  
+
+ 
+Notification
+-------------
+
+Pubsub can call a specified handler everytime certain types of calls are made to it: 
+
+- *subscribe*:    whenever a listener subscribes to a topic
+- *unsubscribe*:  whenever a listener unsubscribes from a topic
+- *deadListener*: whenever pubsub finds out that a listener has died
+- *send*:         whenever the user calls sendMessage()
+- *newTopic*:     whenever the user defines a new topic
+- *delTopic*:     whenever the user undefines a topic
+
+A handler class is available already: ``pubsubutils.NotifyByPubsubMessage``. 
+This handler takes each notification received and generates a pubsub 
+message in the "pubsub.*" branch. Your application gives the handler *class* 
+(whether or not it is NotifyByPubsubMessage) to pubsubconf at initialization (first 
+time pubsub is loaded into your application) by calling ``pubsubconf.setNotifierClass``.
+
+Therefore, to use notification via this notifier, you must register one or more 
+listeners for the various special topics. A default listener of
+all those topics is available, ``pubsubutils.DefaultLogger``, which registers
+its methods as listeners of the pubsub topics. These listeners merely print
+a message to stdout. 
+
+A shortcut is available from pubsubutils, to do all of the above. For example::
+
+    #import pubsubconf              # optional
+    #...use pubsubconf functions... # optional
+    
+    import pubsubutils
+    logger = pubsubutils.useDefaultLoggingNotification()
+    # probably no point in calling pubsubconf functions after this
+
+You can make your own pubsub notification handler by deriving from 
+``pubsubutils.INotificationHandler`` and giving it to ``setNotifierClass``. 
+
+
+.. _exception-handling:
+
+Exception Handling
+-------------------
+
+How to recover from exceptions raised in listeners
+
+
+Multi-threading
+----------------
+
+The main challenge with using pubsub in multi-threaded application is
+insuring that the listener is called only from within its own thread,
+or provides some inter-thread synchronization mechanism. There are so
+many ways of doing the latter that it is unlikely that anything pubsub
+could provide would be of general use (that said, I'd be happy to be
+proven wrong). See the discussion on pubsub_dev,
+http://groups.google.com/group/pypubsub_dev/browse_thread/thread/7f414e82f62d64b7.
+
+
+Multi-processing
+-----------------
+
+In progress: passing messages between python scripts spawned from a master 
+application, to support transparent publish-subscribe of real multi-processing 
+python applications (ie not limited by GIL). Consider:
+
+- mmap module: mentioned on http://bytes.com/forum/thread25421.html
+- pyprocessing package: http://pyprocessing.berlios.de/doc/index.html
+- pp package: http://www.parallelpython.com/
+
+and possibly other items on http://wiki.python.org/moin/ParallelProcessing. 
+
+
+Utilities
+---------
+
+- Print:
+  
+  * current specification: ``pubsubutils.printTreeSpec()``
+  * current tree: ``pubsubutils.printTreeDocs()``
+

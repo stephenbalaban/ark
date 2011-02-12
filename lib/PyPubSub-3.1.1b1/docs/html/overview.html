@@ -1,0 +1,287 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Overview &mdash; PubSub v3.0a8 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.0a8',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PubSub v3.0a8 documentation" href="index.html" />
+    <link rel="next" title="Quick Start" href="quickstart.html" />
+    <link rel="prev" title="PyPubSub Documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="quickstart.html" title="Quick Start"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="PyPubSub Documentation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PubSub v3.0a8 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="overview">
+<h1>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="what-who-why-where">
+<h2>What, Who, Why, Where<a class="headerlink" href="#what-who-why-where" title="Permalink to this headline">¶</a></h2>
+<p>The Pubsub library is a Python package providing a publish - subscribe
+API. It enables data to be sent between independent parts of your
+application, ie for &#8220;senders&#8221; and message &#8220;listeners&#8221; to be unaware of
+each other. For instance, between the GUI components and the Application
+Controller. Using publish - subscribe in your application can
+dramatically simplify its design and improve testability. This is
+explained further in the <a class="reference" href="usage.html#label-usage"><em>Usage</em></a> section.</p>
+<p>The main developer of the package is Oliver Schoenborn, but Robb Shecter
+started it all. The code is now hosted on SF.net at
+<a class="reference" href="http://www.sf.net/projects/pubsub">http://www.sf.net/projects/pubsub</a>, and has an entry in Cheeseshop at
+<a class="reference" href="http://pypi.python.org/pypi/PyPubSub">http://pypi.python.org/pypi/PyPubSub</a>.</p>
+<p>As listed at the bottom of this page, contributions are welcome!</p>
+</div>
+<div class="section" id="pubsub-users">
+<h2>Pubsub Users<a class="headerlink" href="#pubsub-users" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt><em>Josh English, for WMS, since 2008</em>:</dt>
+<dd>I use it in my Writing Management System (joshua.r.english
+.googlepages.com/wms). I&#8217;m using it to control interfaces, such
+as telling the frame to change the status bar, or a notebook to
+change a panel. PyPubSub enables me to focus on <em>what</em> data
+to pass around my application, rather than <em>how</em> to pass it around.
+This makes it easy to put in the finer details of my application.</dd>
+<dt><em>Phil Mayes, for Listomax, since 2007</em>:</dt>
+<dd>Listomax (<a class="reference" href="http://www.listomax.com/">http://www.listomax.com/</a>) uses version 1 of pubsub for MVC:
+multiple View (UI) components may need to change when the Model
+changes; simpler than direct calls, lower coupling.</dd>
+<dt><em>Mike Driscoll, for PyTimesheet and Zimbra Alerts, since 2007</em>:</dt>
+<dd>I use wx.lib.pubsub in two internal projects at my employer&#8217;s business,
+&#8220;PyTimesheet&#8221; and the &#8220;Zimbra Alerts&#8221;. I use it to send information
+between various frames, such as an options menu back to the main
+application that launched it. The main application I use it for though
+is a Timesheet program where I use it to tell my program which frame to
+display when. Basically when one closes, I need another one to open and
+I found that pubsub made this quite trivial. The other program is used
+in conjunction with our Zimbra web mail and will pop-up an alert when we
+receive an email and it also has an Outlook-like Reminder dialog for
+appointments... And thanks for providing such a nice tool for my
+arsenal!</dd>
+<dt><em>Anthony Floyd, RAVEN, since 200?</em>:</dt>
+<dd><p class="first">Our project is called &#8220;RAVEN&#8221;, it&#8217;s an analytical and finite-element
+analysis program for simulating and analyzing the processing of
+composite materials in the aerospace industry. We use pubsub as
+the communications backbone.  We essentially have a MVC
+framework, and use pubsub to have the UI respond to things happening in
+the data.  However, we also use it to have data objects respond to
+changes in other data objects.</p>
+<p class="last">We&#8217;re quite enamoured with pubsub! It&#8217;s proven to be an effective way
+to keep the UI out of the backend, and an effective way to keep the
+backend modularized.</p>
+</dd>
+<dt><em>Sebastian Zurek, OpenSynergy, since 2007</em>:</dt>
+<dd>I&#8217;m using wx.lib.pubsub module as part of the OpenSynergy framework
+(www.opensynergy.pl, temporarily offline) that I am developing,
+and I found it VERY usefull. Pubsub is used as the communication layer
+betteen the extensions components and the framework, between the Model
+and Visual, and between the Visual elements.</dd>
+<dt><em>Geoff Gilmour-Taylor, since April 2008</em>:</dt>
+<dd><p class="first">I use wx.lib.pubsub for a suite of in-house batch conversion tools for
+DAISY talking books, called Garden Tools (in-house software for the CNIB
+Library, <a class="reference" href="http://www.cnib.ca/en/Services/library/">http://www.cnib.ca/en/Services/library/</a>). For MVC,
+communication in a wxPython app.</p>
+<p class="last">Loose coupling of business logic and GUI. It allows me to trigger
+multiple actions on a single message without having to locate and modify
+all the places where the message is sent. I was able to add a logging
+module that reads the same status messages that are sent to the GUI
+without having to modify any of my other code.</p>
+</dd>
+<dt><em>Mike Rooney, for wxBanker, since 2006</em>:</dt>
+<dd>I use pubsub as the crucial event handling mechanism for wxBanker
+(<a class="reference" href="https://launchpad.net/wxbanker">https://launchpad.net/wxbanker</a>). It works well for implementing design
+patterns such as MVC where you want to eliminate coupling, since it
+doesn&#8217;t require that you know specific method names or implementation
+details of other classes, modules, or libraries. Pubsub is also great
+when you want to make an announcement without requiring that anything
+(or how many things) is listening to or acting upon that announcement.
+In short, pubsub makes intra-process communication a dream come true.</dd>
+<dt><em>QVI (http://www.qvii.com/) for several applications, since 2006</em>:</dt>
+<dd><p class="first">Here at QVI we use pubsub for most of our wxPython applications (notably
+SmartTree), to achieve very lightweight, simple, and readable
+communication between classes and modules. One of the nice aspects of
+pubsub is how easy it is to incorporate into existing code, and how
+well-suited it is for pluggable/modular designs which want to make
+announcements about events, but don&#8217;t require that or care if any other
+module is listening. It makes handling &#8220;events&#8221; easy, whatever we define
+them to be, and removes the need for the handlers to have any specific
+knowledge of how the announcements are made or where they came from.</p>
+<p class="last">After discovering we could use pubsub independently of wxPython, we also
+use it in an application or two that doesn&#8217;t use wxPython at all, but
+where we still desire a lightweight event handling mechanism (when don&#8217;t
+you?).</p>
+</dd>
+<dt><em>Oliver, for several applications, since 2004</em>:</dt>
+<dd><p class="first">We have been using it on several client projects:</p>
+<ul class="simple">
+<li>Two applications that show property trees and selected node&#8217;s
+associated panel</li>
+<li>An application that has several panels in a wizard-like layout</li>
+</ul>
+<p class="last">With PubSub, one event occurs due to a mouse click on an icon, and
+and all parts of the code that need updating get called with the new
+data. This means automatic update of menu items (adding, removing etc),
+state in various panels, etc. Gone are the long sequences of calls
+through the code.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="history">
+<h2>History<a class="headerlink" href="#history" title="Permalink to this headline">¶</a></h2>
+<p>Pubsub was originally created by Robb Shecter as a module in the
+wxPython library, named wx.lib.pubsub. In spring of 2004, I added the
+ability of the module to use weak references, even to methods, and I
+asked Robin Dunn if he would like the changes to be put in
+wx.lib.pubsub. Robb and Robin liked them so much that they offered that
+I take over ownership of the pubsub package.</p>
+<p>The package was stable and fairly well scoped such that only a few minor
+tweaks and improvements happened after that. In 2006 when I used pubsub
+on some larger projects, I wished that topic trees and the topic message
+data could be documented, and that more data could be passed more
+easily. I also wished I could find a strategy that would allow the use
+of tools like pylint to point out invalid topic names.</p>
+<p>So I developed version 2 of the library. In fall 2006 I created an entry
+in the Python Cheeseshop as PyPubSub
+(<a class="reference" href="http://pypi.python.org/pypi/PyPubSub">http://pypi.python.org/pypi/PyPubSub</a>) and used the cheese shop to hold
+snapshots of my files. This way, developers not using wxPython can still
+benefit from the publish/subscribe mechanism that it provides.</p>
+<p>In may 2007 I decided it was time to create a project on SF.net for it,
+I called it pubsub (because pypubsub was already used by another project
+which didn&#8217;t have an entry on cheese shop &#8211; or any code for that matter
+&#8211; so <a class="reference" href="http://sourceforge.net/projects/pubsub/">http://sourceforge.net/projects/pubsub/</a> is my project, whereas
+<a class="reference" href="http://sourceforge.net/projects/pypubsub/">http://sourceforge.net/projects/pypubsub/</a> is a totally different
+project!).</p>
+<p>But, I wasn&#8217;t really happy with version 2 so I started version 3 before
+I got to beta. Version 3 supports documenting topics, a more OO topic
+tree, keyword data to be sent along with the topic message and topic
+argument specification to allow for more validations. It also supports a
+more versatile notification mechanism that allows messages to be sent
+when certain things happen in the pubsub module, e.g. a listener
+subscribes. Version 3 reached acceptable stability only recently, so in
+the mean time the wxPython&#8217;s <tt class="docutils literal"><span class="pre">wx.lib.pubsub</span></tt> hasn&#8217;t changed much.</p>
+<p>The latest version&#8217;s <tt class="docutils literal"><span class="pre">sendMessage()</span></tt> is not compatible with the one
+currently in wx.lib.pubsub. However, upgrading is a straightforward
+exercise of changing a few function parameter names in listeners, and
+adding some keyword arguments in <tt class="docutils literal"><span class="pre">sendMessage()</span></tt>. No design or
+architectural changes are necessary to your application.</p>
+<p>For those who really can&#8217;t risk changing stuff, don&#8217;t worry, the version
+in <tt class="docutils literal"><span class="pre">wx.lib</span></tt> will by default use version 1, you&#8217;ll have to specify an
+extra line of code to use version 1. Any new applications should use
+version 3 as version 1 will only get bug fixes, no new features.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul class="current">
+<li class="toctree-l1 current"><a class="current reference" href="">Overview</a><ul>
+<li class="toctree-l2"><a class="reference" href="#what-who-why-where">What, Who, Why, Where</a></li>
+<li class="toctree-l2"><a class="reference" href="#pubsub-users">Pubsub Users</a></li>
+<li class="toctree-l2"><a class="reference" href="#history">History</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="quickstart.html">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference" href="quickstart.html#hello-world">Hello World</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference" href="installation.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference" href="installation.html#license">License</a></li>
+<li class="toctree-l2"><a class="reference" href="installation.html#installing">Installing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="usage.html">Usage</a><ul>
+<li class="toctree-l2"><a class="reference" href="usage.html#status">Status</a></li>
+<li class="toctree-l2"><a class="reference" href="usage.html#documentation">Documentation</a></li>
+<li class="toctree-l2"><a class="reference" href="usage.html#support">Support</a></li>
+<li class="toctree-l2"><a class="reference" href="usage.html#bug-reports">Bug reports</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="changelog.html">Changelog</a></li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="index.html"
+                                  title="previous chapter">PyPubSub Documentation</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="quickstart.html"
+                                  title="next chapter">Quick Start</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/overview.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="quickstart.html" title="Quick Start"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="PyPubSub Documentation"
+             >previous</a> |</li>
+        <li><a href="index.html">PubSub v3.0a8 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Oliver Schoenborn.
+      Last updated on Oct 19, 2009.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

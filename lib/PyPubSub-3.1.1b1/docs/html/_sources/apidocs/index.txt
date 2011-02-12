@@ -1,0 +1,128 @@
+.. _label-usage:
+
+API Documentation
+====================
+
+.. warning::
+
+   This documentation is a little bit out of date. Though it is 
+   progressing slowly. You may find it more useful to refer to the
+   source code doc strings and the examples in the :file:`examples`
+   folder of the source distribution.
+
+
+Status 
+-------
+
+The following part of the **pubsub** API is unlikely to change:
+
+- pub.addNotificationHandler
+- pub.addTopicDefnProvider
+- pub.ALL_TOPICS
+- pub.AUTO_TOPIC
+- pub.clearNotificationHandlers
+- pub.clearTopicDefnProviders
+- pub.delTopic
+- pub.ExcHandlerError
+- pub.getAssociatedTopics
+- pub.getDefaultTopicMgr
+- pub.getListenerExcHandler
+- pub.getListenerID
+- pub.getNotificationFlags
+- pub.getOrCreateTopic
+- pub.getTopic
+- pub.isSubscribed
+- pub.isValid
+- pub.Listener
+- pub.ListenerInadequate
+- pub.ListenerNotValidatable
+- pub.ListenerSpecIncomplete
+- pub.ListenerSpecInvalid
+- pub.newTopic
+- pub.Publisher
+- pub.PUBSUB_VERSION
+- pub.SenderMissingReqdArgs
+- pub.SenderUnknownOptArgs
+- pub.sendMessage
+- pub.setListenerExcHandler
+- pub.setNotificationFlags
+- pub.setTopicUnspecifiedFatal
+- pub.subscribe
+- pub.SVN_VERSION
+- pub.Topic
+- pub.topics
+- pub.topicsMap
+- pub.UndefinedSubtopic
+- pub.UndefinedTopic
+- pub.unsubAll
+- pub.unsubscribe
+- pub.utilsSettings
+- pub.validate
+- pub.VERSION_STR
+
+The following may change:
+
+- pub.TOPIC_TREE_FROM_CLASS
+- pub.TOPIC_TREE_FROM_MODULE
+- pub.TOPIC_TREE_FROM_STRING
+- pub.exportTopicTree
+- pub.importTopicTree
+- pub.ITopicDefnProvider
+- pub.ITopicTreeTraverser
+- pub.registerTopicDefnProviderType
+- pub.TopicDefnProvider
+
+Any other function, variable, class, module or method may change name or
+call protocol until its use stabilizes. 
+
+
+.. _api-versions:
+
+Versions
+---------
+
+There are two supported APIs available in pubsub: the default API, and a
+legacy API named "version 1" or v1 for short.
+
+The default API was developed after the original API
+was used in larger applications and found to provide inadequate support
+for message validation, debugging and documenting, all important
+considerations in larger projects. The various pages under the API
+section of this site document the default API.
+
+The legacy API was developed as part of wxPython, where pubsub originated.
+The legacy API is activated by importing pubsub's setupv1 module before
+the first pubsub import statement. See :ref:`label-api-v1-docs`
+for documentation on the v1 API of pubsub.
+
+If you wish to transition an appication from using the legacy v1 API to
+using the default API, take a look at the :ref:`label-migrations` page.
+
+
+.. _label-api-v3-docs:
+
+API Documentation (Default API)
+-------------------------------
+
+The User Manual consists of the following sections.
+
+.. toctree::
+   :maxdepth: 2
+
+   examples
+   concepts
+   basic_use
+   more_advanced_use
+
+
+API Documentation (Legacy API)
+------------------------------
+
+See :ref:`label-api-v1-docs`.
+
+.. toctree::
+   :hidden:
+   :maxdepth: 2
+
+   docs4v1
+   

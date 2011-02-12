@@ -1,0 +1,52 @@
+Changelog
+=========
+
+High-level changelog. For details, consult the SVN logs.
+
+3.1 (2009; alpha):
+
+- Import/export of topic tree and its documentation using Python interpreter
+- Better support for evolving topic tree during application development, 
+  with "freezing" certain parts of tree
+- Helper functions to transition from *arg1* to *kwargs* messaging protocol
+- Support !**kwargs in listeners
+- Improved error messages (in exceptions raised)
+- Improved topic tree specification
+- Multiple publisher engines in one application (for instance, in separate 
+  threads, or for different "domains" in a large application)
+- Cleanup
+
+
+3.0 (2008): 
+
+- Use keyword arguments in sendMessage
+- Support any kind of listener, not just those with one unnamed argument
+- Validate listeners at subscription time
+- Support "inheritance" of keyword arguments by subtopics during 
+  message sending (prevents a common bug which was to send data using 
+  wrong argument names).
+- Topic tree can be documented (including topic message arguments)
+- Support user-defined notification handling of certain events occuring in 
+  pubsub such as "subscribe", "sendMessage". 
+- Support user-defined exception handling of exceptions raised by 
+  listeners
+- Proto-Documentation on own website using Sphinx
+- Separate regression testing folder for nose-based automated testing
+- Configuration module for choosing which pubsub API to use in application,
+  useful for backwards compatibility
+  
+
+2.0 (2007):
+
+- more Pythonic API (new ``PublisherClass`` API, at module level
+  so easier to call -- no need to know about singleton)
+- Support definition of topic tree via a python class, for increased 
+  rigor and documentability of topics
+- Topics are objects
+
+	
+1.0 (2005):
+
+- Reimplementation of back end of what was ``wx.lib.pubsub``
+- Added weakmethod
+- Put on Cheese shop.

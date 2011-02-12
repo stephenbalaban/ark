@@ -1,0 +1,204 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>History &mdash; Python PubSub Website</title>
+    <link rel="stylesheet" href="_static/split_tocs.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <!--[if lte IE 8]><link rel="stylesheet" href="_static/ie_split_tocs.css" type="text/css" /><![endif]-->
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '3.1.0b1',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="top" title="Python PubSub Website" href="index.html" />
+    <link rel="up" title="About" href="about.html" />
+    <link rel="next" title="Development" href="development.html" />
+    <link rel="prev" title="Pubsub Users" href="projectsusing.html" /> 
+  </head>
+  <body>
+  <div class="docsheader">
+    <h3>Python PubSub Website</h3>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="development.html" title="Development"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="projectsusing.html" title="Pubsub Users"
+             accesskey="P">previous</a> |</li>
+        <li>Trail:</li>
+          <li> &raquo; <a href="about.html" accesskey="U">About</a></li>
+          <li> &raquo; <a href="#">History</a></li> 
+      </ul>
+    </div>
+  </div>
+ 
+      <div class="splitsidebar">
+        <div class="mainsidebarpanel">
+            <h3><a href="index.html">Site Contents</a></h3>
+            <ul class="current">
+<li class="toctree-l1"><a class="reference" href="index.html">Home Page</a></li>
+<li class="toctree-l1 current"><a class="reference" href="about.html">About</a><ul class="current">
+<li class="toctree-l2"><a class="reference" href="projectsusing.html">Pubsub Users</a></li>
+<li class="toctree-l2 current"><a class="current reference" href="">History</a></li>
+<li class="toctree-l2"><a class="reference" href="development.html">Development</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference" href="download.html">Download</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="changelog.html">Changelog</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="apidocs/index.html">API Documentation</a><ul>
+<li class="toctree-l2"><a class="reference" href="apidocs/examples.html">Examples</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="apidocs/concepts.html">Concepts</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="apidocs/basic_use.html">Basic Use</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="apidocs/more_advanced_use.html">Advanced Use</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="apidocs/docs4v1.html">Legacy (v1) API</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="recipes/index.html">Pubsub Recipes</a><ul>
+<li class="toctree-l2"><a class="reference" href="recipes/upgrade_v1tov3.html">Upgrade from v1</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="recipes/arg1_to_kwargs.html">Convert Arg1 to Kwargs</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div> 
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="history">
+<span id="label-history"></span><h1>History<a class="headerlink" href="#history" title="Permalink to this headline">¶</a></h1>
+<p>Pubsub was originally created by Robb Shecter as a module in the
+wxPython library, named wx.lib.pubsub. In spring of 2004, I added the
+ability of the module to use weak references, even to methods, and I
+asked Robin Dunn if he would like the changes to be put in
+wx.lib.pubsub. Robb and Robin liked them so much that they offered that
+I take over ownership of the pubsub package.</p>
+<p>The package was stable and fairly well scoped such that only a few minor
+tweaks and improvements happened after that. In 2006 when I used pubsub
+on some larger projects, I wished that topic trees and the topic message
+data could be documented, and that more data could be passed more
+easily. I also wished I could find a strategy that would allow the use
+of tools like pylint to point out invalid topic names.</p>
+<p>So I developed version 2 of the library. In fall 2006 I created an entry
+in the Python Cheeseshop as PyPubSub
+(<a class="reference" href="http://pypi.python.org/pypi/PyPubSub">http://pypi.python.org/pypi/PyPubSub</a>) and used the cheese shop to hold
+snapshots of my files. This way, developers not using wxPython can still
+benefit from the publish/subscribe mechanism that it provides.</p>
+<p>In May 2007 I decided it was time to create a project on SF.net for it,
+I called it pubsub (because pypubsub was already used by another project
+which didn&#8217;t have an entry on cheese shop &#8211; or any code for that matter
+&#8211; so <a class="reference" href="http://sourceforge.net/projects/pubsub/">http://sourceforge.net/projects/pubsub/</a> is my project, whereas
+<a class="reference" href="http://sourceforge.net/projects/pypubsub/">http://sourceforge.net/projects/pypubsub/</a> is a totally different
+project!).</p>
+<p>But, I wasn&#8217;t really happy with version 2 so I started version 3 before
+I got to beta. Version 3 supports documenting topics, a more OO topic
+tree, keyword data to be sent along with the topic message and topic
+argument specification to allow for more validations. It also supports a
+more versatile notification mechanism that allows messages to be sent
+when certain things happen in the pubsub module, e.g. a listener
+subscribes. Version 3 reached acceptable stability only recently, so in
+the mean time the wxPython&#8217;s <tt class="docutils literal"><span class="pre">wx.lib.pubsub</span></tt> hasn&#8217;t changed much.</p>
+<p>Here is an up-to-date snapshot of the project traffic on SourceForge.net:</p>
+<img alt="http://sourceforge.net/project/stats/graph/detail-graph.php?group_id=197063&amp;ugn=pubsub&amp;type=prweb&amp;mode=alltime&amp;graph=1" src="http://sourceforge.net/project/stats/graph/detail-graph.php?group_id=197063&amp;ugn=pubsub&amp;type=prweb&amp;mode=alltime&amp;graph=1" style="width: 500px;" />
+<p>Here is an up-to-date snapshot of the download count on SourceForge.net:</p>
+<img alt="http://sourceforge.net/project/stats/graph/detail-graph.php?group_id=197063&amp;ugn=pubsub&amp;type=prdownload&amp;mode=alltime&amp;file_id=0&amp;graph=1" src="http://sourceforge.net/project/stats/graph/detail-graph.php?group_id=197063&amp;ugn=pubsub&amp;type=prdownload&amp;mode=alltime&amp;file_id=0&amp;graph=1" style="width: 500px;" />
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="splitsidebar">
+        <div class="localsidebarpanel">
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/history.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="development.html" title="Development"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="projectsusing.html" title="Pubsub Users"
+             >previous</a> |</li>
+        <li>Trail:</li>
+          <li> &raquo; <a href="about.html" >About</a></li>
+          <li> &raquo; <a href="#">History</a></li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Oliver Schoenborn.
+      Last updated on May 05, 2010.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>

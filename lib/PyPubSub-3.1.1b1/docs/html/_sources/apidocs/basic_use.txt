@@ -1,0 +1,46 @@
+Basic Use
+==============
+
+The following represents a typical process when using pubsub:
+
+- Design your application into independent modules that don't import one another
+- Define what event types exist in the application: 'user' (events from user), 
+  'filesystem' (events from local filesystem), etc. These are your 'topics'. Useful
+  to use ``pubsubutils.printTreeSpec``.
+- Define some data for each event type, an which ones are optional/required
+- Create your modules
+- Subscribe listeners with appropriate signature (according to data for each topic/event type)
+- Send messages with appropriate data
+- Handle messages in listeners, without making any assumptions about sender or order of receipt
+- Testing: no need for API, all you need to do is send messages!
+
+Some details follow.
+
+
+Form basic topic tree
+-----------------------
+
+- Example topic tree
+- Group into two or three branches
+
+
+Subscribe and Publish
+----------------------
+
+- Subscribe listeners; will raise if listener not valid
+- Publish messages: along topic branch, kwargs only 
+- Order of publish is approximate
+
+
+
+Examples
+---------
+
+See examples folder in source: http://pubsub.svn.sourceforge.net/viewvc/pubsub/trunk/examples/
+
+
+Guidelines
+-----------
+
+- Start all listener functions and methods with *psOn*, for instance 
+  ``def psOnCloseDocument()``.

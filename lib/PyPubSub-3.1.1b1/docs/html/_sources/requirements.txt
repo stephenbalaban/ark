@@ -1,0 +1,32 @@
+===============
+Licensing etc
+===============
+
+System Requirements
+====================
+
+
+To use: 
+
+- Python >= 2.4, on any platform supported by those versions of Python
+
+To run unit tests: 
+
+- nose >= 0.10 
+- coverage >= 3.1b1
+
+To generate these docs: 
+
+- sphinx >= 0.6.3
+
+Note that older versions might work, but have not been tested.
+
+
+License
+========
+
+BSD: 
+
+.. literalinclude:: ../LICENSE.txt
+
+

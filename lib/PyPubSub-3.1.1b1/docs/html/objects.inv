@@ -1,0 +1,8 @@
+# Sphinx inventory version 1
+# Project: PubSub
+# Version: 3.1
+pubsub.pubsub1.pub mod apidocs/docs4v1.html
+pubsub.pubsub1.pub.Publisher data apidocs/docs4v1.html
+pubsub.pubsub1.pub.Message class apidocs/docs4v1.html
+pubsub.pubsub1.pub.getStrAllTopics function apidocs/docs4v1.html
+pubsub.pubsub1.pub.PublisherClass class apidocs/docs4v1.html

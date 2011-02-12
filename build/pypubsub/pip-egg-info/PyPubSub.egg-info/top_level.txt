@@ -1,3 +1,0 @@
-weakmethod
-pubsub2
-pubsub

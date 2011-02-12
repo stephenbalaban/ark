@@ -1,0 +1,335 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Legacy (v1) API &mdash; Python PubSub Website</title>
+    <link rel="stylesheet" href="../_static/split_tocs.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <!--[if lte IE 8]><link rel="stylesheet" href="../_static/ie_split_tocs.css" type="text/css" /><![endif]-->
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.1.0b1',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="top" title="Python PubSub Website" href="../index.html" />
+    <link rel="up" title="API Documentation" href="index.html" />
+    <link rel="next" title="Pubsub Recipes" href="../recipes/index.html" />
+    <link rel="prev" title="Advanced Use" href="more_advanced_use.html" /> 
+  </head>
+  <body>
+  <div class="docsheader">
+    <h3>Python PubSub Website</h3>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="../recipes/index.html" title="Pubsub Recipes"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="more_advanced_use.html" title="Advanced Use"
+             accesskey="P">previous</a> |</li>
+        <li>Trail:</li>
+          <li> &raquo; <a href="index.html" accesskey="U">API Documentation</a></li>
+          <li> &raquo; <a href="#">Legacy (v1) API</a></li> 
+      </ul>
+    </div>
+  </div>
+ 
+      <div class="splitsidebar">
+        <div class="mainsidebarpanel">
+            <h3><a href="../index.html">Site Contents</a></h3>
+            <ul class="current">
+<li class="toctree-l1"><a class="reference" href="../index.html">Home Page</a></li>
+<li class="toctree-l1"><a class="reference" href="../about.html">About</a><ul>
+<li class="toctree-l2"><a class="reference" href="../projectsusing.html">Pubsub Users</a></li>
+<li class="toctree-l2"><a class="reference" href="../history.html">History</a></li>
+<li class="toctree-l2"><a class="reference" href="../development.html">Development</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="../installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference" href="../download.html">Download</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="../changelog.html">Changelog</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference" href="index.html">API Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference" href="examples.html">Examples</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="concepts.html">Concepts</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="basic_use.html">Basic Use</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="more_advanced_use.html">Advanced Use</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2 current"><a class="current reference" href="">Legacy (v1) API</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="../recipes/index.html">Pubsub Recipes</a><ul>
+<li class="toctree-l2"><a class="reference" href="../recipes/upgrade_v1tov3.html">Upgrade from v1</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="../recipes/arg1_to_kwargs.html">Convert Arg1 to Kwargs</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div> 
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="legacy-v1-api">
+<span id="label-api-v1-docs"></span><h1>Legacy (v1) API<a class="headerlink" href="#legacy-v1-api" title="Permalink to this headline">¶</a></h1>
+<p>This section describes Version 1 of the pubsub API (versions are discussed in
+<a class="reference" href="index.html#api-versions"><em>Versions</em></a> section). The pubsub package must be configured
+for version 1 API <em>before</em> any other pubsub module is imported from it, by using
+the <tt class="xref docutils literal"><span class="pre">pubsub.setupv1</span></tt> module from the top-level script of your application:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">from</span> <span class="nn">pubsub</span> <span class="k">import</span> <span class="n">setupv1</span>
+</pre></div>
+</div>
+<p>This can then be followed by</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">from</span> <span class="nn">pubsub</span> <span class="k">import</span> <span class="n">pub</span>
+</pre></div>
+</div>
+<p>in the same module. Other modules do not need the setupv1 ipmort.</p>
+<div class="section" id="module-pubsub.pubsub1.pub">
+<h2>The <tt class="xref docutils literal"><span class="pre">pub</span></tt> Singleton<a class="headerlink" href="#module-pubsub.pubsub1.pub" title="Permalink to this headline">¶</a></h2>
+<p>This module provides a publish-subscribe mechanism that allows one part 
+of your application to send a &#8220;message&#8221; and many other parts to receive 
+it, without any knowledge of each other. This helps decouple 
+modules of your application.</p>
+<p>Receivers are referred to as &#8220;listeners&#8221;, having subscribed to messages 
+of a specific &#8220;topic&#8221;. Sending a message is as simple as calling a 
+function with a topic name and (optionally) some data that will be sent 
+to the listeners.</p>
+<p>Any callable object can be a listener, if it can be called with one 
+parameter. Topic names form a hierarchy. Example use:</p>
+<div class="highlight-python"><pre>from wx.lib.pubsub import Publisher as pub
+def aCallable(msg):
+    print 'data received', msg.data
+pub.subscribe(aCallable, 'some.topic')
+pub.sendMessage('some.topic', data=123)
+// should see 'data received 123'</pre>
+</div>
+<p>An important feature of pubsub is that it does not affect callables&#8217; 
+lifetime: as soon as a listener is no longer in use in your application 
+except for being subscribed to pubsub topics, the Python interpreter 
+will be able to garbage collect it and pubsub will automatically 
+unsubscribe it. See Publisher class docs for more details.</p>
+<p>The version of pubsub in wx.lib is referred to as &#8220;pubsub 1&#8221;. Thanks 
+to Robb Shecter and Robin Dunn for having provided its basis pre-2004
+and for offering that I take over its maintenance. Pubsub has since 
+evolved into a separate package called PyPubSub hosted on SourceForge
+(<a class="reference" href="http://pubsub.sourceforge.net">http://pubsub.sourceforge.net</a>), aka &#8220;pubsub 3&#8221;. It has better support 
+for message data via keyword arguments, notifications for calls into
+pubsub, exception trapping for listeners, and topic tree documentation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Author:</th><td class="field-body">Oliver Schoenborn</td>
+</tr>
+<tr class="field"><th class="field-name">Copyright:</th><td class="field-body">Copyright 2006-2009 by Oliver Schoenborn, all rights reserved.</td>
+</tr>
+<tr class="field"><th class="field-name">License:</th><td class="field-body">BSD, see LICENSE.txt for details.</td>
+</tr>
+</tbody>
+</table>
+<dl class="class">
+<dt id="pubsub.pubsub1.pub.PublisherClass">
+<em class="property">class </em><tt class="descname">PublisherClass</tt><big>(</big><em>singletonKey</em><big>)</big><a class="headerlink" href="#pubsub.pubsub1.pub.PublisherClass" title="Permalink to this definition">¶</a></dt>
+<dd><p>The publish/subscribe manager.  It keeps track of which listeners
+are interested in which topics (see subscribe()), and sends a
+Message for a given topic to listeners that have subscribed to
+that topic, with optional user data (see sendMessage()).</p>
+<p>The three important concepts for pubsub are:</p>
+<ul>
+<li><p class="first">listener: a function, bound method or
+callable object that can be called with one parameter
+(not counting &#8216;self&#8217; in the case of methods). The parameter
+will be a reference to a Message object. E.g., these listeners
+are ok:</p>
+<div class="highlight-python"><pre>class Foo:
+    def __call__(self, a, b=1): pass # can be called with only one arg
+    def meth(self,  a):         pass # takes only one arg
+    def meth2(self, a=2, b=''): pass # can be called with one arg
+
+def func(a, b=''): pass
+
+Foo foo
+
+import pubsub as Publisher
+Publisher.subscribe(foo)           # functor
+Publisher.subscribe(foo.meth)      # bound method
+Publisher.subscribe(foo.meth2)     # bound method
+Publisher.subscribe(func)          # function</pre>
+</div>
+<p>The three types of callables all have arguments that allow a call 
+with only one argument. In every case, the parameter &#8216;a&#8217; will contain
+the message.</p>
+</li>
+<li><p class="first">topic: a single word, a tuple of words, or a string containing a
+set of words separated by dots, for example: &#8216;sports.baseball&#8217;.
+A tuple or a dotted notation string denotes a hierarchy of
+topics from most general to least. For example, a listener of
+this topic:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">(</span><span class="s">&#39;sports&#39;</span><span class="p">,</span><span class="s">&#39;baseball&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>would receive messages for these topics:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">(</span><span class="s">&#39;sports&#39;</span><span class="p">,</span> <span class="s">&#39;baseball&#39;</span><span class="p">)</span>                 <span class="c"># because same</span>
+<span class="p">(</span><span class="s">&#39;sports&#39;</span><span class="p">,</span> <span class="s">&#39;baseball&#39;</span><span class="p">,</span> <span class="s">&#39;highscores&#39;</span><span class="p">)</span>   <span class="c"># because more specific</span>
+</pre></div>
+</div>
+<p>but not these:</p>
+<div class="highlight-python"><pre> 'sports'      # because more general
+('sports',)    # because more general
+() or ('')     # because only for those listening to 'all' topics
+('news')       # because different topic</pre>
+</div>
+</li>
+<li><p class="first">message: this is an instance of Message, containing the topic for 
+which the message was sent, and any data the sender specified.</p>
+</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Note:</th><td class="field-body">This class is not directly visible to importers of pubsub.
+A singleton instance of it, named Publisher, is created by 
+the module at load time, allowing to write &#8216;Publisher.method()&#8217;.
+All the singleton&#8217;s methods are made accessible at module
+level so that knowing about the singleton is not necessary.
+This does imply that help docs generated from this module via 
+help(pubsub) will show several module-level functions, whose 
+first parameter is <cite>self</cite>. You should ignore that parameter 
+and consider it to be implicitely refering to the singleton. 
+E.g. if help() lists <cite>getDeliveryCount(self)</cite>, you call it as 
+<cite>pubsub.getDeliveryCount()</cite>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="data">
+<dt id="pubsub.pubsub1.pub.Publisher">
+<tt class="descname">Publisher</tt><a class="headerlink" href="#pubsub.pubsub1.pub.Publisher" title="Permalink to this definition">¶</a></dt>
+<dd>Singleton instance of PublisherClass</dd></dl>
+
+</div>
+<div class="section" id="other-objects-in-pubsub">
+<h2>Other objects in <tt class="xref docutils literal"><span class="pre">pubsub</span></tt><a class="headerlink" href="#other-objects-in-pubsub" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<dl class="class">
+<dt id="pubsub.pubsub1.pub.Message">
+<em class="property">class </em><tt class="descname">Message</tt><big>(</big><em>topic</em>, <em>data</em><big>)</big><a class="headerlink" href="#pubsub.pubsub1.pub.Message" title="Permalink to this definition">¶</a></dt>
+<dd>A simple container object for the two components of a message: the 
+topic and the user data. An instance of Message is given to your 
+listener when called by sendMessage(topic). The data is accessed
+via the &#8216;data&#8217; attribute, and can be type of object.</dd></dl>
+
+<dl class="function">
+<dt id="pubsub.pubsub1.pub.getStrAllTopics">
+<tt class="descname">getStrAllTopics</tt><big>(</big><big>)</big><a class="headerlink" href="#pubsub.pubsub1.pub.getStrAllTopics" title="Permalink to this definition">¶</a></dt>
+<dd>Function to call if, for whatever reason, you need to know 
+explicitely what is the string to use to indicate &#8216;all topics&#8217;.</dd></dl>
+
+</blockquote>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="splitsidebar">
+        <div class="localsidebarpanel">
+            <h3>Page Contents</h3>
+            <ul>
+<li><a class="reference" href="#">Legacy (v1) API</a><ul>
+<li><a class="reference" href="#module-pubsub.pubsub1.pub">The <tt class="docutils literal"><span class="pre">pub</span></tt> Singleton</a></li>
+<li><a class="reference" href="#other-objects-in-pubsub">Other objects in <tt class="docutils literal"><span class="pre">pubsub</span></tt></a></li>
+</ul>
+</li>
+</ul>
+
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../_sources/apidocs/docs4v1.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../recipes/index.html" title="Pubsub Recipes"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="more_advanced_use.html" title="Advanced Use"
+             >previous</a> |</li>
+        <li>Trail:</li>
+          <li> &raquo; <a href="index.html" >API Documentation</a></li>
+          <li> &raquo; <a href="#">Legacy (v1) API</a></li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Oliver Schoenborn.
+      Last updated on May 05, 2010.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>

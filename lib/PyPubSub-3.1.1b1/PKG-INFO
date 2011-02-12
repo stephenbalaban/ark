@@ -1,0 +1,58 @@
+Metadata-Version: 1.0
+Name: PyPubSub
+Version: 3.1.1b1
+Summary: Python Publish-Subscribe Package
+Home-page: http://pubsub.wiki.sourceforge.net
+Author: Oliver Schoenborn et al
+Author-email: oliver.schoenborn@utoronto.ca
+License: BSD
+Download-URL: http://sourceforge.net/project/showfiles.php?group_id=197063
+Description: Pypubsub provides a simple way for parts of your Python application
+        to send messages (like signals) to each other: parts of your
+        application can publish messages and other parts can subscribe/receive
+        them. This allows message "senders" and message "listeners" to be
+        unaware of each other:
+        * one doesn't need to import the other
+        * a sender doesn't need to know
+        * "who" gets the messages,
+        * what the listeners will do with the data,
+        * or even if any listener will get the message data.
+        * similarly, listeners don't need to worry about where messages come from.
+        
+        This is a great tool for implementing a Model-View-Controller
+        architecture or any similar architecture that promotes decoupling
+        of its components.
+        
+        Note:
+        
+        This pubsub package was originally one module in wxPython's lib
+        package. It was extracted from wxPython and improved so that there
+        is absolutely no dependency on wxPython or any third party libraries.
+        The original pubsub API is still supported for those who need it,
+        but is no longer maintained.
+        
+        See the Pypubsub website (http://pubsub.wiki.sourceforge.net/) for
+        further details. Download area is at
+        http://sourceforge.net/project/showfiles.php?group_id=197063.
+        
+        Notes:
+        
+        * The next release of wxPython should contain PyPubSub. The default will
+        likely be for it to use version 1.
+        * This project is hosted on SourceForge as pubsub (www.sf.net/projects/pubsub).
+        It should not be confused with the PyPubSub (www.sf.net/projects/pypubsub)
+        project also hosted there, providing a form of network-based publish-subscribe.
+        The author of the latter was not aware of our pre-existing PyPubSub on
+        Cheeseshop when they created it, and has only recently agreed to change
+        their project name, but that hasn't happened yet.
+        
+        
+Keywords: publish subscribe observer pattern signal signals event events message messages messaging
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: Python Software Foundation License
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python
+Classifier: Topic :: Software Development :: Libraries :: Application Frameworks
+Classifier: Topic :: Software Development :: Libraries :: Python Modules

@@ -1,0 +1,19 @@
+Metadata-Version: 1.0
+Name: PyPubSub
+Version: 3.1.1b1
+Summary: Python Publish-Subscribe Package
+Home-page: http://pubsub.wiki.sourceforge.net
+Author: Oliver Schoenborn et al
+Author-email: oliver.schoenborn@utoronto.ca
+License: BSD
+Download-URL: http://sourceforge.net/project/showfiles.php?group_id=197063
+Description: UNKNOWN
+Keywords: publish subscribe observer pattern signal signals event events message messages messaging
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: Python Software Foundation License
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python
+Classifier: Topic :: Software Development :: Libraries :: Application Frameworks
+Classifier: Topic :: Software Development :: Libraries :: Python Modules

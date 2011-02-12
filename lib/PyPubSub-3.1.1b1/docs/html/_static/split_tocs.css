@@ -1,0 +1,206 @@
+/**
+ * This supports the table of contents being split between
+ * a site TOC which is fixed pos on left of page, and a
+ * doc page TOC which is fixed pos on right of page.
+ * The tricky part is getting the pieces to not clobber
+ * each other with background colors etc. In such a layout
+ * it doesn`t rreally make sense to have next/previous 
+ * links in sidebar so they were removed, and the This Page 
+ * Source was moved to the page TOC sidebar (called 
+ * localsidebar in this stylesheet).
+ *
+ * The layout.html for this file is in the _templates
+ * folder. The Sphinx 0.6.3 module environment.py had
+ * to patched: in get_toctree_for, the call to
+ * self.resolve_toctree() needs an extra kwarg,
+ * "titles_only=True". 
+ * 
+ * It works in Firefox 3.5 and Google Chrome 3.0.195, but
+ * not yet in IE 6.
+ *
+ * Copyright (c) Oliver Schoenborn, 2009
+ */
+
+@import url("default.css");
+
+
+body {
+    width: 960px;
+    margin: auto auto;
+    background: transparent;
+}
+
+
+/********************************************************************
+    Override content blockc style
+*/
+
+div.docsheader {
+    background-color: rgb(17, 48, 61);
+    color: #ffffff;
+    width: 100%;
+}
+
+div.docsheader h3 {
+    text-align: center;
+    margin: 0;
+    padding: 10px;
+}
+
+div.document {
+    /*font-size: 80%;*/
+    background-color: rgb(242,242,242);
+}
+
+div.documentwrapper {
+    float: left;
+    overflow: auto;
+    width: 548px;
+    height: 600px;
+    border-right: 1px solid #98dbcc;
+}
+
+div.bodywrapper {
+    margin: 0;
+}
+
+
+/********************************************************************
+    Override "splitsidebar" style; this style sets defaults for
+    all sidebar panels (such as main and local)
+*/
+
+div.splitsidebar {
+    float: left;
+    height: 600px;
+    overflow: auto;
+}
+
+div.splitsidebar ul {
+    font-weight: bold;
+    list-style: none; /**disc;*/
+    /*margin: 10px;*/
+    padding: 0;
+    color: white;
+}
+
+div.splitsidebar ul ul,
+div.splitsidebar ul.want-points {
+    margin-left: 20px;
+    list-style: square;
+}
+
+div.splitsidebar ul ul {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-weight: normal;
+}
+
+div.splitsidebar h3 {
+    font-family: 'Trebuchet MS', sans-serif;
+    color: #ffffff;
+    font-size: 1.4em;
+    font-weight: normal;
+    margin: 0;
+    padding: 0;
+}
+
+div.splitsidebar h3 a {
+    color: #ffffff;
+}
+
+div.splitsidebar h4 {
+    font-family: 'Trebuchet MS', sans-serif;
+    color: #ffffff;
+    font-size: 1.3em;
+    font-weight: normal;
+    margin: 5px 0 0 0;
+    padding: 0;
+}
+
+div.splitsidebar p {
+    color: #ffffff;
+}
+
+div.splitsidebar p.topless {
+    margin: 5px 10px 10px 10px;
+}
+
+div.splitsidebar a {
+    color: #98dbcc;
+}
+
+
+/********************************************************************
+    Override main sidebar panel style
+*/
+
+div.mainsidebarpanel {
+    margin: 0;
+    padding: 10px 5px 0 10px;
+    height: 590px;
+    width: 200px;
+
+    background-color: rgb(17, 48, 61);
+    /*font-size: 90%;*/
+}
+
+div.mainsidebarpanel input {
+    border: 1px solid #98dbcc;
+    font-family: sans-serif;
+    font-size: 1em;
+}
+
+div.mainsidebarpanel form {
+    margin-top: 10px;
+}
+
+
+
+/********************************************************************
+    Override local sidebar panel style
+*/
+
+div.localsidebarpanel {
+    border-left: 1px solid #98dbcc;
+    padding: 10px 5px 0 10px;
+    width: 179px;
+    height: 590px;
+    margin-right: 0;
+
+    background-color: rgb(242,242,242);
+    font-size: 90%;
+}
+
+/** Side panel is light-color so override text color for contrast */
+div.localsidebarpanel h3 {
+    color: rgb(32,67,92);
+}
+
+div.localsidebarpanel a {
+    color: rgb(32,67,92);
+}
+
+div.localsidebarpanel ul {
+    color: rgb(32,67,92);
+}
+
+
+/********************************************************************
+    Override footer style
+*/
+
+/** recommendation by web designers is that justification not be used because
+the medium (web browsers) is not predictable in its content / layout /
+handling of justification. Also, they say max readability is around 65 
+chars / line (*no* justification), and justification should be used only 
+at more than 75 cpl. See question 315845 on http://stackoverflow.com. */
+div.body p, div.body dd, div.body li {
+    text-align: left;
+}
+
+/** Background is white so override default footer foreground color */
+div.footer, div.footer a {
+    color: rgb(32,67,92);
+}
+

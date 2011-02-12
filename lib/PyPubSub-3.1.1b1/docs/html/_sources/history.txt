@@ -1,0 +1,53 @@
+
+.. _label-history:
+
+History
+-------
+
+Pubsub was originally created by Robb Shecter as a module in the
+wxPython library, named wx.lib.pubsub. In spring of 2004, I added the
+ability of the module to use weak references, even to methods, and I
+asked Robin Dunn if he would like the changes to be put in
+wx.lib.pubsub. Robb and Robin liked them so much that they offered that
+I take over ownership of the pubsub package.
+
+The package was stable and fairly well scoped such that only a few minor
+tweaks and improvements happened after that. In 2006 when I used pubsub
+on some larger projects, I wished that topic trees and the topic message
+data could be documented, and that more data could be passed more
+easily. I also wished I could find a strategy that would allow the use
+of tools like pylint to point out invalid topic names.
+
+So I developed version 2 of the library. In fall 2006 I created an entry
+in the Python Cheeseshop as PyPubSub
+(http://pypi.python.org/pypi/PyPubSub) and used the cheese shop to hold
+snapshots of my files. This way, developers not using wxPython can still
+benefit from the publish/subscribe mechanism that it provides.
+
+In May 2007 I decided it was time to create a project on SF.net for it,
+I called it pubsub (because pypubsub was already used by another project
+which didn't have an entry on cheese shop -- or any code for that matter
+-- so http://sourceforge.net/projects/pubsub/ is my project, whereas
+http://sourceforge.net/projects/pypubsub/ is a totally different
+project!).
+
+But, I wasn't really happy with version 2 so I started version 3 before
+I got to beta. Version 3 supports documenting topics, a more OO topic
+tree, keyword data to be sent along with the topic message and topic
+argument specification to allow for more validations. It also supports a
+more versatile notification mechanism that allows messages to be sent
+when certain things happen in the pubsub module, e.g. a listener
+subscribes. Version 3 reached acceptable stability only recently, so in
+the mean time the wxPython's ``wx.lib.pubsub`` hasn't changed much.
+
+Here is an up-to-date snapshot of the project traffic on SourceForge.net:
+
+.. image:: http://sourceforge.net/project/stats/graph/detail-graph.php?group_id=197063&ugn=pubsub&type=prweb&mode=alltime&graph=1
+   :width: 500
+
+Here is an up-to-date snapshot of the download count on SourceForge.net:
+
+.. image:: http://sourceforge.net/project/stats/graph/detail-graph.php?group_id=197063&ugn=pubsub&type=prdownload&mode=alltime&file_id=0&graph=1
+   :width: 500
+
+

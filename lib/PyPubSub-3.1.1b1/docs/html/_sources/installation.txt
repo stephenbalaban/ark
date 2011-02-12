@@ -1,0 +1,33 @@
+Installation
+===============
+
+Look at the system requirements (below), and the license. Then head on
+to the :ref:`label-download` section. Community :ref:`label_support` is
+available via forums.
+
+
+.. _label-install-reqs:
+
+System Requirements
+--------------------
+
+Only Python >= 2.4! The development team has only tested PubSub on Windows XP.
+Let us know if you have use it successfully on another Operating System.
+
+
+License
+--------
+
+BSD:
+
+.. literalinclude:: ../LICENSE.txt
+
+
+Details
+---------
+
+.. toctree::
+
+   download
+   changelog
+

@@ -1,9 +1,0 @@
-pubsub.py
-pubsub2.py
-setup.cfg
-testpubsub.py
-weakmethod.py
-pip-egg-info/PyPubSub.egg-info/PKG-INFO
-pip-egg-info/PyPubSub.egg-info/SOURCES.txt
-pip-egg-info/PyPubSub.egg-info/dependency_links.txt
-pip-egg-info/PyPubSub.egg-info/top_level.txt

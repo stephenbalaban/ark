@@ -1,0 +1,220 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Basic Use &mdash; Python PubSub Website</title>
+    <link rel="stylesheet" href="../_static/split_tocs.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <!--[if lte IE 8]><link rel="stylesheet" href="../_static/ie_split_tocs.css" type="text/css" /><![endif]-->
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.1.0b1',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="top" title="Python PubSub Website" href="../index.html" />
+    <link rel="up" title="API Documentation" href="index.html" />
+    <link rel="next" title="Advanced Use" href="more_advanced_use.html" />
+    <link rel="prev" title="Concepts" href="concepts.html" /> 
+  </head>
+  <body>
+  <div class="docsheader">
+    <h3>Python PubSub Website</h3>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="more_advanced_use.html" title="Advanced Use"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="concepts.html" title="Concepts"
+             accesskey="P">previous</a> |</li>
+        <li>Trail:</li>
+          <li> &raquo; <a href="index.html" accesskey="U">API Documentation</a></li>
+          <li> &raquo; <a href="#">Basic Use</a></li> 
+      </ul>
+    </div>
+  </div>
+ 
+      <div class="splitsidebar">
+        <div class="mainsidebarpanel">
+            <h3><a href="../index.html">Site Contents</a></h3>
+            <ul class="current">
+<li class="toctree-l1"><a class="reference" href="../index.html">Home Page</a></li>
+<li class="toctree-l1"><a class="reference" href="../about.html">About</a><ul>
+<li class="toctree-l2"><a class="reference" href="../projectsusing.html">Pubsub Users</a></li>
+<li class="toctree-l2"><a class="reference" href="../history.html">History</a></li>
+<li class="toctree-l2"><a class="reference" href="../development.html">Development</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="../installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference" href="../download.html">Download</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="../changelog.html">Changelog</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference" href="index.html">API Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference" href="examples.html">Examples</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="concepts.html">Concepts</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2 current"><a class="current reference" href="">Basic Use</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="more_advanced_use.html">Advanced Use</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="docs4v1.html">Legacy (v1) API</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="../recipes/index.html">Pubsub Recipes</a><ul>
+<li class="toctree-l2"><a class="reference" href="../recipes/upgrade_v1tov3.html">Upgrade from v1</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference" href="../recipes/arg1_to_kwargs.html">Convert Arg1 to Kwargs</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div> 
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="basic-use">
+<h1>Basic Use<a class="headerlink" href="#basic-use" title="Permalink to this headline">¶</a></h1>
+<p>The following represents a typical process when using pubsub:</p>
+<ul class="simple">
+<li>Design your application into independent modules that don&#8217;t import one another</li>
+<li>Define what event types exist in the application: &#8216;user&#8217; (events from user),
+&#8216;filesystem&#8217; (events from local filesystem), etc. These are your &#8216;topics&#8217;. Useful
+to use <tt class="docutils literal"><span class="pre">pubsubutils.printTreeSpec</span></tt>.</li>
+<li>Define some data for each event type, an which ones are optional/required</li>
+<li>Create your modules</li>
+<li>Subscribe listeners with appropriate signature (according to data for each topic/event type)</li>
+<li>Send messages with appropriate data</li>
+<li>Handle messages in listeners, without making any assumptions about sender or order of receipt</li>
+<li>Testing: no need for API, all you need to do is send messages!</li>
+</ul>
+<p>Some details follow.</p>
+<div class="section" id="form-basic-topic-tree">
+<h2>Form basic topic tree<a class="headerlink" href="#form-basic-topic-tree" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Example topic tree</li>
+<li>Group into two or three branches</li>
+</ul>
+</div>
+<div class="section" id="subscribe-and-publish">
+<h2>Subscribe and Publish<a class="headerlink" href="#subscribe-and-publish" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Subscribe listeners; will raise if listener not valid</li>
+<li>Publish messages: along topic branch, kwargs only</li>
+<li>Order of publish is approximate</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<p>See examples folder in source: <a class="reference" href="http://pubsub.svn.sourceforge.net/viewvc/pubsub/trunk/examples/">http://pubsub.svn.sourceforge.net/viewvc/pubsub/trunk/examples/</a></p>
+</div>
+<div class="section" id="guidelines">
+<h2>Guidelines<a class="headerlink" href="#guidelines" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Start all listener functions and methods with <em>psOn</em>, for instance
+<tt class="docutils literal"><span class="pre">def</span> <span class="pre">psOnCloseDocument()</span></tt>.</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="splitsidebar">
+        <div class="localsidebarpanel">
+            <h3>Page Contents</h3>
+            <ul>
+<li><a class="reference" href="#">Basic Use</a><ul>
+<li><a class="reference" href="#form-basic-topic-tree">Form basic topic tree</a></li>
+<li><a class="reference" href="#subscribe-and-publish">Subscribe and Publish</a></li>
+<li><a class="reference" href="#examples">Examples</a></li>
+<li><a class="reference" href="#guidelines">Guidelines</a></li>
+</ul>
+</li>
+</ul>
+
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../_sources/apidocs/basic_use.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="more_advanced_use.html" title="Advanced Use"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="concepts.html" title="Concepts"
+             >previous</a> |</li>
+        <li>Trail:</li>
+          <li> &raquo; <a href="index.html" >API Documentation</a></li>
+          <li> &raquo; <a href="#">Basic Use</a></li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Oliver Schoenborn.
+      Last updated on May 05, 2010.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,277 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Concepts &mdash; PubSub v3.0a8 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.0a8',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="PubSub v3.0a8 documentation" href="index.html" />
+    <link rel="up" title="Usage" href="usage.html" />
+    <link rel="next" title="Basic Use" href="basic_use.html" />
+    <link rel="prev" title="Usage" href="usage.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="basic_use.html" title="Basic Use"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="usage.html" title="Usage"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PubSub v3.0a8 documentation</a> &raquo;</li>
+          <li><a href="usage.html" accesskey="U">Usage</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="concepts">
+<h1>Concepts<a class="headerlink" href="#concepts" title="Permalink to this headline">¶</a></h1>
+<p>Pubsub facilitates the <em>decoupling</em> of components (callables, modules, packages) within
+an application. It does this by:</p>
+<ul class="simple">
+<li>Allowing parts of the application to send messages to &#8220;the rest of the
+application&#8221; without having to know<ul>
+<li><em>if</em> the messages will be handled:<ul>
+<li>perhaps the message will be ignored completely,</li>
+<li>or handled by a many different parts of the application;</li>
+</ul>
+</li>
+<li><em>how</em> the messages will be handled:<ul>
+<li>what will be done with the message and its contents;</li>
+<li>in what order any given message will be sent to the
+rest of the application;</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Allowing parts of the application to receive and handle messages from
+&#8220;the rest of the application&#8221; without having to know <em>who</em> sent
+the messages.</li>
+</ul>
+<p>A <em>listener</em> is &#8220;a part of the application that wants to receive messages&#8221;.
+A listener subscribes to one or more topics. A <em>sender</em> is any part of the
+application that asks Pubsub to send a message of a given topic. The sender
+provides data, if any. Pubsub will send the message, including any data,
+to all listeners of the message&#8217;s topic.</p>
+<div align="center" class="align-center"><img alt="Should be image: Sketch showing how pubsub fits into an application" class="align-center" src="_images/pubsub_concept.png" /></div>
+<p>More details follow.</p>
+<div class="section" id="messages">
+<h2>Messages<a class="headerlink" href="#messages" title="Permalink to this headline">¶</a></h2>
+<p>A message</p>
+<ul class="simple">
+<li>Can be considered as a signal that something happened (an event);</li>
+<li>Can transport data;</li>
+<li>Has a <em>type</em>, referred to as the <em>topic</em> of the message.
+The topic, similarly to classes in Python, sets certain constraints on the
+message: what data is required to be sent as part of the message, and what
+additional data <em>can</em> be sent.</li>
+</ul>
+</div>
+<div class="section" id="topics">
+<h2>Topics<a class="headerlink" href="#topics" title="Permalink to this headline">¶</a></h2>
+<p>As mentioned above, any message sent has a <em>type</em>, referred to as the <em>topic</em>
+of the message. Topic names are strings: &#8220;sports&#8221;, &#8220;user&#8221;, &#8220;cards&#8221;,
+&#8220;app_options&#8221;, etc.</p>
+<p>Topics form a hierarchy:</p>
+<ul class="simple">
+<li>The complete topic name uses <em>dotted notation</em>: &#8220;sports.baseball&#8221;,
+&#8220;sports.hockey&#8221;, &#8220;user.saveFile&#8221;, &#8220;user.openFile&#8221;, etc.</li>
+<li>The root of the topic hierarchy is the <em>ALL_TOPICS</em> topic. Listeners of
+the root topic receive all messages sent in the application.</li>
+<li>Messages of topic &#8220;a.b.c&#8221; will be received by listeners of &#8220;a.b.c&#8221;,
+listeners of &#8220;a.b&#8221;, listeners of &#8220;a&#8221;, and listeners of ALL_TOPICS.</li>
+</ul>
+<p>The topic hierarchy can be created on the fly by the application (default),
+or can be specified and documented via one or more <em>Topic Definition Providers</em>
+(TDP). TDP&#8217;s are objects that state</p>
+<ul class="simple">
+<li>what are valid topic names in the application</li>
+<li>what is the topic hierarchy</li>
+<li>what data is allowed or required when sending messages for each topic</li>
+<li>describe what is the purpose of each topic and message data</li>
+</ul>
+<p>Pubsub can be setup to deny (via an exception) any attempt to use a topic
+that is not specified by a TDP. This is very useful in larger applications.</p>
+<p>Every topic has a message arguments specification, i.e. a prescribed
+set of argument names that are allowed when sending a message of that
+topic. This is the <em>TMAS</em>, for <em>topic message arguments specification</em>.
+For instance, topic &#8220;sports.baseball&#8221; might have following TMAS:</p>
+<ul class="simple">
+<li>playersA: list of players in team A</li>
+<li>playersB: list of players in team B</li>
+<li>location: where the game is taking place</li>
+<li>dateTime: when is the game</li>
+</ul>
+<p>but only location and playersA are required: playersB and dateTime are
+only used during a match (vs a practice). Then every message of topic
+&#8220;sports.baseball&#8221; must be given at least a location and list for playersA,
+and every recipient of the message must accept all four parameters (since
+some messages will have all four parameters). I.e.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">pub</span><span class="o">.</span><span class="n">sendMessage</span><span class="p">(</span><span class="s">&quot;sports.baseball&quot;</span><span class="p">,</span> <span class="n">playersA</span><span class="o">=</span><span class="p">[],</span> <span class="n">location</span><span class="o">=</span><span class="s">&quot;Montreal&quot;</span><span class="p">)</span>
+<span class="n">pub</span><span class="o">.</span><span class="n">sendMessage</span><span class="p">(</span><span class="s">&quot;sports.baseball&quot;</span><span class="p">,</span> <span class="n">playersA</span><span class="o">=</span><span class="p">[],</span> <span class="n">playersB</span><span class="o">=</span><span class="p">[],</span> <span class="n">location</span><span class="o">=</span><span class="s">&quot;Montreal&quot;</span><span class="p">)</span>
+<span class="n">pub</span><span class="o">.</span><span class="n">sendMessage</span><span class="p">(</span><span class="s">&quot;sports.baseball&quot;</span><span class="p">,</span> <span class="n">playersA</span><span class="o">=</span><span class="p">[],</span> <span class="n">location</span><span class="o">=</span><span class="s">&quot;Montreal&quot;</span><span class="p">,</span> <span class="n">dateTime</span><span class="o">=</span><span class="n">today</span><span class="p">()</span> <span class="p">)</span>
+<span class="n">pub</span><span class="o">.</span><span class="n">sendMessage</span><span class="p">(</span><span class="s">&quot;sports.baseball&quot;</span><span class="p">,</span> <span class="n">playersA</span><span class="o">=</span><span class="p">[],</span> <span class="n">playersB</span><span class="o">=</span><span class="p">[],</span> <span class="n">location</span><span class="o">=</span><span class="s">&quot;Montreal&quot;</span><span class="p">,</span> <span class="n">dateTime</span><span class="o">=</span><span class="n">today</span><span class="p">()</span> <span class="p">)</span>
+
+<span class="n">pub</span><span class="o">.</span><span class="n">sendMessage</span><span class="p">(</span><span class="s">&quot;sports.baseball&quot;</span><span class="p">,</span> <span class="n">playersA</span><span class="o">=</span><span class="p">[])</span> <span class="c"># ERROR: required location missing</span>
+</pre></div>
+</div>
+<p>The TMAS of each topic:</p>
+<ul class="simple">
+<li>Is obtained from the first TDP that provides it. If the application
+does not use TDP&#8217;s, the TMAS is inferred from the first listener
+subscribed to the topic.</li>
+<li>Extends the TMAS of the parent topic. This is almost identical to
+inheritence of attributes in a class hierarchy. For instance if topic
+&#8220;a.b&#8221; has TMAS (arg1 (required), arg2 (optional)), then topic &#8220;a.b.c&#8221;
+has at least that TMAS, and topic &#8220;a&#8221; has at most that TMAS.</li>
+</ul>
+</div>
+<div class="section" id="listeners">
+<h2>Listeners<a class="headerlink" href="#listeners" title="Permalink to this headline">¶</a></h2>
+<p>A listener is a Python callable object (i.e. a function, method or
+instance with a __call__ method). A listener subscribes to topics that
+it wants to listen to. The only restrictions on listeners are:</p>
+<ul class="simple">
+<li>A listener must satisfy the TMAS of a topic
+otherwise it will be rejected when requesting to subscribe, leading
+to a ListenerInadequate exception.</li>
+<li>A listener <strong>must not</strong> raise any exceptions since neither pubsub
+nor the sender of a message know anything about the listener, let
+alone what exceptions it can raise and what to do with them. See
+<a class="reference" href="more_advanced_use.html#exception-handling"><em>Exception Handling</em></a>.</li>
+</ul>
+<p>A listener should not make any assumptions about:</p>
+<ul class="simple">
+<li>The order of calls of listeners subscribed to same or other topics</li>
+<li>Where the message originates</li>
+</ul>
+<p>Listeners that are subscribed are held by pubsub in a registry.
+However, Listeners are stored in this registry in such a way that when the
+application no longer uses the listener (reference count goes to
+zero), it is removed from the registry. In other words, the
+listener is stored in the registry by weak reference only. This
+prevents pubsub from artificially keeping listeners alive when
+the application no longer needs them.</p>
+<p>A listener can be given the Topic object when receiving a message.</p>
+</div>
+<div class="section" id="publishing">
+<h2>Publishing<a class="headerlink" href="#publishing" title="Permalink to this headline">¶</a></h2>
+<p>Pubsub publishes a message to all listeners that have subscribed to the
+topic of the message. Further, pubsub also publishes the message to
+all listeners that have subscribed to more general (i.e. parent) topics
+of the message&#8217;s topic.</p>
+<p>Pubsub does not define the order of the delivery of a message to its
+listeners. However, it does garantee that upon return from the
+send operation, all listeners have handled the message and returned
+without exception.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li class="toctree-l1"><a class="reference" href="overview.html">Overview</a><ul>
+<li class="toctree-l2"><a class="reference" href="overview.html#what-who-why-where">What, Who, Why, Where</a></li>
+<li class="toctree-l2"><a class="reference" href="overview.html#pubsub-users">Pubsub Users</a></li>
+<li class="toctree-l2"><a class="reference" href="overview.html#history">History</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="quickstart.html">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference" href="quickstart.html#hello-world">Hello World</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference" href="installation.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference" href="installation.html#license">License</a></li>
+<li class="toctree-l2"><a class="reference" href="installation.html#installing">Installing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="usage.html">Usage</a><ul>
+<li class="toctree-l2"><a class="reference" href="usage.html#status">Status</a></li>
+<li class="toctree-l2"><a class="reference" href="usage.html#documentation">Documentation</a></li>
+<li class="toctree-l2"><a class="reference" href="usage.html#support">Support</a></li>
+<li class="toctree-l2"><a class="reference" href="usage.html#bug-reports">Bug reports</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="changelog.html">Changelog</a></li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="usage.html"
+                                  title="previous chapter">Usage</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="basic_use.html"
+                                  title="next chapter">Basic Use</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/concepts.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="basic_use.html" title="Basic Use"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="usage.html" title="Usage"
+             >previous</a> |</li>
+        <li><a href="index.html">PubSub v3.0a8 documentation</a> &raquo;</li>
+          <li><a href="usage.html" >Usage</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Oliver Schoenborn.
+      Last updated on Oct 19, 2009.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

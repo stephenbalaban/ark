@@ -1,0 +1,502 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Upgrading from wx.lib.pubsub &mdash; PubSub v3.1.0a1 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '3.1.0a1',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="top" title="PubSub v3.1.0a1 documentation" href="../index.html" />
+    <link rel="up" title="API Documentation" href="index.html" />
+    <link rel="next" title="Changelog" href="changelog.html" />
+    <link rel="prev" title="Next Step" href="more_advanced_use.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="changelog.html" title="Changelog"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="more_advanced_use.html" title="Next Step"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">PubSub v3.1.0a1 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">API Documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="upgrading-from-wx-lib-pubsub">
+<span id="label-upgrade-for-wx"></span><h1>Upgrading from wx.lib.pubsub<a class="headerlink" href="#upgrading-from-wx-lib-pubsub" title="Permalink to this headline">¶</a></h1>
+<p>If you have a <em>wxPython</em> application that uses &#8220;version 0&#8221; of pubsub (ie
+pubsub before it was given its own project site) <tt class="docutils literal"><span class="pre">wx.lib.pubsub</span></tt>, you can
+&#8220;upgrade&#8221; to using PyPubSub very easiy: indeed PyPubSub&#8217;s <tt class="docutils literal"><span class="pre">pubsub</span></tt> package
+contains the pubsub module from <tt class="docutils literal"><span class="pre">wx.lib</span></tt> almost verbatim
+(see <a class="reference" href="../about.html#label-history"><em>History</em></a> for reason). To find out if you have &#8220;version 0&#8221;,
+start a Python interpreter and do</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">from</span> <span class="nn">wx.lib.pubsub</span> <span class="k">import</span> <span class="n">Publisher</span>
+<span class="n">Publisher</span><span class="o">.</span><span class="n">PUBSUB_VERSION</span>
+</pre></div>
+</div>
+<p>If the second line caused an exception, you know you have &#8220;version 0&#8221;.</p>
+<ol class="arabic">
+<li><p class="first"><strong>VERIFY</strong> that your application runs without errors using
+<tt class="docutils literal"><span class="pre">wx.lib.pubsub</span></tt>. This way, any errors that result from the following
+steps are almost for sure due to some minor incompatibility with
+<tt class="docutils literal"><span class="pre">pubsub.py</span></tt> present in PyPubSub.</p>
+</li>
+<li><p class="first">IF you have &#8220;version 0&#8221; in <tt class="docutils literal"><span class="pre">wx.lib</span></tt>, <strong>CHANGE</strong> all <tt class="docutils literal"><span class="pre">wx.lib.pubsub</span></tt>
+import statements to use <tt class="docutils literal"><span class="pre">from</span> <span class="pre">pubsub</span> <span class="pre">import</span> <span class="pre">...</span></tt>. For instance
+<tt class="docutils literal"><span class="pre">from</span> <span class="pre">wx.lib.pubsub</span> <span class="pre">import</span> <span class="pre">Publisher</span></tt>
+would become <tt class="docutils literal"><span class="pre">from</span> <span class="pre">pubsub</span> <span class="pre">import</span> <span class="pre">Publisher</span></tt>.</p>
+</li>
+<li><p class="first"><strong>ADD</strong> the following lines to the <em>main script</em> of your application,
+<strong>before</strong> the <tt class="docutils literal"><span class="pre">from</span> <span class="pre">pubsub</span> <span class="pre">import</span> <span class="pre">...</span></tt> line:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">import</span> <span class="nn">pubsubconf</span>
+<span class="n">pubsubconf</span><span class="o">.</span><span class="n">setVersion</span><span class="p">(</span><span class="mf">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first"><strong>RUN</strong> your application again and try out the same features as you did
+in step 1. There should be no problems. If there are, post on the
+<a class="reference" href="http://googlegroups.com/group/pypubsub">help forum</a>.</p>
+</li>
+</ol>
+<p>If you wish to further upgrade from version 1 API, which uses the <em>arg1</em>
+messaging protocol, to version 3 with <em>kwargs</em> protocol, you may find
+section <a class="reference" href="#label-trans-arg1-to-kwargs"><em>Going from arg1 -&gt; kwargs protocol</em></a> useful.</p>
+</div>
+<div class="section" id="going-from-arg1-kwargs-protocol">
+<span id="label-trans-arg1-to-kwargs"></span><h1>Going from <em>arg1</em> -&gt; <em>kwargs</em> protocol<a class="headerlink" href="#going-from-arg1-kwargs-protocol" title="Permalink to this headline">¶</a></h1>
+<p>If you would like to transition an application from using the <em>arg1</em>
+messaging protocol to use the <em>kwargs</em> protocol, here are some steps
+that will make this easier. Note that if your application is currently
+using the old <tt class="docutils literal"><span class="pre">wx.lib.pubsub</span></tt> (aka &#8220;pubsub versio 0&#8221;), you should
+first follow the steps in <a class="reference" href="#label-upgrade-for-wx"><em>Upgrading from wx.lib.pubsub</em></a>.</p>
+<p>Each step is one very well defined task, such that only certain types of
+problems may have to be corrected at each step. Pubsub provides some
+assistance in the form of pubsub configuration settings, explained below.
+Only a small subset of the steps involve changing your code.</p>
+<p>Real example transition data: 50 listeners, 60 messages, in 5k LOC, took one
+hour (stages 0 to 3).</p>
+<div class="section" id="suggested-steps">
+<h2>Suggested steps<a class="headerlink" href="#suggested-steps" title="Permalink to this headline">¶</a></h2>
+<p>The objective is to go from a messaging protocol that supports</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">pub</span><span class="o">.</span><span class="n">sendMessage</span><span class="p">(</span><span class="s">&#39;topic1&#39;</span><span class="p">)</span>
+<span class="n">pub</span><span class="o">.</span><span class="n">sendMessage</span><span class="p">(</span><span class="s">&#39;topic2&#39;</span><span class="p">,</span> <span class="n">yourData</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">yourData</span></tt> is your data object</li>
+<li>listeners must have one required parameter whose name doesn&#8217;t matter
+to pubsub, ie <tt class="docutils literal"><span class="pre">listener(anyParamName)</span></tt></li>
+<li>listeners access the message data (<tt class="docutils literal"><span class="pre">yourData</span></tt>) via <tt class="docutils literal"><span class="pre">anyParamName.data</span></tt></li>
+</ul>
+<p>to a messaging protocol that supports</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">pub</span><span class="o">.</span><span class="n">sendMessage</span><span class="p">(</span><span class="s">&#39;topic1&#39;</span><span class="p">)</span>
+<span class="n">pub</span><span class="o">.</span><span class="n">sendMessage</span><span class="p">(</span><span class="s">&#39;topic2&#39;</span><span class="p">,</span> <span class="n">argName</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where</p>
+<ul>
+<li><p class="first">listeners of <em>topic1</em> and <em>topic2</em> MUST be of the form:</p>
+<div class="highlight-python"><pre>listener()                   # for topic1
+listener(argName[=anything]) # for topic2</pre>
+</div>
+</li>
+<li><p class="first">listeners access the data directly (one or more argName&#8217;s)</p>
+</li>
+</ul>
+<div class="section" id="step-1-version-1-to-version-3-arg1-protocol">
+<h3>Step 1: Version 1 to Version 3, <em>arg1</em> protocol<a class="headerlink" href="#step-1-version-1-to-version-3-arg1-protocol" title="Permalink to this headline">¶</a></h3>
+<p>The first step is necessary only if your application is using version 1
+of pubsub API.</p>
+<p>The first step moves your application from version 1 of pubsub to version 3,
+while keeping with the use of <em>arg1</em> messaging protocol implicit in version 1.
+Hence you can skip this step if your application is already using version 3
+with <em>arg1</em> protocol.</p>
+<p>Actions for step 1:</p>
+<ol class="arabic simple">
+<li><strong>REMOVE</strong> the <tt class="docutils literal"><span class="pre">pubsubconf.setVersion(1)</span></tt> from your main</li>
+<li><strong>REPLACE IT</strong> with <tt class="docutils literal"><span class="pre">pubsubconf.setMsgProtocol(</span> <span class="pre">'arg1'</span> <span class="pre">)</span></tt></li>
+<li><strong>CHANGE</strong> <tt class="docutils literal"><span class="pre">from</span> <span class="pre">pubsub</span> <span class="pre">import</span> <span class="pre">Publisher</span></tt> to <tt class="docutils literal"><span class="pre">from</span> <span class="pre">pubsub</span> <span class="pre">import</span> <span class="pre">pub</span></tt>.</li>
+<li><strong>REPLACE</strong> every occurence of <tt class="docutils literal"><span class="pre">Publisher()</span></tt> (if you used that syntax)
+with <tt class="docutils literal"><span class="pre">pub</span></tt></li>
+</ol>
+<p>Assuming your application runs without errors before this step,
+your application should run without any errors once the above change
+is done.</p>
+<p>See the test file <tt class="docutils literal"><span class="pre">tests/trans1to3/test_trans_step_1.py</span></tt> in the
+source distribution for an example application after this step has
+been executed.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you are using a pubsub (version 1) installed in <tt class="docutils literal"><span class="pre">wx.lib</span></tt>,
+you would change <tt class="docutils literal"><span class="pre">from</span> <span class="pre">wx.lib.pubsub</span> <span class="pre">import</span> <span class="pre">Publisher</span></tt> to
+<tt class="docutils literal"><span class="pre">from</span> <span class="pre">wx.lib.pubsub</span> <span class="pre">import</span> <span class="pre">pub</span></tt>.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">if you used some of the &#8220;accessory&#8221; functions/methods of
+version 1, such as <tt class="docutils literal"><span class="pre">getAssociatedTopics()</span></tt> and
+<tt class="docutils literal"><span class="pre">getDeliveryCount()</span></tt>, you will get exceptions since they have been
+replaced by more powerful functionality in version 3. You may have to
+temporarily comment out any code that uses these.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If your application runs without a console window and you don&#8217;t
+catch all Exception exceptions, you may not
+have time to see the exception traceback that the Python interpreter
+prints at exit. Start your GUI app from a console, or have a
+catch-Exception and print the error in your GUI.</p>
+</div>
+</div>
+<div class="section" id="step-2-homogenization">
+<h3>Step 2: Homogenization<a class="headerlink" href="#step-2-homogenization" title="Permalink to this headline">¶</a></h3>
+<p>Second step is to change all the listeners to take one required
+parameter of the same name. This can be adjusted later but for
+now this will help catch errors.</p>
+<p>Actions for step 2:</p>
+<ol class="arabic" start="5">
+<li><p class="first"><strong>CHOOSE</strong> one argument name that all listeners will use. The name cannot
+be <tt class="docutils literal"><span class="pre">data</span></tt> as it is already used in <tt class="docutils literal"><span class="pre">sendMessage()</span></tt>. For instance,
+<tt class="docutils literal"><span class="pre">msg</span></tt>.  This is a temporary measure, so something unique (ie, easy to
+search for) is sufficient. The remainder assumes you chose <tt class="docutils literal"><span class="pre">msg</span></tt>.</p>
+</li>
+<li><p class="first"><strong>REPLACE</strong> the line</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">pubsubconf</span><span class="o">.</span><span class="n">setMsgProtocol</span><span class="p">(</span> <span class="s">&#39;arg1&#39;</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>by the line</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">pubsubconf</span><span class="o">.</span><span class="n">transitionV1ToV3</span><span class="p">(</span> <span class="s">&#39;yourSelectedParamName&#39;</span> <span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first"><strong>CHANGE</strong> the first argument of all your listeners to what you chose in
+previous step, &#8216;yourSelectedParamName&#8217;.</p>
+<ul class="simple">
+<li>You can probably locate all listeners by doing a <em>keyword search in
+files</em> for the string <tt class="docutils literal"><span class="pre">subscribe(</span></tt>.</li>
+<li>Don&#8217;t forget to make the associated adjustments in the code of each
+listener that needs changing. You only need to change the first
+parameter name, not the <tt class="docutils literal"><span class="pre">.data</span></tt> attribute.</li>
+</ul>
+</li>
+<li><p class="first"><strong>RUN</strong> your application, and correct any errors:</p>
+<ul class="simple">
+<li>in your listeners implementation, from having forgotten to rename
+any code that access the message parameter to use the new argument name</li>
+<li>If you have forgotten to fix any listeners, you will get
+<tt class="docutils literal"><span class="pre">pub.ListenerInadequate</span></tt> exceptions at subscription time.</li>
+</ul>
+<p><strong>REPEAT</strong> this step until there are no more errors.</p>
+</li>
+</ol>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If your application runs without a console window and you don&#8217;t
+catch ListenerInadequate somewhere in your main, you may not
+have time to see the exception traceback that the Python interpreter
+prints at exit. Start your GUI app from a console, or have a catch-Exception
+or catch-ListenerInadequate and print the error in your GUI.</p>
+</div>
+</div>
+<div class="section" id="step-3-keyword-arguments-in-sendmessage">
+<h3>Step 3: keyword arguments in sendMessage<a class="headerlink" href="#step-3-keyword-arguments-in-sendmessage" title="Permalink to this headline">¶</a></h3>
+<p>Third step is to add a keyword argument name in ALL your calls to
+<tt class="docutils literal"><span class="pre">pub.sendMessage()</span></tt>, and up the transition stage in
+<tt class="docutils literal"><span class="pre">pubsubconf.transitionV1ToV3()</span></tt> so that pubsub knows that you
+want it to check that all message sending will use a keyword argument:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">pubsubconf</span><span class="o">.</span><span class="n">transitionV1ToV3</span><span class="p">(</span> <span class="s">&#39;yourSelectedParamName&#39;</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">2</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>Actions for step 3:</p>
+<ol class="arabic" start="9">
+<li><p class="first"><strong>ADD</strong> the &#8216;yourSelectedParamName&#8217; keyword name to every
+<tt class="docutils literal"><span class="pre">pub.sendMessage()</span></tt> that sends data with the message. Don&#8217;t forget to
+do this in your unit tests as well. So each of your sendMessage
+should be of the form:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">pub</span><span class="o">.</span><span class="n">sendMessage</span><span class="p">(</span><span class="s">&#39;topic&#39;</span><span class="p">,</span> <span class="n">yourSelectedParamName</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first"><strong>REMOVE</strong> the message parameter of any <em>all-topics</em> listeners since
+ALL_TOPICS listeners cannot get any data (except a <tt class="xref docutils literal"><span class="pre">pub.Topic`</span></tt>
+or via <tt class="docutils literal"><span class="pre">**kwargs</span></tt>).
+Such listeners were subscribed as <tt class="docutils literal"><span class="pre">pub.subscribe(listener)</span></tt>
+or <tt class="docutils literal"><span class="pre">pub.subscribe(listener,</span> <span class="pre">pub.ALL_TOPICS)</span></tt> instead of the typical
+<tt class="docutils literal"><span class="pre">pub.subscribe(listener,</span> <span class="pre">topic)</span></tt>. For those listeners that really
+need the data, you can bypass pubsub&#8217;s default behavior by using
+<tt class="docutils literal"><span class="pre">**kwargs</span></tt> as the message parameter, and access the data in your listener
+via <tt class="docutils literal"><span class="pre">kwargs[yourSelectedParamName].data</span></tt>.</p>
+</li>
+<li><p class="first"><strong>CHANGE</strong> the <tt class="docutils literal"><span class="pre">transitionV1ToV3</span></tt> call to be
+<tt class="docutils literal"><span class="pre">pubsubconf.transitionV1ToV3('msg',</span> <span class="pre">step=2)</span></tt>.
+This will change the requirements imposed on listeners: in pubsub 3,
+listeners can have any signature: regular parameters, keyword arguments,
+and <tt class="docutils literal"><span class="pre">*args</span></tt> and <tt class="docutils literal"><span class="pre">**kwargs</span></tt>.</p>
+</li>
+<li><p class="first"><strong>RUN</strong> your application, and correct any errors: the only ones should be
+listeners or sendMessage() calls that you forgot to adjust as per
+steps 9 and 10.</p>
+</li>
+</ol>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<ul class="last simple">
+<li>Here you may get a couple different exceptions if you used the wrong
+name (not same as you gave to transitionV1ToV3), but since you already
+dealt with exceptions in phase 1, you will just see those errors in
+a console or your GUI.</li>
+<li>if you get an exception raised regarding <em>unexpected keyword argument
+&#8216;msg&#8217;</em>, you probably forgot step 9;</li>
+<li>if you get an exception about a sendMessage <em>takes exactly 2 arguments
+(3 given)</em>, you probably forgot to change the sendMessage() call listed
+at the bottom of the traceback.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="step-4-remove-data">
+<h3>Step 4: Remove .data<a class="headerlink" href="#step-4-remove-data" title="Permalink to this headline">¶</a></h3>
+<p>In this step you will remove the &#8216;.data&#8217; that appears in all listeners since
+that the next configuration setting gives the data directly to your listeners:</p>
+<ol class="arabic simple" start="13">
+<li><strong>REMOVE</strong> the &#8216;.data&#8217; wherever it is used, in all listeners</li>
+<li><strong>REMOVE</strong> the listener parameter for those listeners for which you
+(could) use <tt class="docutils literal"><span class="pre">pub.sendMessage('topic')</span></tt>.</li>
+<li><strong>REMOVE</strong> the two lines involving pubsubconf (the import and the
+call to <tt class="docutils literal"><span class="pre">transitionV1ToV3()</span></tt></li>
+<li><strong>RUN</strong> your application, and correct any errors related to step 13</li>
+</ol>
+</div>
+</div>
+<div class="section" id="optional-steps-for-more-pythonesque-code">
+<h2>Optional steps for more Pythonesque code<a class="headerlink" href="#optional-steps-for-more-pythonesque-code" title="Permalink to this headline">¶</a></h2>
+<p>After step 4, you have a topic tree in which each topic has the same
+topic message specification (TMS): one argument (<em>yourSelectedParamName</em>), optional.
+You can see this by adding the following lines somewhere in your application,
+after all your subscriptions have been executed:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">print</span> <span class="n">pub</span><span class="o">.</span><span class="n">exportMyTopicTree</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The main shortcoming of your topic tree so far is that listeners
+can get any data via their <em>msg</em> argument, making it easy to send
+the wrong data to a listener. It is best to &#8216;divide&#8217; your data
+into pieces that are specific to each topic, as you would if you
+had used pubsub version 3 from the start.</p>
+<p>See the file <tt class="docutils literal"><span class="pre">tests/trans1to3/test_trans_step_5.py</span></tt> from source
+distribution for example of such steps.</p>
+<div class="section" id="step-5-optional-split-data-between-different-arguments">
+<h3>Step 5 (optional): Split data between different arguments<a class="headerlink" href="#step-5-optional-split-data-between-different-arguments" title="Permalink to this headline">¶</a></h3>
+<p>To take full advantage of pubsub3, you should now split your listener
+argument (<em>msg</em>) into one or more arguments. It will be handy to refer
+to your topic tree printout for convenience.</p>
+<ol class="arabic">
+<li><p class="first"><strong>SELECT</strong> a leaf topic (one that doesn&#8217;t have subtopics), and determine
+how the data currently given in associated <tt class="docutils literal"><span class="pre">sendMessage()</span></tt> calls could
+be divided among several keyword arguments. You may want to split off
+just one piece of data: for instance, if data was a pair (a,b) and b is
+only used by leaf topic, then split off b, as shown in the next step.</p>
+</li>
+<li><p class="first"><strong>ADD</strong> relevant arguments to all <tt class="docutils literal"><span class="pre">sendMessage()</span></tt> for topic just affected.
+For instance,</p>
+<blockquote>
+<p>sendMessage(&#8216;topicA&#8217;, msg=(a,b))      # OLD
+sendMessage(&#8216;topicA&#8217;, msg=(a,), b=b)  # NEW</p>
+</blockquote>
+</li>
+<li><p class="first"><strong>ADD</strong> those arguments to all listeners of the selected topic. Make
+the necessary adjustements to each listener&#8217;s code. Leave other
+topic listeners unchanged:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># OLD:</span>
+<span class="k">def</span> <span class="nf">listenerA</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="o">...</span><span class="n">use</span> <span class="n">msg</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">msg</span><span class="p">[</span><span class="mf">1</span><span class="p">]</span><span class="o">...</span>
+
+<span class="c"># NEW:</span>
+<span class="k">def</span> <span class="nf">listenerA</span><span class="p">(</span><span class="n">msg</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="o">...</span><span class="n">use</span> <span class="n">msg</span><span class="p">[</span><span class="mf">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">b</span><span class="o">...</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first"><strong>RUN</strong> your application and correct any errors resulting from above
+changes.</p>
+</li>
+<li><p class="first"><strong>REPEAT</strong> from 16 until satisfied, first with other leaf topics, then
+making your way up the tree of topics, until your <em>msg</em> arguments are
+unused in the listeners&#8217; code.</p>
+</li>
+<li><p class="first"><strong>REMOVE</strong> all the unused <tt class="docutils literal"><span class="pre">msg</span></tt> arguments.</p>
+</li>
+<li><p class="first"><strong>REMOVE</strong> default values from arguments that are <em>required</em> data. Note
+that all listeners of the associate topic must have the same argument
+names for both required and optional arguments. For instance to indicate
+that <em>a</em> is required:</p>
+<div class="highlight-python"><pre># OLD:
+def listenerA1(a=None, b=None) # both a and b are optional
+def listenerA2(a=None, b=None) # both a and b are optional
+
+# NEW:
+def listenerA1(a, b=None)      # only b is optional
+def listenerA2(a, b=None)      # must be same signature as listenerA1</pre>
+</div>
+</li>
+</ol>
+</div>
+<div class="section" id="step-6-optional-topic-tree-specification">
+<h3>Step 6 (optional): topic tree specification<a class="headerlink" href="#step-6-optional-topic-tree-specification" title="Permalink to this headline">¶</a></h3>
+<p>The previous stage allows you to make it clear, on both the sending and
+receiving ends, what data is being sent with each message. However, thus
+far, you have left it up to pubsub3 to infer the TMS from the first listener
+subscribed. It is best to specify this explicitly, and to document your
+topics.</p>
+<ol class="arabic" start="8">
+<li><p class="first"><strong>ADD</strong> a line, for printing the topic tree definition, for instance
+<tt class="docutils literal"><span class="pre">pub.exportMyTopicTree('MyTopicTree')</span></tt></p>
+</li>
+<li><p class="first"><strong>RUN</strong> your application so all the listeners get subscribed, and exit.</p>
+</li>
+<li><p class="first"><strong>EDIT</strong> <tt class="docutils literal"><span class="pre">MyTopicTree.py</span></tt>:</p>
+<ul class="simple">
+<li>add a doc string to each topic class</li>
+<li>replace the string for each arg with appropriate description</li>
+<li>specify which arguments are required</li>
+</ul>
+</li>
+<li><p class="first"><strong>ADD</strong> the following at the beginning of your application:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">from</span> <span class="nn">MyTopicTree</span> <span class="k">import</span> <span class="n">MyTopicTree</span>
+<span class="n">pub</span><span class="o">.</span><span class="n">importMyTopicTree</span><span class="p">(</span> <span class="s">&#39;MyTopicTree&#39;</span> <span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first"><strong>RUN</strong> your application again. Correct errors, mostly related to
+some listeners no longer satisfying the TMAS for the topic they are
+subscribing to.</p>
+</li>
+<li><p class="first"><strong>ADD</strong> a call to <tt class="docutils literal"><span class="pre">pub.setTopicUnspecifiedFatal()</span></tt> so that
+TMAS inference is turned off. This will cause subscription/sendMessage
+calls for a topic that is not specified
+in MyTopicTree to raise an exception.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="../index.html">Table Of Contents</a></h3>
+            <ul class="current">
+<li class="toctree-l1"><a class="reference" href="../index.html">Pubsub Home page</a></li>
+<li class="toctree-l1"><a class="reference" href="../about.html">About</a><ul>
+<li class="toctree-l2"><a class="reference" href="../about.html#who-where">Who, Where</a></li>
+<li class="toctree-l2"><a class="reference" href="../about.html#hello-world">Hello World</a></li>
+<li class="toctree-l2"><a class="reference" href="../about.html#projects-using-pubsub">Projects using Pubsub</a></li>
+<li class="toctree-l2"><a class="reference" href="../about.html#history">History</a></li>
+<li class="toctree-l2"><a class="reference" href="../about.html#acknowledgements">Acknowledgements</a></li>
+<li class="toctree-l2"><a class="reference" href="../about.html#contributing">Contributing</a></li>
+<li class="toctree-l2"><a class="reference" href="../about.html#support">Support</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference" href="../installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference" href="../installation.html#system-requirements">System Requirements</a></li>
+<li class="toctree-l2"><a class="reference" href="../installation.html#license">License</a></li>
+<li class="toctree-l2"><a class="reference" href="../installation.html#download">Download</a></li>
+<li class="toctree-l2"><a class="reference" href="../installation.html#testing-docs-etc">Testing, docs, etc</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference" href="index.html">API Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference" href="index.html#status">Status</a></li>
+<li class="toctree-l2"><a class="reference" href="index.html#versions">Versions</a></li>
+<li class="toctree-l2 current"><a class="reference" href="index.html#documentation">Documentation</a><ul class="current">
+<li class="toctree-l3"><a class="reference" href="examples.html">Examples</a></li>
+<li class="toctree-l3"><a class="reference" href="concepts.html">Concepts</a></li>
+<li class="toctree-l3"><a class="reference" href="basic_use.html">Basic Use</a></li>
+<li class="toctree-l3"><a class="reference" href="more_advanced_use.html">Next Step</a></li>
+<li class="toctree-l3 current"><a class="current reference" href="">Upgrading from wx.lib.pubsub</a></li>
+<li class="toctree-l3"><a class="reference" href="#going-from-arg1-kwargs-protocol">Going from <em>arg1</em> -&gt; <em>kwargs</em> protocol</a></li>
+<li class="toctree-l3"><a class="reference" href="changelog.html">Changelog</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="more_advanced_use.html"
+                                  title="previous chapter">Next Step</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="changelog.html"
+                                  title="next chapter">Changelog</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../_sources/apidocs/upgrade_v1tov3.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="changelog.html" title="Changelog"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="more_advanced_use.html" title="Next Step"
+             >previous</a> |</li>
+        <li><a href="../index.html">PubSub v3.1.0a1 documentation</a> &raquo;</li>
+          <li><a href="index.html" >API Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Oliver Schoenborn.
+      Last updated on Nov 08, 2009.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,59 @@
+.. _label-download:
+
+Download
+==========
+
+.. note::  Latest release: 3.1
+
+
+Choose ONE of the following download/install methods:
+
+1. Using setuptools (easiest): if you have setuptools installed on your
+   machine, use :command:`easy_install pypubsub`: this does the download
+   AND installation for you.
+
+2. Installer (Windows only):
+
+   - Download the `installer
+     <http://sourceforge.net/project/showfiles.php?group_id=197063>`_
+     (the ``.win32.exe``) from SourceForge.net.
+   - Run the installer.
+
+3. Manually:
+
+   - Download the `appropriate distribution
+     <http://sourceforge.net/project/showfiles.php?group_id=197063>`_
+     from SourceForge.net
+   - From a console window, do :command:`python setup.py install`
+
+4. Using subversion client:
+
+   - :command:`svn co https://pubsub.svn.sourceforge.net/svnroot/pubsub pubsub`
+
+
+.. image:: http://sflogo.sourceforge.net/sflogo.php?group_id=197063&amp;type=2
+   :alt: SourceForge.net Logo
+   :width: 125
+   :height: 37
+   :target: http://sourceforge.net
+
+
+.. _label_support:
+
+Support
+--------
+
+The forums are currently hosted on google groups:
+
+- General help and support: on the
+  `PyPubSub <http://googlegroups.com/group/pypubsub>`_
+  Google group (http://googlegroups.com/group/pypubsub)
+
+- Bug reports, feature suggestions, patches, docs, etc: on
+  `PyPubSubDev <http://googlegroups.com/group/pypubsub_dev>`_
+  Google group (http://googlegroups.com/group/pypubsub_dev)
+
+Also, many pubsub users are on the wxPython-users mailing list, at this time
+still has the largest pool of users: http://www.wxpython.org/maillist.php.
+
+

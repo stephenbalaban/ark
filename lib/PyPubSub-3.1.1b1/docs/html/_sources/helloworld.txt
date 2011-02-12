@@ -1,0 +1,18 @@
+Hello World
+============
+
+A complete example of use:
+
+.. literalinclude:: helloworld.py
+
+
+Running the above as a script (already saved for your convenience as
+helloworld.py in the docs folder of the source distribution) will
+produce the result::
+
+    lahdida... have result, publishing it via pubsub
+    Function listener1 received:
+      arg1="123"
+      arg2="{'a': 'abc', 'b': 'def'}"
+
+

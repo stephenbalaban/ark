@@ -1,0 +1,161 @@
+Concepts
+=========
+
+
+Pubsub facilitates the *decoupling* of components (callables, modules, packages) within
+an application. It does this by:
+
+- Allowing parts of the application to send messages to "the rest of the 
+  application" without having to know 
+  
+  - *if* the messages will be handled: 
+  
+    - perhaps the message will be ignored completely, 
+    - or handled by a many different parts of the application;
+    
+  - *how* the messages will be handled: 
+
+    - what will be done with the message and its contents;
+    - in what order any given message will be sent to the 
+      rest of the application;
+
+- Allowing parts of the application to receive and handle messages from 
+  "the rest of the application" without having to know *who* sent 
+  the messages.
+
+A *listener* is "a part of the application that wants to receive messages". 
+A listener subscribes to one or more topics. A *sender* is any part of the
+application that asks Pubsub to send a message of a given topic. The sender
+provides data, if any. Pubsub will send the message, including any data, 
+to all listeners of the message's topic. 
+
+.. image:: pubsub_concept.png
+   :alt: Should be image: Sketch showing how pubsub fits into an application
+   :align: center
+
+More details follow. 
+
+
+Messages
+---------
+
+A message 
+
+- Can be considered as a signal that something happened (an event); 
+- Can transport data; 
+- Has a *type*, referred to as the *topic* of the message.
+  The topic, similarly to classes in Python, sets certain constraints on the 
+  message: what data is required to be sent as part of the message, and what
+  additional data *can* be sent.
+
+
+Topics
+-------
+
+As mentioned above, any message sent has a *type*, referred to as the *topic* 
+of the message. Topic names are strings: "sports", "user", "cards", 
+"app_options", etc.
+
+Topics form a hierarchy:
+
+- The complete topic name uses *dotted notation*: "sports.baseball", 
+  "sports.hockey", "user.saveFile", "user.openFile", etc.  
+- The root of the topic hierarchy is the *ALL_TOPICS* topic. Listeners of 
+  the root topic receive all messages sent in the application. 
+- Messages of topic "a.b.c" will be received by listeners of "a.b.c", 
+  listeners of "a.b", listeners of "a", and listeners of ALL_TOPICS. 
+
+The topic hierarchy can be created on the fly by the application (default), 
+or can be specified and documented via one or more *Topic Definition Providers* 
+(TDP). TDP's are objects that state 
+
+- what are valid topic names in the application
+- what is the topic hierarchy
+- what data is allowed or required when sending messages for each topic
+- describe what is the purpose of each topic and message data
+
+Pubsub can be setup to deny (via an exception) any attempt to use a topic 
+that is not specified by a TDP. This is very useful in larger applications.
+
+Every topic has a message arguments specification, i.e. a prescribed 
+set of argument names that are allowed when sending a message of that
+topic. This is the *TMAS*, for *topic message arguments specification*.
+For instance, topic "sports.baseball" might have following TMAS:
+
+- playersA: list of players in team A
+- playersB: list of players in team B
+- location: where the game is taking place
+- dateTime: when is the game
+
+but only location and playersA are required: playersB and dateTime are 
+only used during a match (vs a practice). Then every message of topic 
+"sports.baseball" must be given at least a location and list for playersA,
+and every recipient of the message must accept all four parameters (since
+some messages will have all four parameters). I.e.::
+
+  pub.sendMessage("sports.baseball", playersA=[], location="Montreal")
+  pub.sendMessage("sports.baseball", playersA=[], playersB=[], location="Montreal")
+  pub.sendMessage("sports.baseball", playersA=[], location="Montreal", dateTime=today() )
+  pub.sendMessage("sports.baseball", playersA=[], playersB=[], location="Montreal", dateTime=today() )
+
+  pub.sendMessage("sports.baseball", playersA=[]) # ERROR: required location missing
+
+
+The TMAS of each topic:
+
+- Is obtained from the first TDP that provides it. If the application 
+  does not use TDP's, the TMAS is inferred from the first listener 
+  subscribed to the topic.
+- Extends the TMAS of the parent topic. This is almost identical to 
+  inheritence of attributes in a class hierarchy. For instance if topic 
+  "a.b" has TMAS (arg1 (required), arg2 (optional)), then topic "a.b.c" 
+  has at least that TMAS, and topic "a" has at most that TMAS.
+
+
+Listeners
+----------
+
+A listener is a Python callable object (i.e. a function, method or 
+instance with a __call__ method). A listener subscribes to topics that
+it wants to listen to. The only restrictions on listeners are: 
+
+- A listener must satisfy the TMAS of a topic 
+  otherwise it will be rejected when requesting to subscribe, leading 
+  to a ListenerInadequate exception.
+ 
+- A listener **must not** raise any exceptions since neither pubsub 
+  nor the sender of a message know anything about the listener, let 
+  alone what exceptions it can raise and what to do with them. See
+  :ref:`exception-handling`.
+  
+A listener should not make any assumptions about: 
+
+- The order of calls of listeners subscribed to same or other topics
+- Where the message originates 
+
+Listeners that are subscribed are held by pubsub in a registry. 
+However, Listeners are stored in this registry in such a way that when the 
+application no longer uses the listener (reference count goes to 
+zero), it is removed from the registry. In other words, the 
+listener is stored in the registry by weak reference only. This 
+prevents pubsub from artificially keeping listeners alive when 
+the application no longer needs them. 
+
+A listener can be given the Topic object when receiving a message. 
+
+
+Publishing
+----------
+
+Pubsub publishes a message to all listeners that have subscribed to the 
+topic of the message. Further, pubsub also publishes the message to 
+all listeners that have subscribed to more general (i.e. parent) topics
+of the message's topic. 
+
+Pubsub does not define the order of the delivery of a message to its 
+listeners. However, it does garantee that upon return from the 
+send operation, all listeners have handled the message and returned 
+without exception. 
+
+
+
