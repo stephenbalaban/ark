@@ -86,7 +86,7 @@ class Carryable:
         self.carried_by = None
         self.height = ENTITY_SIZE.x*0.5
         Mover.smash(self, victim)
-        engine.metagrid.grid.add_entity(self)    
+        engine.metagrid.add_entity(self)    
 
 
 
@@ -308,7 +308,7 @@ class Terrain(Entity):
         
     def to_water(self):
         self.terrain_type = 'water'
-        neighbors = engine.metagrid.grid.get_neighbors(self.pos)
+        neighbors = engine.metagrid.get_neighbors(self.pos)
         for dir in neighbors:
             this_dir_ents = neighbors[dir]
             if LAYER_GROUND in this_dir_ents:

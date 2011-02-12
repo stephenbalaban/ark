@@ -28,25 +28,13 @@ class ClientManager:
     
     def __init__(self):
         self.clients = {}
-        self.next_client_id = 0
         
     def add_client(self,client):
-        self.next_client_id += 1;
-        self.clients[self.next_client_id] = client
-        client.id = self.next_client_id
-              
-    def broadcast(self, message):
-        #some clients have disconnected
-        #keep track of this
-        new_clients = {}                                       
+        self.clients[client.id] = client
+    
+    def update(self):
         for id in self.clients:
-            try:            
-                self.clients[id].send(message)
-                new_clients[id] = self.clients[id]
-            except IOError, e:
-                print "client",id,"disconnected."
-                self.clients[id].disconnect()
-        self.clients = new_clients
+            self.clients[id].update()
 
 class CellFull(Exception): pass
 class GridCell:
@@ -89,7 +77,6 @@ class GameGrid:
         for  y in range(size):
             for x in range(size):
                 self.cells[(pos[0] +x,pos[1]+y)] = GridCell()
-
         self.size = size
         self.pos = pos
 
@@ -101,11 +88,8 @@ class GameGrid:
         return self.cells[(ent.pos.x,ent.pos.y)].add_entity(ent)
 
     def remove_entity(self, ent):
-        key = (ent.pos.x, ent.pos.y)
-        if not key in self.cells:
-            import pdb
-            pdb.set_trace()
-        return self.cells[(ent.pos.x, ent.pos.y)].remove_entity(ent)
+        cell =  self.cells[(ent.pos.x, ent.pos.y)]
+        return cell.remove_entity(ent)
 
 
     @timed
@@ -129,23 +113,30 @@ class MetaGrid:
     def get_cell(self, x, y):
         g_x = x - (x%GRID_SIZE)
         g_y = y - (y%GRID_SIZE)
-
+        
+        #log("%d,%d converted to %d,%d" % (x,y, g_x, g_y))
         if not (g_x,g_y) in self.cells:
             log ('Spawning a cell at %d, %d' % (g_x,g_y))
-            self.cells[(g_x,g_y)] = MetaGridCell((g_x,g_y))
-        return self.cells[(g_x, g_y)] 
+            self.cells[(g_x,g_y)] = res =  MetaGridCell((g_x,g_y))
+            engine.game.new_metagrid_cell(res) 
+        else:
+            res = self.cells[(g_x, g_y)] 
+        
+        return res
 
     def add_entity(self, new_guy): 
         self.get_cell(new_guy.pos.x, new_guy.pos.y).add_entity(new_guy) 
 
-    def remove_entity(self, dead_guy):
-        self.get_cell(dead_guy.pos.x, dead_guy.pos.y).remove_entity(dead_guy)
+    def remove_entity(self, dead_guy, moving=False):
+        cell = self.get_cell(dead_guy.pos.x, dead_guy.pos.y)
+        cell.remove_entity(dead_guy, moving)
 
     @logged
     def move_entity(self, mover, new_pos):
-        self.get_cell(mover.pos.x, mover.pos.y).remove_entity(mover)
+        cell = self.get_cell(mover.pos.x, mover.pos.y)
+        cell.remove_entity(mover, moving=True)
         mover.pos = new_pos
-        self.get_cell(new_pos.x, new_pos.y).add_entity(mover)
+        self.get_cell(new_pos.x, new_pos.y).add_entity(mover, moving=True)
         
     def get_entities(self, x, y):
         return self.get_cell(x,y).grid.get_entities(x,y)
@@ -166,9 +157,6 @@ class MetaGrid:
             return self.get_cell(0,0).get_free_position(layer)
         return self.cells[random.choice(keys)].get_free_position(layer)
 
-    def add_client(self, client):
-        self.get_cell(client.dude.pos.x,
-                      client.dude.pos.y).add_client(client)
     def update(self):
         keys = [k for k in self.cells]
         random.shuffle(keys)
@@ -194,14 +182,13 @@ class Engine:
         self.next_id = []
         self.current_frame = 0  
         self.metagrid = MetaGrid()
-        
+        self.client_manager = ClientManager() 
 
     def add_entity(self, new_guy):
         self.metagrid.add_entity(new_guy)
         
     def add_client(self, client):
-        self.metagrid.get_cell(client.dude.pos.x,
-                                client.dude.pos.y).add_client(client)
+        self.client_manager.add_client(client)
 
     def remove_entity(self, ent):
         self.metagrid.remove_entity(ent)
@@ -215,32 +202,29 @@ class Engine:
     @timed
     def update(self):
         self.metagrid.update()
-        
+        self.client_manager.update() 
 
 class MetaGridCell:
         """encapsulates the behavior of the entire game"""
         def __init__(self,pos):
-                self.client_manager = ClientManager()        
                 self.dude_map = {}
                 self.noobs = []
                 self.deads = {}
+                self.moved_away = {}
+                self.moved_here = {}
                 self.pos = pos
                 self.grid = GameGrid(GRID_SIZE, pos)
                 self.current_frame = 0
                 self.current_state = None
                 self.last_delta = None
                 self.updaters = {} 
+                self.drop_message = {}
     
         def __repr__(self):
             return "MetaGridCell at %d,%d." % self.pos                
 
-        def add_client(self, client):
-                #add this guy to the list of clients
-                self.client_manager.add_client(client)
-                #client.send(self.current_state)
 
-
-        def add_entity(self, entity):
+        def add_entity(self, entity, moving= False):
 
             if hasattr(entity,'id'):
                 if entity.id in self.deads:
@@ -249,30 +233,52 @@ class MetaGridCell:
                     return
             else:
                 entity.id = engine.make_id()
-            self.noobs += [entity]
+            if moving:
+                self.moved_here[entity] = True
+            else:
+                self.noobs += [entity]
             self.grid.add_entity(entity)
 
         def make_entity_id(self):
             return ''.join([random.choice('0123456789abcedfeABCDEF') 
                             for x in range(32)])
     
-        def remove_entity(self, entity):
+        def remove_entity(self, entity, moving=False):
+            #don't put this guy on the list of dead entities
+            #if he's just moving to another location
+            if not moving:
                 self.deads[entity.id] = entity
-                self.grid.remove_entity(entity)
+            else:
+                self.moved_away[entity.id] = entity
+            self.grid.remove_entity(entity)
                 
 
         def get_free_position(self, layer):
             return self.grid.get_free_position(layer)
 
         def _add_noobs(self):
-                if len(self.noobs):
-                    log ("Adding %d noobs." % len(self.noobs))
+                noob_count = len(self.noobs)
+                mover_count = len(self.moved_here)
+                if noob_count + mover_count:
+                    msg = "%s adding %d noobs and %d movers."
+                    msg = msg % (self, noob_count, mover_count)
+                    log(msg)
                 noob_map = {}
+
                 for noob in self.noobs:
-                        self.dude_map[noob.id] = noob
-                        noob_map[noob.id] = noob.get_state()
-                        if isinstance(noob, Updater):
-                            self.updaters[noob] = True
+                    self.dude_map[noob.id] = noob
+                    noob_map[noob.id] = noob.get_state()
+                    if isinstance(noob, Updater):
+                        log("%s Adding noob %s." % (self, noob))
+                        self.updaters[noob] = True
+
+                for mover in self.moved_here:
+                    self.dude_map[mover.id] = mover
+                    if isinstance(mover, Updater):
+                        log ("%s Adding mover %s." % (self, mover))
+                        self.updaters[mover] = True
+
+                self.moved_here = {} 
                 self.noobs = []
                 return noob_map
 
@@ -296,16 +302,22 @@ class MetaGridCell:
                 new_map = {}
                 for id in self.dude_map:
                         entity = self.dude_map[id]
-                        if (entity and not entity.id in self.deads):
+                        dead = entity.id in self.deads
+                        moved = entity.id in self.moved_away
+                        if (entity and not\
+                            dead and not moved):                     
                             new_map[id] = entity
-                        else:
+                        if dead:
                             deads += [id]
+                        if dead or moved:
                             if isinstance(entity,Updater):
-                                del self.updaters[self.deads[id]]
+                                log ("Deleting updater %s." % entity)
+                                del self.updaters[entity]
                 self.dude_map = new_map
                 noobs = self._add_noobs()
                 self.current_frame += 1
                 self.deads = {}
+                self.moved_away = {}
                 return noobs, deads
 
                           
@@ -319,10 +331,9 @@ class MetaGridCell:
               'frame' : self.current_frame}
             gamestate = { 'type' : 'gs',
                                       'ents' : {}}
-            for client_id in self.client_manager.clients:
-                client = self.client_manager.clients[client_id]
-                client.update()
-
+            drop_message = {'type' : 'drop',
+                            'ents' : []} 
+            
             for entity in self.updaters:
                 entity.update()
 
@@ -333,14 +344,15 @@ class MetaGridCell:
                     if len(delta):
                         delta_list['deltas'][entity.id] = delta
                     gamestate['ents'][entity.id] = entity.get_state()
+                    drop_message['ents'] += [entity.id]
                             
             self.current_state = { 'type' : 'gs',
-                   'state' : gamestate,
-                'frame' : self.current_frame }
-            
-            #tell everyone about the current gamestate
-            #but don't bother if there are no changes
+                                   'state' : gamestate,
+                                'frame' : self.current_frame }
+
+            self.drop_message = drop_message
             self.last_delta = delta_list
+
 
 
 engine = Engine()
@@ -381,6 +393,12 @@ class Entity:
         self.lerp_frames = {}
         self.frame = 0
         engine.add_entity(self)
+
+
+    def __repr__(self):
+        return "%s at %d, %d" % (self.__class__.__name__,
+                                 self.pos.x,
+                                 self.pos.y)
 
     def __setattr__(self, attr_name, value):
 

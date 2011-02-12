@@ -2,14 +2,14 @@ import random
 from vector2 import *
 from engine import *
 from entities import *
-
+from scribit import log, logged,timed 
     
 class Game:
     "encapsulates the behavior of the entire game"
     
     def __init__(self):
         self.old_score_msg = None
-
+        engine.game = self
 
     def make_maze(self):
 
@@ -48,7 +48,7 @@ class Game:
         #for x in range(5):
         #    Alien(None) 
         
-        #Flag(engine.grid.get_free_position(LAYER_BLOCKS), "red")
+        #Flag(engine.grid.get_free_allmostposition(LAYER_BLOCKS), "red")
         #Flag(engine.grid.get_free_position(LAYER_BLOCKS),"blue")
         #Lake(19,2,6,6) 
         #Building(25,2,4,4)
@@ -70,5 +70,28 @@ class Game:
 
     def update(self):
         engine.update()
-        
 
+    #@logged    
+    def new_metagrid_cell(self, new_cell):
+        #add terrain
+        choices = {'none' : 1.0,
+                    'water' : 0.95,
+                    'trees' : 0.8,
+                    'fruit' : 0.25}
+        #choice = random.choice(choices.keys())
+        choice = 'none'
+        for x in range(GRID_SIZE):
+            for y in range(GRID_SIZE):
+                p = vector2(new_cell.pos[0]+x, new_cell.pos[1]+y)
+                t = Terrain(p)
+                if random.random() < choices[choice]:
+                    if choice == 'water' :
+                        t.to_water() 
+                    elif choice == 'trees' :
+                        Tree(p)
+                    elif choice == 'fruit':
+                        Fruit(p)
+                    
+        #now put stuff on this terrain
+
+        

@@ -55,7 +55,9 @@ class Client:
         self.kill_count = 0
         self.disconnected = False
         self.id = engine.make_id() 
+        self.dude = None
         log ("%s joined the game" % self)
+        engine.add_client(self)
 
     def __repr__ (self):
         return 'Client %s' % self.id
@@ -65,7 +67,6 @@ class Client:
         self.dude.on_die = self.handle_player_die
         self.send({'type' : 'client_info', 
                     'camera_ent_id' : self.dude.id})
-        engine.metagrid.add_client(self)
 
 
     def follow_dude(self, dude):
@@ -75,35 +76,70 @@ class Client:
         return len(delta['deltas']) or\
                len(delta['noobs']) or\
                 len(delta['deads'])
+
+
     def update(self):
         if self.dude == None:
             return
-   
-        #check to make sure the guy can see what's around him
-        watching = {}
-        for dir in ALL_DIRS + [ZERO_VECTOR]:
-            t = self.dude.pos+dir*GRID_SIZE
-            cell = engine.metagrid.get_cell(t.x, t.y)
-            if not cell in self.watching:                
-                state = cell.current_state
-                if state:
-                    log('sending info for cell '+repr(cell.pos))
-                    self.send(state)
-                    watching[cell] = True
-            else:
-                watching[cell] = True
-
-        self.watching = watching
-        for cell in self.watching:
-            if cell.last_delta:
-                if self.delta_matters(cell.last_delta):
-                    self.send(cell.last_delta)  
-
+  
+        self._send_deltas()
         self.dude.dir = self.dir
         self.dude.act = self.act
         self.dir = ZERO_VECTOR
         self.act = None
-             
+        
+    def _send_deltas(self):
+        #check to make sure the guy can see what's around him
+        now_watching = {}
+        #we need to know how the set of what this guy's watching
+        #has changed
+        newly_watched = {}
+        still_watching = {}
+        no_longer_watching = {}
+        for dir in ALL_DIRS + [ZERO_VECTOR]:
+            t = self.dude.pos+dir*GRID_SIZE
+            cell = engine.metagrid.get_cell(t.x, t.y)
+            if not cell in self.watching:                
+                newly_watched[cell] = True
+            now_watching[cell] = True
+
+        for cell in self.watching:
+            if not cell in now_watching:
+                no_longer_watching[cell] = True
+            else:
+                still_watching[cell] = True
+                
+        params = (len(now_watching), len(newly_watched),
+                  len(still_watching), len(no_longer_watching))
+        #log("%d now watched. %d new, %d still, %d no longer" % params)
+
+        #do some sanity checks
+        for cell in newly_watched:
+            if cell in still_watching:
+                log_error("%s was in newly AND still watched!" % 
+                            cell)
+            if cell in no_longer_watching:
+                log_error ("%s was in newly AND no longer watched!" %
+                        cell)
+        for cell in still_watching:
+            if cell in no_longer_watching:
+                log_error("%s was in still and no longer watching!" % cell) 
+        #now go through each of these sells and send them 
+        #the appropriate message
+        for cell in newly_watched:
+            if cell.current_state:
+                self.send(cell.current_state)
+        for cell in still_watching:
+            if cell.last_delta and self.delta_matters(cell.last_delta):
+                self.send(cell.last_delta) 
+        for cell in no_longer_watching:
+            if cell.drop_message:
+                self.send(cell.drop_message)
+
+        
+        self.watching = now_watching
+
+
     def handle_player_die(self):
         self.death_count += 1
         if not self.disconnected:
@@ -121,7 +157,7 @@ class Client:
         if self.dude:
             self.dude.die(self)
 
-    @logged 
+    #@logged 
     def send(self, message):
         self.socket.write_message(message)
 

@@ -14,9 +14,9 @@ var socket = 0;
 //on different layers. 
 var canvas_layers = {}
 //how big is the canvas?
-var canvas_width = 512;
-var canvas_height = 512;
-var entity_size = 24;
+var canvas_width = 400;
+var canvas_height = 400;
+var entity_size = 32;
 var camera_ent_id = -1;
 var base_scale = entity_size/16;
 //all the images are stored in the same directory
@@ -43,6 +43,7 @@ var lerp_frac = 0.0;
 var total_bytes = 0;
 var bw_start_frame = 0;
 var ping_period = 10;
+var entity_count = 0;
 /*####################################################
  * Animation code
  * ##################################################*/
@@ -56,15 +57,16 @@ function draw() {
     //this is the position of the camera in the game world
     //entities are drawn relative to the camera
     //
-    //figure out bandwidth
-    if (draw_frame_number - bw_start_frame >= ping_period){
-        var bw = total_bytes/(ping_period*DRAW_PERIOD);
-        $("#messages").html(bw/1024+"kbps"); 
-        bw_start_frame = game_frame_number;
-    } 
-     
     
-    
+    var update_message = ""; 
+    for (var msg_type in message_counts){
+        update_message += msg_type+": "+message_counts[msg_type];
+        update_message += "<br>";
+    }
+
+    update_message += "Entities: "+entity_count+"<bar>";
+
+    $("#messages").html(update_message);
     for (var ent_id  in new_gamestate.ents)  {
         var ent = new_gamestate.ents[ent_id];
         
@@ -119,6 +121,7 @@ function socket_message_handler (event) {
     var message = JSON.parse(event.data);
     //dispatch this message to the appropriate handler
         message_handlers[message.type](message);
+        ++message_counts[message.type];
 }
 
 //This message contains the entire state of the game
@@ -144,6 +147,7 @@ function apply_delta(delta, gamestate){
     for (var id in delta.noobs){
         gamestate.ents[id] = delta.noobs[id];
         gamestate.ents[id].olds = {};
+        ++entity_count;
     }
     
     for (var ent_id in delta.deltas){
@@ -160,8 +164,11 @@ function apply_delta(delta, gamestate){
         }
     }
 
-    for (var i in delta.deads)
+
+    for (var i in delta.deads){
         delete gamestate.ents[delta.deads[i]];
+        --entity_count;
+    }
    gamestate.ticks = delta.frame;
 }   
 
@@ -169,13 +176,28 @@ function apply_delta(delta, gamestate){
 function handle_client_info(info){
     camera_ent_id = info.camera_ent_id;
 } 
+
+function handle_drop(drop){
+    for (var index in drop.ents){
+        delete new_gamestate.ents[drop.ents[index]];
+        --entity_count;
+    }
+}
 //a function dispatch table. Each message that comes in
 //has a type, and the type of the message is used to determine
 //which handler function should be called
 var message_handlers = { 'gs' : handle_gamestate,
              'delta' : handle_delta,
              'score' : handle_score,
-            'client_info' : handle_client_info};
+            'client_info' : handle_client_info,
+            'drop' : handle_drop};
+
+var message_counts = { 'gs' : 0,
+                        'delta' : 0,
+                        'score' :0,
+                        'client_info' : 0,
+                        'drop' : 0};
+
 //this message contains game score information   
 function handle_score(score_msg) {
     var score_text = '<table class="scores">\n' +
@@ -254,7 +276,7 @@ function on_keydown(e) {
     }else if (e.which == '40'){
         msg['dir'] = 'DOWN';
 
-    }else if (e.which = '32'){
+    }else if (e.which == '32'){
         msg['act'] = 'use';
     }
 
