@@ -77,8 +77,11 @@ class Game:
         choices = {'none' : 1.0,
                     'water' : 0.85,
                     'trees' : 0.75,
-                    'fruit' : 0.05}
+                    'fruit' : 0.05,
+                    'ninja' : 0.005}
+
         choice = random.choice(choices.keys())
+
         #choice = 'none'
         for x in range(GRID_SIZE):
             for y in range(GRID_SIZE):
@@ -91,6 +94,8 @@ class Game:
                         Tree(p)
                     elif choice == 'fruit':
                         Fruit(p)
+                    elif choice == 'ninja':
+                        Ninja(None)
                     
 
         

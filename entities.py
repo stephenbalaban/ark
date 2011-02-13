@@ -247,56 +247,62 @@ class Dude(Mover, Updater):
 
 
 
-class Alien(Dude):
+class Ninja(Dude):
     def __init__(self, owner):
         Dude.__init__(self,owner)
-        self.dude_class = 'alien'
+        self.dude_class = 'ninja'
         self.update_texture() 
         self.ai_state = 'roaming' 
+
+    def is_target(self, other):
+        return isinstance(other, Dude) and not isinstance(other, Ninja)
 
     def update(self):
         if self.ai_state == 'roaming':
             #set dir 
             
-            def target_selector(target):
-                return isinstance(target,Shrub)
+
             target = engine.metagrid.find_nearest(self.pos.x, self.pos.y, 
                                                  self.layer, max_dist=12,
-                                                 selector=target_selector)
+                                                 selector=self.is_target)
             if target:
-                print 'chasing'
+                log("%s chasing %s" % (self, target))
                 self.ai_state = 'chasing'
                 self.target = target
             elif random.choice([True] + [False for x in range(5)]):
                 self.dir = random.choice([UP,DOWN,LEFT,RIGHT,ZERO_VECTOR])
             #see if there are any plants in the area, if there are, go afer them
-        if self.ai_state == 'chasing':
+
+        if self.ai_state == 'chasing' :
             to_target = self.target.pos - self.pos
+            choices = [ZERO_VECTOR, ZERO_VECTOR, ZERO_VECTOR]
+            
             if to_target.x < 0:
-                self.dir = LEFT
-            elif to_target.x > 0:
-                self.dir = RIGHT
-            elif to_target.y < 0:
-                self.dir = UP
-            elif to_target.y > 0:
-                self.dir = DOWN
+                choices +=  [LEFT]
+            if to_target.x > 0:
+                choices += [RIGHT]
+            if to_target.y < 0:
+                choices += [UP]
+            if to_target.y > 0:
+                choices += [DOWN]
+            self.dir = random.choice(choices)
             if to_target.length_squared() <= 1:
                 self.dir = ZERO_VECTOR
-                print 'its close enough!'
                 self.act = 'use'
+            
         Dude.update(self)
     
     def can_push(self, other):
         return False
 
     def use(self):
-        print 'using'
         if self.target:
-            self.target.die()
-            self.target.parent.harvest()
+            self.target.die(self)
             self.target = None
             self.ai_state = 'roaming'
             self.act =  None
+    def on_kill(self,killed):
+        log("Ninja got a kill.")
     
 class Terrain(Entity):
     
