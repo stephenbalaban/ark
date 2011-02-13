@@ -4,7 +4,7 @@ import time
 
 from scribit import log, logged, timed
 
-TICK_PERIOD = 250
+TICK_PERIOD = 50 
 UP = vector2(0,-1)
 DOWN = vector2(0,1)
 LEFT = vector2(-1,0)
@@ -99,8 +99,8 @@ class GameGrid:
         
         while not placed and tries:
             tries = tries - 1
-            x = random.randint(0, GRID_SIZE-1)
-            y = random.randint(0, GRID_SIZE-1)
+            x = self.pos[0] + random.randint(0, GRID_SIZE-1)
+            y = self.pos[1] + random.randint(0, GRID_SIZE-1)
             if not layer in self.get_entities(x,y):
                 return vector2(x,y)
         return None
