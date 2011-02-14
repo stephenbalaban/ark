@@ -275,7 +275,7 @@ class Ninja(Dude):
 
         if self.ai_state == 'chasing' :
             to_target = self.target.pos - self.pos
-            choices = [ZERO_VECTOR, ZERO_VECTOR, ZERO_VECTOR]
+            choices = [ZERO_VECTOR, ZERO_VECTOR]
             
             if to_target.x < 0:
                 choices +=  [LEFT]
