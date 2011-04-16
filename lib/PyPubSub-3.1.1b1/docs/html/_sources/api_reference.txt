@@ -1,4 +1,0 @@
-Pypubsub API Reference
-======================
-
-

@@ -6,6 +6,7 @@ import os
 import random
 import math
 import json
+import hotshot
 
 from entities import *
 from engine import *

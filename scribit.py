@@ -38,7 +38,7 @@ def timed(a_func):
         result = a_func(*args, **kw)
         stop = datetime.now()
         delta = (stop-start)
-        delta_t = delta.seconds + delta.microseconds / 1000000
+        delta_t = delta.seconds + (delta.microseconds / 1000000.0)
         log ('%s took %0.3f' % (a_func.__name__, delta_t), 'PERF')
         return result
 
