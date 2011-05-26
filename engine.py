@@ -200,7 +200,7 @@ class Engine:
     def make_id(self):
         return ''.join([random.choice(ID_CHARS) for x in range(32)])
 
-    @timed
+    #@timed
     def update(self):
         self.metagrid.update()
         self.client_manager.update() 

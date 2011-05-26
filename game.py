@@ -86,7 +86,7 @@ class Game:
                 t = Terrain(p)
                 if random.random() < choices[choice]:
                     if choice == 'water' :
-                        t.to_water() 
+                        t.to_water(0.75) 
                     elif choice == 'trees' :
                         Tree(p)
                     elif choice == 'fruit':

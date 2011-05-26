@@ -310,7 +310,7 @@ class Terrain(Entity):
         self.update_tex()
        
     
-    def to_water(self):
+    def to_water(self, water_chance):
         self.terrain_type = 'water'
         neighbors = engine.metagrid.get_neighbors(self.pos)
         for dir in neighbors:
@@ -320,6 +320,12 @@ class Terrain(Entity):
                 if isinstance(this_ent, Terrain):
                     self.neighbor_types[dir] = this_ent.terrain_type
                     this_ent.update_neighbor(self, dir)
+
+                log('water_chance is ', water_chance)
+                if random.random() >  water_chance:
+                    log('going to water')
+                    this_ent.to_water(water_chance)
+    
         self.update_tex()
 
     def update_neighbor(self, neighbor, neighbor_dir):        
