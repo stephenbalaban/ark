@@ -310,23 +310,33 @@ class Terrain(Entity):
         self.update_tex()
        
     
-    def to_water(self, water_chance):
+    def to_water(self):
         self.terrain_type = 'water'
+        def update_visitor(neighbor, dir):
+            if isinstance(neighbor, Terrain):
+                self.neighbor_types[dir] = neighbor.terrain_type
+                neighbor.update_neighbor(self, dir)
+                neighbor.update_tex()
+
+        def water_visitor(neighbor, dir):
+            neighbor.terrain_type = 'water'
+
+        self.percolate(GRID_SIZE*0.6, 0.25, water_visitor)
+        self.percolate(GRID_SIZE, 2.0, update_visitor)
+        self.update_tex()
+
+
+    def percolate(self, ticks, density, visitor): 
         neighbors = engine.metagrid.get_neighbors(self.pos)
+        ticks = ticks - 1
         for dir in neighbors:
             this_dir_ents = neighbors[dir]
             if LAYER_GROUND in this_dir_ents:
                 this_ent = this_dir_ents[LAYER_GROUND]
-                if isinstance(this_ent, Terrain):
-                    self.neighbor_types[dir] = this_ent.terrain_type
-                    this_ent.update_neighbor(self, dir)
-
-                log('water_chance is ', water_chance)
-                if random.random() >  water_chance:
-                    log('going to water')
-                    this_ent.to_water(water_chance)
+                visitor(this_ent, dir)
+                if ticks > 0 and random.random() <  density:
+                    this_ent.percolate(ticks, density, visitor)
     
-        self.update_tex()
 
     def update_neighbor(self, neighbor, neighbor_dir):        
         op_dir = DIR_OPPOSITES[neighbor_dir]
