@@ -1,5 +1,6 @@
 import random
 from vector2 import *
+import sys
 import time
 
 from scribit import log, logged, timed
@@ -21,6 +22,7 @@ DIAGONALS = [UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT]
 ALL_DIRS = DIAGONALS + ORDINALS
 ENTITY_SIZE = vector2(8,8)
 GRID_SIZE = 8 
+METAGRID_SIZE = 8 
 ID_CHARS = [chr(x) for x in range(256) 
                 if (chr(x).isalpha() or chr(x).isdigit())]
 
@@ -85,6 +87,7 @@ class GameGrid:
 
 
     def add_entity(self, ent):
+        log ('cell at %d, %d, adding entity' % self.pos)
         return self.cells[(ent.pos.x,ent.pos.y)].add_entity(ent)
 
     def remove_entity(self, ent):
@@ -92,7 +95,7 @@ class GameGrid:
         return cell.remove_entity(ent)
 
 
-    @timed
+    #@timed
     def get_free_position(self, layer, tries=10):
         "GameGrid at %s getting free position for layer %s" % (self.pos, layer)
         placed = False
@@ -109,16 +112,22 @@ class MetaGrid:
 
     def __init__(self):
         self.cells = {}
-           
+        self.num_cells = METAGRID_SIZE
+
+    def wrap_coords(self, x,y):
+        x = x % (METAGRID_SIZE*GRID_SIZE)
+        y = y % (METAGRID_SIZE*GRID_SIZE)
+        return x,y
+       
     def get_cell(self, x, y):
-        g_x = x - (x%GRID_SIZE)
-        g_y = y - (y%GRID_SIZE)
-        
+        x,y = self.wrap_coords(x,y)
+        g_x = (x / GRID_SIZE)*GRID_SIZE
+        g_y = (y / GRID_SIZE)*GRID_SIZE
+
         #log("%d,%d converted to %d,%d" % (x,y, g_x, g_y))
         if not (g_x,g_y) in self.cells:
-            log ('Spawning a cell at %d, %d' % (g_x,g_y))
-            self.cells[(g_x,g_y)] = res =  MetaGridCell((g_x,g_y))
-            engine.game.new_metagrid_cell(res) 
+            log("FATAL: unknown metagrid cell %d,%d" % (g_x, g_y))
+            sys.exit()
         else:
             res = self.cells[(g_x, g_y)] 
         
@@ -128,11 +137,16 @@ class MetaGrid:
         self.get_cell(new_guy.pos.x, 
                         new_guy.pos.y).add_entity(new_guy,moving) 
 
+    def add_cell(self, g_x, g_y):
+      self.cells[(g_x,g_y)] = res =  MetaGridCell((g_x,g_y))
+      engine.game.new_metagrid_cell(res) 
+       
     def remove_entity(self, dead_guy, moving=False):
-        cell = self.get_cell(dead_guy.pos.x, dead_guy.pos.y)
+        x,y = self.wrap_coords(dead_guy.pos.x,dead_guy.pos.y)
+        cell = self.get_cell(x, y)
         cell.remove_entity(dead_guy, moving)
 
-    @logged
+   # @logged
     def move_entity(self, mover, new_pos):
         cell = self.get_cell(mover.pos.x, mover.pos.y)
         cell.remove_entity(mover, moving=True)
@@ -140,6 +154,7 @@ class MetaGrid:
         self.get_cell(new_pos.x, new_pos.y).add_entity(mover, moving=True)
         
     def get_entities(self, x, y):
+        x,y = self.wrap_coords(x,y)
         return self.get_cell(x,y).grid.get_entities(x,y)
 
     def get_neighbors(self, pos):
@@ -184,6 +199,16 @@ class Engine:
         self.current_frame = 0  
         self.metagrid = MetaGrid()
         self.client_manager = ClientManager() 
+
+    def build_world(self):
+        for x in range(METAGRID_SIZE):    
+            for y in range(METAGRID_SIZE):
+               g_x =x*GRID_SIZE
+               g_y =y*GRID_SIZE
+               log('new metacell at %d, %d' % (g_x, g_y))
+               self.metagrid.add_cell(g_x,g_y)
+        self.game.build_world()
+                  
 
     def add_entity(self, new_guy, moving=False):
         self.metagrid.add_entity(new_guy, moving)
@@ -262,7 +287,7 @@ class MetaGridCell:
                 if noob_count + mover_count:
                     msg = "%s adding %d noobs and %d movers."
                     msg = msg % (self, noob_count, mover_count)
-                    log(msg)
+                    #log(msg)
                 noob_map = {}
 
                 for noob in self.noobs:
@@ -410,6 +435,8 @@ class Entity:
         self.__dict__[attr_name] =  value
 
     def move(self, new_pos):
+        x,y = engine.metagrid.wrap_coords(new_pos.x, new_pos.y)
+        new_pos = vector2(x,y)
         engine.metagrid.move_entity(self,new_pos)
     
     def update(self):

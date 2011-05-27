@@ -11,51 +11,6 @@ class Game:
         self.old_score_msg = None
         engine.game = self
 
-    def make_maze(self):
-
-        #make the boundaries
-        walls =False 
-        add_road=False;
-        
-        forest_size = 4
-    
-        
-        if walls:
-            self.add_horiz_block_line(SolidBlock, 0, GRID_SIZE - 1, GRID_SIZE - 1)
-            self.add_horiz_block_line(SolidBlock, 0, GRID_SIZE -1, 0)
-            self.add_vert_block_line(SolidBlock, 0, 1, GRID_SIZE - 2)
-            self.add_vert_block_line(SolidBlock, GRID_SIZE-1, 1, GRID_SIZE -2)
-        
-        def vert_road_adder(pos):
-            Road(pos, True)
-            return
-
-        def horiz_road_adder(pos):
-            Road(pos, False)
-            
-        #self.add_horiz_block_line(horiz_road_adder, 1, GRID_SIZE-2, GRID_SIZE/2)
-        return 
-        for x in range(GRID_SIZE):
-            for y in range(GRID_SIZE):
-                try:
-                    Terrain(vector2(x,y))
-                except:
-                    pass
-       
-        
-        #FruitPatch(2,2,GRID_SIZE-4,GRID_SIZE-4)
-        #Forest(2,2, GRID_SIZE-4, GRID_SIZE-4)
-        #for x in range(5):
-        #    Alien(None) 
-        
-        #Flag(engine.grid.get_free_allmostposition(LAYER_BLOCKS), "red")
-        #Flag(engine.grid.get_free_position(LAYER_BLOCKS),"blue")
-        #Lake(19,2,6,6) 
-        #Building(25,2,4,4)
-
-        #Building(19,8,4,4)
-        #Building(25,8,4,4)
-
     def add_vert_block_line(self,block_class, x, start_y, stop_y):
         for y in xrange(start_y, stop_y+1):
             self.add_block(block_class, vector2(x,y))
@@ -74,32 +29,28 @@ class Game:
     #@logged    
     def new_metagrid_cell(self, new_cell):
         #add terrain and stuff on it
-        choices = {'none' : 1.0,
-                    'trees' : 0.75,
-                    'fruit' : 0.05}
-        choice = random.choice(choices.keys())
-        #choice = 'none'
-        terrains = {}
+        choice = 'none'
         for x in range(GRID_SIZE):
             for y in range(GRID_SIZE):
                 p = vector2(new_cell.pos[0]+x, new_cell.pos[1]+y)
-                terrains[(x,y)] = Terrain(p)
+                log ('new cell at %s ' % p)
+                Terrain(p)
                 
 
-        if random.random() < 0.5: 
-            terrains[(GRID_SIZE/2, GRID_SIZE/2)].to_water()
+    def build_world(self):
+
+
+        #add a water cell
+
+        #
          
+        num_water_cells = 1 
+        for c in range(num_water_cells):
+            x = random.choice(range(GRID_SIZE*METAGRID_SIZE))
+            y = random.choice(range(GRID_SIZE*METAGRID_SIZE))
+            x,y = 0,0
 
-        x = random.choice(range(GRID_SIZE))
-        y = random.choice(range(GRID_SIZE))
-
-        t = terrains[(x,y)]
-        if random.random () < choices[choice]:
-           if not t.terrain_type == 'water':
-               if choice == 'trees' :
-                    Tree(p)
-               if choice == 'fruit':
-                    Fruit(p)
+            engine.get_entities(x,y)[LAYER_GROUND].to_water()
                     
 
     

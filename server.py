@@ -161,7 +161,7 @@ class Client:
     def send(self, message):
         self.socket.write_message(message)
 
-    @logged    
+    #@logged    
     def on_message(self, message):                        
         msg = json.loads(message)
         if 'dir' in msg:
@@ -184,8 +184,8 @@ class SocketConnectionHandler (tornado.websocket.WebSocketHandler):
         self.client.spawn_dude()
 
 game = Game()
-game.make_maze()
-
+engine.game = game
+engine.build_world()
 
     
 settings = {
