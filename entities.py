@@ -315,44 +315,49 @@ class Terrain(Entity):
 
         def update_visitor(neighbor, dir):
             if isinstance(neighbor, Terrain):
+                log ('%s updating terrain' % neighbor)
                 neighbor.update_neighbor_types()
                 neighbor.update_tex()
-
 
         def water_visitor(neighbor, dir):
             log ('%s is now water'  % neighbor)
             neighbor.terrain_type = 'water'
+            neighbor.update_tex()
 
-        self.percolate(GRID_SIZE, 0.75, water_visitor)
-        self.percolate(GRID_SIZE, 1.0, update_visitor)
+        self.percolate(GRID_SIZE, 0.8, water_visitor)
+        log('percolating update')
+        self.percolate(GRID_SIZE, 1.0, update_visitor, {})
         self.update_tex()
 
 
-    def percolate(self, ticks, density, visitor, visited = {}): 
-        log('percolating to %d, %d with %d ticks' % (self.pos.x, self.pos.y, ticks))
+    def percolate(self, ticks, density, visitor, visited = {}, root = None): 
+        log('percolating to %d, %d with %d ticks' %
+                        (self.pos.x, self.pos.y, ticks))
         neighbors = engine.metagrid.get_neighbors(self.pos)
-        ticks = ticks - 1
+        if root == None:
+            root = self
+        if (root.pos - self.pos).length() > ticks: 
+            return 
         for  dir in ALL_DIRS:
             if dir in neighbors: 
-                for layer in neighbors[dir]:
-                    neighbor = neighbors[dir][layer]
+                if LAYER_GROUND in neighbors[dir]:
+                    neighbor = neighbors[dir][LAYER_GROUND]
                     if not neighbor in visited:
                         visited[neighbor] = True
                         visitor(neighbor, dir)
-                    if ticks > 0 and random.random() <  density:
-                        neighbor.percolate(ticks, density, visitor, visited)
+                        if ticks > 0 and random.random() <  density:
+                            neighbor.percolate(ticks, density, 
+                                            visitor, visited, root)
 
 
                 
     def update_neighbor_types(self):        
         neighbors = engine.metagrid.get_neighbors(self.pos)
-        for neighbor_dir in neighbors:
-            op_dir = DIR_OPPOSITES[neighbor_dir]
-            if op_dir in neighbors:
-                these = neighbors[op_dir]
-                if LAYER_GROUND in these:
-                    neighbor = these[LAYER_GROUND]
-                    self.neighbor_types[op_dir] = neighbor.terrain_type
+        for op_dir in neighbors:
+            these = neighbors[op_dir]
+            if LAYER_GROUND in these:
+                neighbor = these[LAYER_GROUND]
+                self.neighbor_types[op_dir] = neighbor.terrain_type
     
 
 

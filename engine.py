@@ -22,7 +22,7 @@ DIAGONALS = [UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT]
 ALL_DIRS = DIAGONALS + ORDINALS
 ENTITY_SIZE = vector2(8,8)
 GRID_SIZE = 8 
-METAGRID_SIZE = 8 
+METAGRID_SIZE = 8
 ID_CHARS = [chr(x) for x in range(256) 
                 if (chr(x).isalpha() or chr(x).isdigit())]
 
@@ -83,6 +83,7 @@ class GameGrid:
         self.pos = pos
 
     def get_entities(self, x, y):
+        x,y = engine.metagrid.wrap_coords(x,y)
         return self.cells[(x,y)].get_entities()
 
 
@@ -106,7 +107,6 @@ class GameGrid:
             y = self.pos[1] + random.randint(0, GRID_SIZE-1)
             if not layer in self.get_entities(x,y):
                 return vector2(x,y)
-        return None
 
 class MetaGrid:
 
@@ -164,6 +164,11 @@ class MetaGrid:
         neighbors[RIGHT] = self.get_entities(pos.x+1, pos.y)
         neighbors[UP] = self.get_entities(pos.x, pos.y-1)
         neighbors[DOWN] =self.get_entities(pos.x, pos.y+1)  
+        neighbors[UP_LEFT] = self.get_entities(pos.x-1, pos.y-1)
+        neighbors[UP_RIGHT] = self.get_entities(pos.x+1, pos.y-1)
+        neighbors[DOWN_LEFT] = self.get_entities(pos.x-1, pos.y+1)
+        neighbors[DOWN_RIGHT] =self.get_entities(pos.x+1, pos.y+1)  
+
 
         return neighbors
 

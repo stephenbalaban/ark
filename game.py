@@ -44,11 +44,10 @@ class Game:
 
         #
          
-        num_water_cells = 1 
+        num_water_cells =  METAGRID_SIZE 
         for c in range(num_water_cells):
             x = random.choice(range(GRID_SIZE*METAGRID_SIZE))
             y = random.choice(range(GRID_SIZE*METAGRID_SIZE))
-            x,y = 0,0
 
             engine.get_entities(x,y)[LAYER_GROUND].to_water()
                     
