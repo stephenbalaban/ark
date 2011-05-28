@@ -39,17 +39,28 @@ class Game:
 
     def build_world(self):
 
-
-        #add a water cell
-
-        #
-         
-        num_water_cells =  METAGRID_SIZE 
+        #add some water 
+        num_cells = METAGRID_SIZE*METAGRID_SIZE
+        num_water_cells = num_cells*0.3 
         for c in range(num_water_cells):
             x = random.choice(range(GRID_SIZE*METAGRID_SIZE))
             y = random.choice(range(GRID_SIZE*METAGRID_SIZE))
 
             engine.get_entities(x,y)[LAYER_GROUND].to_water()
-                    
+
+
+        #now add some trees and fruit
+        num_tree_cells = num_cells*0.4 
+        for c in range(num_tree_cells):
+            x = random.choice(range(GRID_SIZE*METAGRID_SIZE))
+            y = random.choice(range(GRID_SIZE*METAGRID_SIZE))
+        
+            choices =  {Tree: GRID_SIZE, Fruit: GRID_SIZE*0.6}
+            choice = random.choice(choices.keys())
+            engine.get_entities(x,y)[LAYER_GROUND].start_forest(choice,
+                                                                choices[choice])
+
+
+           
 
     

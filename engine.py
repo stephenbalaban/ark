@@ -63,12 +63,10 @@ class GridCell:
             return True
 
         def remove_entity(self, ent):
-
             if ent.layer in self.entities:
                     other = self.entities.pop(ent.layer)
                     return True
-            else:
-                    return False    
+            raise NoSuchEntity('No such entity %s')
 
 class GameGrid:
 
@@ -455,7 +453,7 @@ class Entity:
         self.size  = new_size
 
     def die(self, killer=None):
-        engine.remove_entity(self)
+        engine.remove_entity(self,moving=False)
         self.dead = True
 
     def get_state(self):
@@ -479,6 +477,7 @@ class Entity:
         self.delta = {}
         return out_delta
                 
+class NoSuchEntity: pass
 class Updater: pass
 
 def clamp (min_, x, max_): 

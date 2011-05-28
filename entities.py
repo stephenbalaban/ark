@@ -329,10 +329,23 @@ class Terrain(Entity):
         self.percolate(GRID_SIZE, 1.0, update_visitor, {})
         self.update_tex()
 
+    def start_forest(self, spawn_type, distance):
+       
+        def tree_visitor(neighbor, dir):
+            if self.terrain_type == 'water': 
+                return
+            dist = (neighbor.pos - self.pos).length()
+            prob = dist/float(GRID_SIZE)
+            if random.random() < prob:
+                if not LAYER_BLOCKS in\
+                    engine.get_entities(self.pos.x, self.pos.y):
+                    spawn_type(neighbor.pos)
+        self.percolate(GRID_SIZE, 0.8, tree_visitor)
+        tree_visitor(self, None)
+
+
 
     def percolate(self, ticks, density, visitor, visited = {}, root = None): 
-        log('percolating to %d, %d with %d ticks' %
-                        (self.pos.x, self.pos.y, ticks))
         neighbors = engine.metagrid.get_neighbors(self.pos)
         if root == None:
             root = self
@@ -492,6 +505,10 @@ class Tree(Mover):
         Entity.__init__(self, pos, vector2(8,16), LAYER_BLOCKS)
         self.tex = 'full_tree.png'
         self.height = ENTITY_SIZE.x
+
+    def die(self):
+        log('Tree is dead.')
+        Entity.die(self)
 
 class WoodPile(Mover, Carryable):
     
