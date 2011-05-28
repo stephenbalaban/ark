@@ -10,8 +10,8 @@ LAYER_WATER = LAYER_GROUND+1
 LAYER_GROUND_DETAIL = LAYER_WATER+1
 LAYER_BLOCKS = LAYER_GROUND_DETAIL +1 
 LAYER_CARRIED = LAYER_BLOCKS + 1
-CARRIED_HEIGHT= ENTITY_SIZE.x*3.5
 
+CARRIED_HEIGHT= ENTITY_SIZE.x*3.5
 class Air: 
     def __init__(self,pos):
         self.pos = pos
@@ -247,62 +247,56 @@ class Dude(Mover, Updater):
 
 
 
-class Ninja(Dude):
+class Alien(Dude):
     def __init__(self, owner):
         Dude.__init__(self,owner)
-        self.dude_class = 'ninja'
+        self.dude_class = 'alien'
         self.update_texture() 
         self.ai_state = 'roaming' 
-
-    def is_target(self, other):
-        return isinstance(other, Dude) and not isinstance(other, Ninja)
 
     def update(self):
         if self.ai_state == 'roaming':
             #set dir 
             
-
+            def target_selector(target):
+                return isinstance(target,Shrub)
             target = engine.metagrid.find_nearest(self.pos.x, self.pos.y, 
                                                  self.layer, max_dist=12,
-                                                 selector=self.is_target)
+                                                 selector=target_selector)
             if target:
-                log("%s chasing %s" % (self, target))
+                print 'chasing'
                 self.ai_state = 'chasing'
                 self.target = target
             elif random.choice([True] + [False for x in range(5)]):
                 self.dir = random.choice([UP,DOWN,LEFT,RIGHT,ZERO_VECTOR])
             #see if there are any plants in the area, if there are, go afer them
-
-        if self.ai_state == 'chasing' :
+        if self.ai_state == 'chasing':
             to_target = self.target.pos - self.pos
-            choices = [ZERO_VECTOR, ZERO_VECTOR]
-            
             if to_target.x < 0:
-                choices +=  [LEFT]
-            if to_target.x > 0:
-                choices += [RIGHT]
-            if to_target.y < 0:
-                choices += [UP]
-            if to_target.y > 0:
-                choices += [DOWN]
-            self.dir = random.choice(choices)
+                self.dir = LEFT
+            elif to_target.x > 0:
+                self.dir = RIGHT
+            elif to_target.y < 0:
+                self.dir = UP
+            elif to_target.y > 0:
+                self.dir = DOWN
             if to_target.length_squared() <= 1:
                 self.dir = ZERO_VECTOR
+                print 'its close enough!'
                 self.act = 'use'
-            
         Dude.update(self)
     
     def can_push(self, other):
         return False
 
     def use(self):
+        print 'using'
         if self.target:
-            self.target.die(self)
+            self.target.die()
+            self.target.parent.harvest()
             self.target = None
             self.ai_state = 'roaming'
             self.act =  None
-    def on_kill(self,killed):
-        log("Ninja got a kill.")
     
 class Terrain(Entity):
     
@@ -318,20 +312,66 @@ class Terrain(Entity):
     
     def to_water(self):
         self.terrain_type = 'water'
-        neighbors = engine.metagrid.get_neighbors(self.pos)
-        for dir in neighbors:
-            this_dir_ents = neighbors[dir]
-            if LAYER_GROUND in this_dir_ents:
-                this_ent = this_dir_ents[LAYER_GROUND]
-                if isinstance(this_ent, Terrain):
-                    self.neighbor_types[dir] = this_ent.terrain_type
-                    this_ent.update_neighbor(self, dir)
+
+        def update_visitor(neighbor, dir):
+            if isinstance(neighbor, Terrain):
+                log ('%s updating terrain' % neighbor)
+                neighbor.update_neighbor_types()
+                neighbor.update_tex()
+
+        def water_visitor(neighbor, dir):
+            log ('%s is now water'  % neighbor)
+            neighbor.terrain_type = 'water'
+            neighbor.update_tex()
+
+        self.percolate(GRID_SIZE, 0.8, water_visitor)
+        log('percolating update')
+        self.percolate(GRID_SIZE, 1.0, update_visitor, {})
         self.update_tex()
 
-    def update_neighbor(self, neighbor, neighbor_dir):        
-        op_dir = DIR_OPPOSITES[neighbor_dir]
-        self.neighbor_types[op_dir] = neighbor.terrain_type
-        self.update_tex()
+    def start_forest(self, spawn_type, distance):
+       
+        def tree_visitor(neighbor, dir):
+            if self.terrain_type == 'water': 
+                return
+            dist = (neighbor.pos - self.pos).length()
+            prob = dist/float(GRID_SIZE)
+            if random.random() < prob:
+                if not LAYER_BLOCKS in\
+                    engine.get_entities(self.pos.x, self.pos.y):
+                    spawn_type(neighbor.pos)
+        self.percolate(GRID_SIZE, 0.8, tree_visitor)
+        tree_visitor(self, None)
+
+
+
+    def percolate(self, ticks, density, visitor, visited = {}, root = None): 
+        neighbors = engine.metagrid.get_neighbors(self.pos)
+        if root == None:
+            root = self
+        if (root.pos - self.pos).length() > ticks: 
+            return 
+        for  dir in ALL_DIRS:
+            if dir in neighbors: 
+                if LAYER_GROUND in neighbors[dir]:
+                    neighbor = neighbors[dir][LAYER_GROUND]
+                    if not neighbor in visited:
+                        visited[neighbor] = True
+                        visitor(neighbor, dir)
+                        if ticks > 0 and random.random() <  density:
+                            neighbor.percolate(ticks, density, 
+                                            visitor, visited, root)
+
+
+                
+    def update_neighbor_types(self):        
+        neighbors = engine.metagrid.get_neighbors(self.pos)
+        for op_dir in neighbors:
+            these = neighbors[op_dir]
+            if LAYER_GROUND in these:
+                neighbor = these[LAYER_GROUND]
+                self.neighbor_types[op_dir] = neighbor.terrain_type
+    
 
 
     def update_tex(self):
@@ -465,6 +505,10 @@ class Tree(Mover):
         Entity.__init__(self, pos, vector2(8,16), LAYER_BLOCKS)
         self.tex = 'full_tree.png'
         self.height = ENTITY_SIZE.x
+
+    def die(self):
+        log('Tree is dead.')
+        Entity.die(self)
 
 class WoodPile(Mover, Carryable):
     
