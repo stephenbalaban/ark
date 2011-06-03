@@ -156,6 +156,8 @@ function apply_delta(delta, gamestate){
         var this_delta = delta.deltas[ent_id];
 
         ent = gamestate.ents[ent_id];
+        if (typeof ent === 'undefined')
+            continue;
         for (var att in this_delta){
             if (att == 'pos' || att == 'height'){
                 ent.lerp_targets[att] = this_delta[att];

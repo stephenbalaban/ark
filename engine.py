@@ -2,8 +2,11 @@ import random
 from vector2 import *
 import sys
 import time
-
+import pymongo 
+import inspect
+from threading import Thread
 from scribit import log, logged, timed
+import json
 
 TICK_PERIOD = 50 
 UP = vector2(0,-1)
@@ -25,6 +28,30 @@ GRID_SIZE = 8
 METAGRID_SIZE = 8
 ID_CHARS = [chr(x) for x in range(256) 
                 if (chr(x).isalpha() or chr(x).isdigit())]
+
+from pymongo.son_manipulator import SONManipulator
+
+class JSONTransformer(SONManipulator):
+
+    def transform_incoming(self, son, collection):
+        for (key, value) in son.items():
+            if isinstance(value, vector2):
+                son[key] = {"_type" : "vector2", 
+                            "vec" :  [value.x, value.y]}
+            elif isinstance(value, dict):
+                son[key] = self.transform_incoming(value, collection)
+        return son
+
+    def transform_outgoing(self, son, collection):
+        for (key, value) in son.items():
+            if isinstance(value, dict):
+                if "_type" in value and value["_type"] == "vector2":
+                    son[key] = vector2(value["vec"][0], 
+                                  value["vec"][1])
+
+                else:
+                    son[key] = self.transform_outgoing(value, collection)
+        return son
 
 class ClientManager:
     
@@ -66,7 +93,7 @@ class GridCell:
             if ent.layer in self.entities:
                     other = self.entities.pop(ent.layer)
                     return True
-            raise NoSuchEntity('No such entity %s')
+            raise NoSuchEntity('No such entity %s at' % (ent))
 
 class GameGrid:
 
@@ -86,7 +113,6 @@ class GameGrid:
 
 
     def add_entity(self, ent):
-        log ('cell at %d, %d, adding entity' % self.pos)
         return self.cells[(ent.pos.x,ent.pos.y)].add_entity(ent)
 
     def remove_entity(self, ent):
@@ -108,9 +134,10 @@ class GameGrid:
 
 class MetaGrid:
 
-    def __init__(self):
+    def __init__(self, datastore):
         self.cells = {}
         self.num_cells = METAGRID_SIZE
+        self.datastore = datastore
 
     def wrap_coords(self, x,y):
         x = x % (METAGRID_SIZE*GRID_SIZE)
@@ -136,8 +163,9 @@ class MetaGrid:
                         new_guy.pos.y).add_entity(new_guy,moving) 
 
     def add_cell(self, g_x, g_y):
-      self.cells[(g_x,g_y)] = res =  MetaGridCell((g_x,g_y))
-      engine.game.new_metagrid_cell(res) 
+        res =  MetaGridCell((g_x,g_y),self.datastore)
+        self.cells[(g_x,g_y)]  = res
+        return res
        
     def remove_entity(self, dead_guy, moving=False):
         x,y = self.wrap_coords(dead_guy.pos.x,dead_guy.pos.y)
@@ -176,6 +204,7 @@ class MetaGrid:
             return self.get_cell(0,0).get_free_position(layer)
         return self.cells[random.choice(keys)].get_free_position(layer)
 
+
     def update(self):
         keys = [k for k in self.cells]
         random.shuffle(keys)
@@ -200,17 +229,48 @@ class Engine:
         self.noobs = []
         self.next_id = []
         self.current_frame = 0  
-        self.metagrid = MetaGrid()
+        self.mongo_conn = pymongo.Connection()
+        self.datastore = self.mongo_conn.snockerball
+        self.datastore.add_son_manipulator(JSONTransformer())
+        self.metagrid = MetaGrid(self.datastore)
         self.client_manager = ClientManager() 
 
+
+    def save_world(self):
+        log('saving world..')
+        for cell in self.metagrid.cells:
+            self.metagrid.cells[cell].persist()
+        log ('saving complete.')
+
     def build_world(self):
+
+        generate = False
+
+
         for x in range(METAGRID_SIZE):    
             for y in range(METAGRID_SIZE):
                g_x =x*GRID_SIZE
                g_y =y*GRID_SIZE
-               log('new metacell at %d, %d' % (g_x, g_y))
-               self.metagrid.add_cell(g_x,g_y)
-        self.game.build_world()
+               #log('new metacell at %d, %d' % (g_x, g_y))
+               cell = self.metagrid.add_cell(g_x,g_y)
+
+               if generate :
+                    self.game.new_metagrid_cell(cell)
+        if generate:
+            self.game.build_world()
+        else: 
+           for x in range(METAGRID_SIZE):    
+               for y in range(METAGRID_SIZE):
+                   g_x =x*GRID_SIZE
+                   g_y =y*GRID_SIZE
+           
+           entities = self.datastore.entities.find() 
+
+           for ent in entities:
+               ent_dict = {}
+               for var in ent:
+                   ent_dict[str(ent)] = ent
+               guy = entity_class_registry[ent['__class__']](**ent_dict)
                   
 
     def add_entity(self, new_guy, moving=False):
@@ -226,15 +286,16 @@ class Engine:
         return self.metagrid.get_entities(x,y)
 
     def make_id(self):
-        return ''.join([random.choice(ID_CHARS) for x in range(32)])
+        return ''.join([random.choice(ID_CHARS) for x in range(16)])
 
     def update(self):
         self.metagrid.update()
         self.client_manager.update() 
+                
 
 class MetaGridCell:
         """encapsulates the behavior of the entire game"""
-        def __init__(self,pos):
+        def __init__(self,pos, datastore):
                 self.dude_map = {}
                 self.noobs = []
                 self.deads = {}
@@ -247,6 +308,8 @@ class MetaGridCell:
                 self.last_delta = None
                 self.updaters = {} 
                 self.drop_message = {}
+                self.datastore = datastore
+
     
         def __repr__(self):
             return "MetaGridCell at %d,%d." % self.pos                
@@ -259,8 +322,6 @@ class MetaGridCell:
                     del self.deads[entity.id]
                     self.grid.add_entity(entity)
                     return
-            else:
-                entity.id = engine.make_id()
             if moving:
                 self.moved_here[entity] = True
             else:
@@ -297,13 +358,13 @@ class MetaGridCell:
                     self.dude_map[noob.id] = noob
                     noob_map[noob.id] = noob.get_state()
                     if isinstance(noob, Updater):
-                        log("%s Adding noob %s." % (self, noob))
+                        #log("%s Adding noob %s." % (self, noob))
                         self.updaters[noob] = True
 
                 for mover in self.moved_here:
                     self.dude_map[mover.id] = mover
                     if isinstance(mover, Updater):
-                        log ("%s Adding mover %s." % (self, mover))
+                        #log ("%s Adding mover %s." % (self, mover))
                         self.updaters[mover] = True
 
                 self.moved_here = {} 
@@ -320,6 +381,12 @@ class MetaGridCell:
                         if delta < ent.size.length() + radius:
                                 results += [ent]
                 return results
+
+        def persist(self):
+
+            for entity in self.updaters:
+                entity.persist(self.datastore)
+    
 
 
 
@@ -339,7 +406,7 @@ class MetaGridCell:
                             deads += [id]
                         if dead or moved:
                             if isinstance(entity,Updater):
-                                log ("Deleting updater %s." % entity)
+                                #log ("Deleting updater %s." % entity)
                                 del self.updaters[entity]
                 self.dude_map = new_map
                 noobs = self._add_noobs()
@@ -349,7 +416,6 @@ class MetaGridCell:
                 return noobs, deads
 
                           
-                
         def update(self):
             noobs, deads = self._update_entity_map()
             delta_list = {'type' : 'delta',
@@ -358,7 +424,9 @@ class MetaGridCell:
               'deltas': {},      
               'frame' : self.current_frame}
             gamestate = { 'type' : 'gs',
-                                      'ents' : {}}
+                               'ents' : {}}
+
+
             drop_message = {'type' : 'drop',
                             'ents' : []} 
             
@@ -381,22 +449,20 @@ class MetaGridCell:
             self.drop_message = drop_message
             self.last_delta = delta_list
 
-
-
 engine = Engine()
 
 
 
 class Entity:
     "abstract base class for things in the game"
-    def __init__(self, pos, size, layer=0):
+    def __init__(self,**params ):
 
         self.__dict__['net_vars'] = {
                  'tex': True,
                  'angle' : True,
                  'size' :True,
                  'pos' : True,
-                  'layer' : True,
+                 'layer' : True,
                  'height': 0,
                  'id' : -1,
                  'lerp_targets' : {},
@@ -408,25 +474,52 @@ class Entity:
         self.__dict__["delta"] = {}
         
     
-            
-        self.tex = 'none.png'
+        self.id = engine.make_id()      
+        self.tex = params.get('tex') or 'none.png'
         self.dead = False
-        self.pos = pos
-        self.size = size
-        self.dir = ZERO_VECTOR
-        self.angle = 0
-        self.layer = layer 
-        self.height = 0
+        self.pos = params.get('pos') or vector2(0,0) 
+        self.size = params.get('size') or ENTITY_SIZE 
+        self.dir =  params.get('dir') or RIGHT 
+        self.angle = params.get('angle') or 0 
+        self.layer = params.get('layer') or 0 
+        self.height = params.get('height') or 0
         self.lerp_targets = {}
         self.lerp_frames = {}
-        self.frame = 0
+        self.frame = params.get('frame') or 0 
+
+        for param in params:
+            if not param in self.net_vars.keys():
+                setattr(self, param, params[param])
         engine.add_entity(self)
+    
 
 
     def __repr__(self):
         return "%s at %d, %d" % (self.__class__.__name__,
                                  self.pos.x,
                                  self.pos.y)
+
+    def dump_json(self):
+        res = {}
+        vars_to_save = [name for name in self.__dict__]
+        for varname in vars_to_save:
+            val = self.__dict__[varname]
+            if not (inspect.isfunction(val) or\
+                    inspect.ismethod(val)):
+                res[varname] = val
+        res['__class__'] = self.__class__.__name__ 
+        return res 
+
+    def persist(self, datastore):
+        ent_data = self.dump_json()
+
+        #we have to do this or else mongo fucks up
+        del ent_data['id']
+        #constructors set these up
+        del ent_data['net_vars']
+        datastore.entities.update({"id" : self.id}, ent_data, 
+                            manipulate=True, upsert=True, safe=True) 
+
 
     def __setattr__(self, attr_name, value):
 
@@ -474,10 +567,21 @@ class Entity:
             if hasattr(val,'to_json'):
                 val = val.to_json()
             out_delta[varname] = val
+
         self.delta = {}
         return out_delta
                 
-class NoSuchEntity: pass
+class NoSuchEntity: 
+    def __init__(self, msg):
+        self.message = msg
+
+
+entity_class_registry = {}
+def RegisterEntity(f):
+    entity_class_registry[f.__name__] = f
+    return f
+
+
 class Updater: pass
 
 def clamp (min_, x, max_): 

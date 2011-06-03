@@ -33,15 +33,16 @@ class Game:
         for x in range(GRID_SIZE):
             for y in range(GRID_SIZE):
                 p = vector2(new_cell.pos[0]+x, new_cell.pos[1]+y)
-                log ('new cell at %s ' % p)
-                Terrain(p)
+                #log ('new cell at %s ' % p)
+                Terrain(pos=p)
                 
 
     def build_world(self):
 
         #add some water 
+        log ('building world: adding water')
         num_cells = METAGRID_SIZE*METAGRID_SIZE
-        num_water_cells = num_cells*0.3 
+        num_water_cells = int(num_cells*0.3)
         for c in range(num_water_cells):
             x = random.choice(range(GRID_SIZE*METAGRID_SIZE))
             y = random.choice(range(GRID_SIZE*METAGRID_SIZE))
@@ -50,12 +51,13 @@ class Game:
 
 
         #now add some trees and fruit
-        num_tree_cells = num_cells*0.4 
+        log('building world: adding resources')
+        num_tree_cells = int(num_cells*0.4)
         for c in range(num_tree_cells):
             x = random.choice(range(GRID_SIZE*METAGRID_SIZE))
             y = random.choice(range(GRID_SIZE*METAGRID_SIZE))
         
-            choices =  {Tree: GRID_SIZE, Fruit: GRID_SIZE*0.6}
+            choices =  {Tree: GRID_SIZE, Sheep: GRID_SIZE*0.25}
             choice = random.choice(choices.keys())
             engine.get_entities(x,y)[LAYER_GROUND].start_forest(choice,
                                                                 choices[choice])

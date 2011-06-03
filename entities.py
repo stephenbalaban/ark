@@ -20,14 +20,13 @@ class Air:
         return True
 
     def smash(self, other):        
-        print 'air is smashing', other
         if isinstance(other, Terrain):
             if other.terrain_type == 'grass':
-                PlowedPatch(other.pos)
+                PlowedPatch(pos=other.pos)
 
         elif isinstance(other, Tree):
             other.die()
-            WoodPile(other.pos)
+            WoodPile(pos=other.pos)
 
 ACT_PLACE = 1
 class Mover(Entity):
@@ -39,8 +38,12 @@ class Mover(Entity):
             other_target = target+push_dir;
 
             ents = engine.metagrid.get_entities(target.x,
-                                            target.y)
+                                                target.y)
 
+            if LAYER_GROUND in ents:
+                if not self.can_travel(ents[LAYER_GROUND].terrain_type):
+                    return False
+                    
             other_ents = engine.metagrid.get_entities(other_target.x,
                                                    other_target.y)
             blocked = False
@@ -63,14 +66,21 @@ class Mover(Entity):
 
         return True
 
+    def can_travel(self, terrain_type):
+        return True
+
     def touch(self, other):
         pass
+
     def can_push(self,  other):
         return False
+
     def can_smash(self, other):
         return False
+
     def push(self, victim):
         pass
+
     def smash(self, victim):
         self.pos = victim.pos
 
@@ -124,20 +134,35 @@ class Fruit(Carryable, Plantable, Mover):
         Carryable.smash(self,victim)
         
 
-class Dude(Mover, Updater):
+class Walker:
+    """objects that choose a direction and move in that direction
+    make sure you set last_sir"""
+
+    def update(self):
+        if not self.dir.is_zero():
+
+            if (not hasattr(self, 'last_dir'))\
+                        or self.dir == self.last_dir:
+                if self.try_move(self.dir):
+                    if self.carrying:
+                        self.carrying.pos = self.pos
+            self.last_dir = self.dir
+        
+@RegisterEntity
+class Dude(Mover, Walker, Updater):
     
 
-    def __init__(self,owner):
+    def __init__(self,**params):
 
-        pos = engine.metagrid.get_free_position(LAYER_BLOCKS)
-        log ("Spawning a dude at %s." % pos)
-        
-        Entity.__init__(self, pos, ENTITY_SIZE, LAYER_BLOCKS )
+        pos = params.get('pos') or engine.metagrid.get_free_position(LAYER_BLOCKS)
+        params['pos'] = pos
+
+        params['layer'] = LAYER_BLOCKS
+        Entity.__init__(self, **params)
 
         self.net_vars['anim'] = True
         self.height = ENTITY_SIZE.x*0.5;
         self.act = None
-        self.owner = owner
         self.solid = True
         self.dir = ZERO_VECTOR
         self.last_dir = RIGHT
@@ -151,12 +176,17 @@ class Dude(Mover, Updater):
         self.state = 'standing'
         self.carrying = None
 
+
     def push(self, pushee):
         pass
  
     def get_delta(self):
         delta = Entity.get_delta(self)
         return delta 
+
+    def can_travel(self, terrain_type):
+        return True 
+
 
     def can_push(self,other):
         can =  isinstance(other, WoodPile)
@@ -167,11 +197,7 @@ class Dude(Mover, Updater):
 
     def update(self):
         if not self.dir.is_zero():
-            if self.dir == self.last_dir:
-                if self.try_move(self.dir):
-                    if self.carrying:
-                        self.carrying.pos = self.pos
-            self.last_dir = self.dir
+            Walker.update(self)
         elif self.act == 'use':
             self.state = 'using'
             self.use()
@@ -179,9 +205,6 @@ class Dude(Mover, Updater):
             self.state = 'standing'
         self.update_texture()
          
-
-
-                        
 
 
     def use(self):
@@ -203,8 +226,8 @@ class Dude(Mover, Updater):
                         self.carrying = None
                     break
             return
-   
-    #check for an item to act on
+        #not carrying anything  
+        #check for an item to act on
         neighbors = engine.metagrid.get_neighbors(self.pos)
         if self.last_dir in neighbors:
             dudes = neighbors[self.last_dir]
@@ -246,67 +269,71 @@ class Dude(Mover, Updater):
 
 
 
-
-class Alien(Dude):
-    def __init__(self, owner):
-        Dude.__init__(self,owner)
-        self.dude_class = 'alien'
+@RegisterEntity
+class Sheep(Dude, Carryable):
+    def __init__(self, **params):
+        Dude.__init__(self,**params)
+        self.dude_class = 'sheep'
+        self.state = 'walking' 
+        self.ai_state = 'roaming'
+        self.reset_move_ticks()
         self.update_texture() 
-        self.ai_state = 'roaming' 
+        self.carried_by = None
+        self.carrying = None
+
+
+    def reset_move_ticks(self):
+        self.move_ticks =  5 + random.randint(0, 5)
 
     def update(self):
-        if self.ai_state == 'roaming':
+        if self.ai_state == 'roaming' and not\
+                self.carried_by:
             #set dir 
-            
-            def target_selector(target):
-                return isinstance(target,Shrub)
-            target = engine.metagrid.find_nearest(self.pos.x, self.pos.y, 
-                                                 self.layer, max_dist=12,
-                                                 selector=target_selector)
-            if target:
-                print 'chasing'
-                self.ai_state = 'chasing'
-                self.target = target
-            elif random.choice([True] + [False for x in range(5)]):
-                self.dir = random.choice([UP,DOWN,LEFT,RIGHT,ZERO_VECTOR])
+            if self.move_ticks == 0:
+                if random.random() < 0.1:
+                    self.dir = random.choice([UP,DOWN,LEFT,RIGHT])
+                self.reset_move_ticks()
+                Walker.update(self)
+
+        self.move_ticks -= 1
             #see if there are any plants in the area, if there are, go afer them
-        if self.ai_state == 'chasing':
-            to_target = self.target.pos - self.pos
-            if to_target.x < 0:
-                self.dir = LEFT
-            elif to_target.x > 0:
-                self.dir = RIGHT
-            elif to_target.y < 0:
-                self.dir = UP
-            elif to_target.y > 0:
-                self.dir = DOWN
-            if to_target.length_squared() <= 1:
-                self.dir = ZERO_VECTOR
-                print 'its close enough!'
-                self.act = 'use'
-        Dude.update(self)
+        self.update_texture()
     
     def can_push(self, other):
         return False
 
     def use(self):
-        print 'using'
+        #sheep eat plants
         if self.target:
             self.target.die()
             self.target.parent.harvest()
             self.target = None
             self.ai_state = 'roaming'
             self.act =  None
+
+    def can_smash(self, other):
+        can = isinstance(other, Terrain)
+        return can
+
+    def smash(self, other):
+        if isinstance(other, Terrain):
+            Carryable.smash(self,other)
+
+
     
+@RegisterEntity
 class Terrain(Entity):
     
-    def __init__(self, pos):
-        Entity.__init__(self,pos,  ENTITY_SIZE, LAYER_GROUND)
-        self.tex = 'grass.png' 
-        self.terrain_type = 'grass'
-        self.neighbor_types = {}
-        for dir in ORDINALS:
-            self.neighbor_types[dir] = 'grass'
+    def __init__(self, **kwargs):
+        
+        kwargs['tex'] = kwargs.get('tex') or 'grass.png'
+        kwargs['terrain_type'] = kwargs.get('terrain_type') or 'grass'
+        kwargs['neighbor_types'] = kwargs.get('neighbor_types') or  {}
+        Entity.__init__(self,**kwargs)
+        
+        if not self.neighbor_types:
+            for dir in ORDINALS:
+                self.neighbor_types[dir] = 'grass'
         self.update_tex()
        
     
@@ -315,31 +342,31 @@ class Terrain(Entity):
 
         def update_visitor(neighbor, dir):
             if isinstance(neighbor, Terrain):
-                log ('%s updating terrain' % neighbor)
+                #log ('%s updating terrain' % neighbor)
                 neighbor.update_neighbor_types()
                 neighbor.update_tex()
 
         def water_visitor(neighbor, dir):
-            log ('%s is now water'  % neighbor)
+            #log ('%s is now water'  % neighbor)
             neighbor.terrain_type = 'water'
             neighbor.update_tex()
 
         self.percolate(GRID_SIZE, 0.8, water_visitor)
-        log('percolating update')
+        #log('percolating update')
         self.percolate(GRID_SIZE, 1.0, update_visitor, {})
         self.update_tex()
 
     def start_forest(self, spawn_type, distance):
-       
+      
         def tree_visitor(neighbor, dir):
-            if self.terrain_type == 'water': 
+            if neighbor.terrain_type == 'water': 
                 return
             dist = (neighbor.pos - self.pos).length()
             prob = dist/float(GRID_SIZE)
             if random.random() < prob:
                 if not LAYER_BLOCKS in\
                     engine.get_entities(self.pos.x, self.pos.y):
-                    spawn_type(neighbor.pos)
+                    spawn_type(layer=LAYER_BLOCKS,pos=neighbor.pos)
         self.percolate(GRID_SIZE, 0.8, tree_visitor)
         tree_visitor(self, None)
 
@@ -381,23 +408,7 @@ class Terrain(Entity):
                                          self.neighbor_types[DOWN],
                                          self.neighbor_types[LEFT])
 
-
-
-
-
-class Lake:
-
-    def __init__(self, x,y, length,width):
-
-        for i in range(length):
-            for j in range(width):
-                ents = engine.metagrid.grid.get_entities(x+i,y+j)
-                if LAYER_GROUND in ents:
-                    ents[LAYER_GROUND].to_water()
-
-
-    
-
+@RegisterEntity
 class Road(Entity):
 
     def __init__(self, pos, is_vertical):
@@ -408,25 +419,29 @@ class Road(Entity):
                         self.tex = 'road_horizontal.png'
 
 
+@RegisterEntity
 class Shrub(Mover):
 
     def __init__(self, pos,parent):
-        Entity.__init__(self, pos, ENTITY_SIZE, LAYER_BLOCKS)
+        Entity.__init__(self, pos=pos,size=ENTITY_SIZE,layer=LAYER_BLOCKS)
         self.plant_size = 0
         self.tex = '/plants/shrub/0.png'
         self.parent = parent        
+
     def grow(self):
         self.plant_size += 1
         self.tex = '/plants/shrub/1.png'
 
 
 
-
+@RegisterEntity
 class PlowedPatch(Mover, Updater):
 
     PLANT_GROWTH_TICKS = 20
-    def __init__(self, pos):
-        Entity.__init__(self, pos, ENTITY_SIZE, LAYER_GROUND_DETAIL)
+    def __init__(self, **kwargs):
+        kwargs['size'] = kwargs.get('size') or ENTITY_SIZE
+        kwargs['layer'] =  kwargs.get('layer') or LAYER_GROUND_DETAIL
+        Entity.__init__(self,**kwargs)
         #check for neighbors above and below, changing them if necessary
         neighbors = engine.metagrid.get_neighbors(self.pos)
         has_neighbors = {UP:False, DOWN: False}
@@ -499,24 +514,25 @@ class PlowedPatch(Mover, Updater):
                     self.growing.grow()
 
 
-
+@RegisterEntity
 class Tree(Mover):
-    def __init__(self, pos):
-        Entity.__init__(self, pos, vector2(8,16), LAYER_BLOCKS)
-        self.tex = 'full_tree.png'
-        self.height = ENTITY_SIZE.x
+    def __init__(self, **kwargs):
+        kwargs['tex'] = 'full_tree.png'
+        Entity.__init__(self, **kwargs)
 
     def die(self):
         log('Tree is dead.')
         Entity.die(self)
 
+@RegisterEntity
 class WoodPile(Mover, Carryable):
     
-    def __init__(self, pos):
-        Entity.__init__(self, pos, ENTITY_SIZE, LAYER_BLOCKS)
-        self.tex = 'carried/wood_pile.png'
+    def __init__(self, **kwargs):
+        kwargs['tex'] = kwargs.get('tex') or 'carried/wood_pile.png'
+        kwargs['height'] = kwargs.get('height') or ENTITY_SIZE.x
+        kwargs['layer'] = kwargs.get('layer') or LAYER_BLOCKS
+        Entity.__init__(self,**kwargs)
         self.carried_by = None
-        self.height = ENTITY_SIZE.x
 
 
     def can_smash(self, other):
@@ -531,8 +547,9 @@ class WoodPile(Mover, Carryable):
         elif isinstance(other, PlowedPatch):
             other.die()            
             self.die()
-            Fence(other.pos) 
+            Fence(pos=other.pos) 
 
+@RegisterEntity
 class Fence(Mover, Entity):
 
     def __init__(self, pos):
@@ -559,12 +576,14 @@ class Fence(Mover, Entity):
                                         self.neighbor_fences[DOWN],
                                          self.neighbor_fences[LEFT])
 
+@RegisterEntity
 class Flag(Mover):
     def __init__(self, pos, team):
         Entity.__init__(self, pos, ENTITY_SIZE,LAYER_BLOCKS)
         self.tex = team+'_flag.png'
         self.height= ENTITY_SIZE.x
 
+@RegisterEntity
 class Forest:
 
     def __init__(self, pos_x, pos_y, width, height,edge=2):
@@ -580,6 +599,7 @@ class Forest:
                     except CellFull:
                         pass
 
+@RegisterEntity
 class FruitPatch:
 
     def __init__(self, pos_x, pos_y, width, height,edge=2):
@@ -596,6 +616,7 @@ class FruitPatch:
                         pass
 
 
+@RegisterEntity
 class Building:
     def __init__(self, pos_x, pos_y, width, height):
         

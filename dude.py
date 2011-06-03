@@ -11,7 +11,7 @@ class Dude(Mover):
         self.net_vars['anim'] = True
         self.height = ENTITY_SIZE.x*0.5;
         self.act = None
-        self.owner = owner
+        self.owner = owner.id
         self.solid = True
         self.dir = ZERO_VECTOR
         self.last_dir = RIGHT

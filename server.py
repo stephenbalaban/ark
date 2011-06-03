@@ -64,7 +64,8 @@ class Client:
         return 'Client %s' % self.id
 
     def spawn_dude(self):
-        self.dude = Dude(self)
+        self.dude = Dude()
+        self.dude.owner = self.id
         self.dude.on_die = self.handle_player_die
         self.send({'type' : 'client_info', 
                     'camera_ent_id' : self.dude.id})
@@ -160,7 +161,10 @@ class Client:
 
     #@logged 
     def send(self, message):
-        self.socket.write_message(message)
+        try:
+            self.socket.write_message(message)
+        except IOError:
+            self.disconnect()
 
     #@logged    
     def on_message(self, message):                        
@@ -205,11 +209,14 @@ application = tornado.web.Application(
     ], **settings)
 
 if __name__ == "__main__":
-    print "Starting Tornado web server on port 8000!";
+    log("Starting Tornado web server on port 8000!")
     http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(8000)
     main_loop = tornado.ioloop.IOLoop.instance();
     scheduler = tornado.ioloop.PeriodicCallback(game.update, TICK_PERIOD, io_loop = main_loop)    
+    scheduler2 = tornado.ioloop.PeriodicCallback(engine.save_world, 10000, io_loop = main_loop)    
+
     scheduler.start()
-    print "Server started, entering main loop."
+    scheduler2.start()
+    log("Server started, entering main loop.")
     main_loop.start()
