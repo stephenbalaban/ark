@@ -25,32 +25,62 @@ DIAGONALS = [UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT]
 ALL_DIRS = DIAGONALS + ORDINALS
 ENTITY_SIZE = vector2(8,8)
 GRID_SIZE = 8 
-METAGRID_SIZE = 8
+METAGRID_SIZE = 8 
 ID_CHARS = [chr(x) for x in range(256) 
                 if (chr(x).isalpha() or chr(x).isdigit())]
+
+def make_entity_id():
+            return ''.join([random.choice('0123456789abcedfeABCDEF') 
+                            for x in range(8)])
+    
 
 from pymongo.son_manipulator import SONManipulator
 
 class JSONTransformer(SONManipulator):
 
     def transform_incoming(self, son, collection):
+
+
+        def get_storage_item(item):
+            if isinstance(item, vector2):
+                return {"_type" : "vector2", 
+                            "vec" :  [item.x, item.y]}
+            elif isinstance(item, dict):
+
+                return { "_type" : "dict",
+                            "pairs" :[ [get_storage_item(key),
+                                        get_storage_item(value) ] for 
+                                        key, value
+                                        in item.items()] }
+
+            return item
+ 
         for (key, value) in son.items():
-            if isinstance(value, vector2):
-                son[key] = {"_type" : "vector2", 
-                            "vec" :  [value.x, value.y]}
-            elif isinstance(value, dict):
-                son[key] = self.transform_incoming(value, collection)
+            son[str(key)] = get_storage_item(value) 
         return son
 
     def transform_outgoing(self, son, collection):
-        for (key, value) in son.items():
-            if isinstance(value, dict):
-                if "_type" in value and value["_type"] == "vector2":
-                    son[key] = vector2(value["vec"][0], 
-                                  value["vec"][1])
 
-                else:
-                    son[key] = self.transform_outgoing(value, collection)
+        def get_real_item(item):
+
+            if isinstance(item, unicode):
+                return str(item)
+            if isinstance(item, dict):
+                if "_type" in item:
+                    if item["_type"] == "vector2":
+                         return  vector2(item["vec"][0], 
+                                           item["vec"][1])
+                    elif item["_type"] == "dict":
+                        res = {}
+                        for kvp in item["pairs"]:
+                            res[get_real_item(kvp[0])]= get_real_item(kvp[1])
+                        return res
+            
+            return item
+
+
+        for (key, value) in son.items():
+                son[str(key)] = get_real_item(value) 
         return son
 
 class ClientManager:
@@ -236,16 +266,23 @@ class Engine:
         self.client_manager = ClientManager() 
 
 
-    def save_world(self):
+    def save_world(self, save_terrain=False):
+
         log('saving world..')
+            
         for cell in self.metagrid.cells:
             self.metagrid.cells[cell].persist()
+            if save_terrain:
+                self.metagrid.cells[cell].persist_terrain()
         log ('saving complete.')
 
     def build_world(self):
 
-        generate = False
-
+        generate =  True
+ 
+        if generate:
+            log ('Generating world.')
+            self.datastore.entities.remove()
 
         for x in range(METAGRID_SIZE):    
             for y in range(METAGRID_SIZE):
@@ -258,19 +295,19 @@ class Engine:
                     self.game.new_metagrid_cell(cell)
         if generate:
             self.game.build_world()
+            self.save_world(save_terrain=True)
         else: 
-           for x in range(METAGRID_SIZE):    
-               for y in range(METAGRID_SIZE):
-                   g_x =x*GRID_SIZE
-                   g_y =y*GRID_SIZE
-           
+           log ('Loading world')
            entities = self.datastore.entities.find() 
 
            for ent in entities:
                ent_dict = {}
                for var in ent:
-                   ent_dict[str(ent)] = ent
+                   ent_dict[str(var)] = ent[var]
                guy = entity_class_registry[ent['__class__']](**ent_dict)
+           log ('Load complete')
+
+
                   
 
     def add_entity(self, new_guy, moving=False):
@@ -328,10 +365,6 @@ class MetaGridCell:
                 self.noobs += [entity]
             self.grid.add_entity(entity)
 
-        def make_entity_id(self):
-            return ''.join([random.choice('0123456789abcedfeABCDEF') 
-                            for x in range(32)])
-    
         def remove_entity(self, entity, moving=False):
             #don't put this guy on the list of dead entities
             #if he's just moving to another location
@@ -382,12 +415,18 @@ class MetaGridCell:
                                 results += [ent]
                 return results
 
-        def persist(self):
 
+        def persist_terrain(self):
+            for ent_id in self.dude_map:
+                ent = self.dude_map[ent_id]
+                ent.persist(self.datastore)
+            for ent in self.noobs:
+                ent.persist(self.datastore)
+
+        def persist(self):
             for entity in self.updaters:
                 entity.persist(self.datastore)
     
-
 
 
         def _update_entity_map(self):
@@ -474,7 +513,7 @@ class Entity:
         self.__dict__["delta"] = {}
         
     
-        self.id = engine.make_id()      
+        self.id = make_entity_id()      
         self.tex = params.get('tex') or 'none.png'
         self.dead = False
         self.pos = params.get('pos') or vector2(0,0) 
@@ -486,16 +525,18 @@ class Entity:
         self.lerp_targets = {}
         self.lerp_frames = {}
         self.frame = params.get('frame') or 0 
-
+        
+        special_keys = self.net_vars.keys() + ['__class__']
         for param in params:
-            if not param in self.net_vars.keys():
+            if not param in special_keys: 
                 setattr(self, param, params[param])
         engine.add_entity(self)
     
 
 
     def __repr__(self):
-        return "%s at %d, %d" % (self.__class__.__name__,
+        return "%s %s at %d, %d" % (self.__class__.__name__,
+                                 self.id  or "No Id",
                                  self.pos.x,
                                  self.pos.y)
 
@@ -505,7 +546,8 @@ class Entity:
         for varname in vars_to_save:
             val = self.__dict__[varname]
             if not (inspect.isfunction(val) or\
-                    inspect.ismethod(val)):
+                    inspect.ismethod(val) or\
+                    inspect.isclass(val)) :
                 res[varname] = val
         res['__class__'] = self.__class__.__name__ 
         return res 
@@ -513,12 +555,12 @@ class Entity:
     def persist(self, datastore):
         ent_data = self.dump_json()
 
-        #we have to do this or else mongo fucks up
-        del ent_data['id']
         #constructors set these up
+
         del ent_data['net_vars']
-        datastore.entities.update({"id" : self.id}, ent_data, 
-                            manipulate=True, upsert=True, safe=True) 
+        ent_data['_id'] = self.id
+
+        datastore.entities.save(ent_data,manipulate=True,safe=True) 
 
 
     def __setattr__(self, attr_name, value):

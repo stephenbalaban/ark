@@ -325,13 +325,12 @@ class Sheep(Dude, Carryable):
 class Terrain(Entity):
     
     def __init__(self, **kwargs):
-        
         kwargs['tex'] = kwargs.get('tex') or 'grass.png'
         kwargs['terrain_type'] = kwargs.get('terrain_type') or 'grass'
         kwargs['neighbor_types'] = kwargs.get('neighbor_types') or  {}
         Entity.__init__(self,**kwargs)
         
-        if not self.neighbor_types:
+        if self.neighbor_types == {}:
             for dir in ORDINALS:
                 self.neighbor_types[dir] = 'grass'
         self.update_tex()
@@ -357,7 +356,7 @@ class Terrain(Entity):
         self.update_tex()
 
     def start_forest(self, spawn_type, distance):
-      
+     
         def tree_visitor(neighbor, dir):
             if neighbor.terrain_type == 'water': 
                 return
@@ -518,10 +517,10 @@ class PlowedPatch(Mover, Updater):
 class Tree(Mover):
     def __init__(self, **kwargs):
         kwargs['tex'] = 'full_tree.png'
+        kwargs['layer'] = LAYER_BLOCKS
         Entity.__init__(self, **kwargs)
 
     def die(self):
-        log('Tree is dead.')
         Entity.die(self)
 
 @RegisterEntity

@@ -24,6 +24,11 @@ class vector2:
         """Return the vector in string form."""
         return "Vector2("+str(self.x)+", "+str(self.y)+")"
 
+    def __hash__(self):
+        return (self.x.__hash__() * self.y.__hash__()).__hash__()
+
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y
 
     #over load the add, subtract operators so you can do vector math
     def __add__(self, other):

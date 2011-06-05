@@ -214,7 +214,7 @@ if __name__ == "__main__":
     http_server.listen(8000)
     main_loop = tornado.ioloop.IOLoop.instance();
     scheduler = tornado.ioloop.PeriodicCallback(game.update, TICK_PERIOD, io_loop = main_loop)    
-    scheduler2 = tornado.ioloop.PeriodicCallback(engine.save_world, 10000, io_loop = main_loop)    
+    scheduler2 = tornado.ioloop.PeriodicCallback(engine.save_world, 2000, io_loop = main_loop)    
 
     scheduler.start()
     scheduler2.start()
