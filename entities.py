@@ -356,7 +356,9 @@ class Terrain(Entity):
         self.update_tex()
 
     def start_forest(self, spawn_type, distance):
-     
+    
+        spawn_type(pos=self.pos)
+        return 
         def tree_visitor(neighbor, dir):
             if neighbor.terrain_type == 'water': 
                 return

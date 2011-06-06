@@ -25,13 +25,31 @@ DIAGONALS = [UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT]
 ALL_DIRS = DIAGONALS + ORDINALS
 ENTITY_SIZE = vector2(8,8)
 GRID_SIZE = 8 
-METAGRID_SIZE = 8 
+METAGRID_SIZE =  8 
 ID_CHARS = [chr(x) for x in range(256) 
                 if (chr(x).isalpha() or chr(x).isdigit())]
 
 def make_entity_id():
             return ''.join([random.choice('0123456789abcedfeABCDEF') 
                             for x in range(8)])
+    
+
+class EntityWrapper:
+
+    def __init__(self, target_id):
+        self.target_id = target_id
+        self.target = None
+
+    def __getattr__(self, name):
+        if  not self.target:
+            #see if you can get the entity from the database
+            self.target = engine.get_entity(self.target_id)
+
+        if not self.target:
+            raise NoSuchEntity("Empty json wrapper for '%s'" % self.target_id)
+        return self.__dict__[name]
+        
+    
     
 
 from pymongo.son_manipulator import SONManipulator
@@ -42,9 +60,13 @@ class JSONTransformer(SONManipulator):
 
 
         def get_storage_item(item):
+
             if isinstance(item, vector2):
                 return {"_type" : "vector2", 
                             "vec" :  [item.x, item.y]}
+            elif isinstance(item, Entity):
+                return {"_type" :"ent",
+                        "ent_id" : item.id}
             elif isinstance(item, dict):
 
                 return { "_type" : "dict",
@@ -65,11 +87,15 @@ class JSONTransformer(SONManipulator):
 
             if isinstance(item, unicode):
                 return str(item)
+
             if isinstance(item, dict):
                 if "_type" in item:
                     if item["_type"] == "vector2":
                          return  vector2(item["vec"][0], 
                                            item["vec"][1])
+                    if item["_type"] == "ent":
+                         return  EntityWrapper(item["ent_id"])
+ 
                     elif item["_type"] == "dict":
                         res = {}
                         for kvp in item["pairs"]:
@@ -192,6 +218,13 @@ class MetaGrid:
         self.get_cell(new_guy.pos.x, 
                         new_guy.pos.y).add_entity(new_guy,moving) 
 
+    def get_entity(self, ent_id):
+        for cell_pos in self.cells:
+            res = self.cells[cell_pos].get_entity(ent_id)
+            if res:
+                return res
+        return None
+
     def add_cell(self, g_x, g_y):
         res =  MetaGridCell((g_x,g_y),self.datastore)
         self.cells[(g_x,g_y)]  = res
@@ -278,7 +311,7 @@ class Engine:
 
     def build_world(self):
 
-        generate =  True
+        generate =  True 
  
         if generate:
             log ('Generating world.')
@@ -321,6 +354,9 @@ class Engine:
  
     def get_entities(self, x, y):
         return self.metagrid.get_entities(x,y)
+
+    def get_entity(self, ent_id):
+        return self.metagrid.get_entity(ent_id)
 
     def make_id(self):
         return ''.join([random.choice(ID_CHARS) for x in range(16)])
@@ -374,6 +410,10 @@ class MetaGridCell:
                 self.moved_away[entity.id] = entity
             self.grid.remove_entity(entity)
                 
+        def get_entity(self, ent_id):
+            if ent_id in self.dude_map:
+                return self.dude_map[ent_id]
+            return None
 
         def get_free_position(self, layer):
             return self.grid.get_free_position(layer)

@@ -52,7 +52,7 @@ class Game:
 
         #now add some trees and fruit
         log('building world: adding resources')
-        num_tree_cells = int(num_cells*0.4)
+        num_tree_cells = 1 #int(num_cells*0.4)
         for c in range(num_tree_cells):
             x = random.choice(range(GRID_SIZE*METAGRID_SIZE))
             y = random.choice(range(GRID_SIZE*METAGRID_SIZE))

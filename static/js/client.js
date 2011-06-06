@@ -19,6 +19,7 @@ var canvas_height = 400;
 var entity_size = 32;
 var camera_ent_id = -1;
 var base_scale = entity_size/16;
+var grid_size = 64;
 //all the images are stored in the same directory
 //to save on bandwidth we know to prefix them all with this
 var image_base = '/static/images/';
@@ -32,7 +33,7 @@ var gamestate_buffer = {old_ticks: old_gamestate,
 var TURN_PERIOD = 250;   
 var DRAWS_PER_TURN = 6;
 var DRAW_PERIOD = 100
-var SERVER_ADDRESS = "localhost:8000";
+var SERVER_ADDRESS = "neyer.me";
 var draw_frame_number = 0;
 var game_frame_number = 0;
 var global_anim_index = 0;
@@ -69,31 +70,9 @@ function draw() {
 
     //$("#messages").html(update_message);
     //
-    for (var ent_id  in new_gamestate.ents)  {
-        var ent = new_gamestate.ents[ent_id];
-        
-        if (ent.lerp_targets.pos && ent.lerp_frames.pos > 0){
-            --ent.lerp_frames.pos;                
-            var how_far = 1 - ent.lerp_frames.pos/DRAWS_PER_TURN;
-            for (var i in [0,1]){
-                var piece = (ent.lerp_targets.pos[i] - ent.pos[i]) 
-                piece = piece * how_far;
-                ent.pos[i] += piece;                
-                
-            }
-        }
-        if (ent.lerp_targets.height && ent.lerp_frames.height > 0){
-            --ent.lerp_frames.height;                
-            var how_far = 1 - ent.lerp_frames.pos/DRAWS_PER_TURN;
-            how_far = how_far*(ent.lerp_targets.height - ent.height);
-            ent.height += how_far;
-                
-        }
-    }
 
     for (var ent_id in new_gamestate.ents){
         var ent = new_gamestate.ents[ent_id];
-
        
         if (ent.anim && ent.anim in animations){
             animations[ent.anim](contexts, ent);
