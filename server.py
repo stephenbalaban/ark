@@ -31,17 +31,16 @@ class ImageHandler (tornado.web.RequestHandler):
 
                                 
 
+clients_by_name = {}
+@RegisterPersisted      
+class Client(Updater, Entity):    
 
-            
-class Client:    
 
-
-    def __init__(self, socket):
+    def __init__(self, **kwargs):
         "Creating a new client." 
+        log ('Creating a new client object') 
         self.updates =  0 
-        self.socket = socket        
         self.dir = ZERO_VECTOR 
-        socket.on_message = self.on_message
        
         self.watching = {}
         self.act = None
@@ -55,18 +54,35 @@ class Client:
         self.death_count = 0
         self.kill_count = 0
         self.disconnected = False
-        self.id = engine.make_id() 
         self.dude = None
+        Entity.__init__(self)
+        engine.client_manager.add_client(self)
+        self.name = kwargs.get('name') or self.id 
         log ("%s joined the game" % self)
-        engine.add_client(self)
+        clients_by_name[self.name] = self
+
+    def saves(self, name):
+        return name not in { 'socket' : False}
+
+    def __setattr__(self, attr, val):
+        self.__dict__[attr] = val
+
+    def get_delta(self):
+        return {}
 
     def __repr__ (self):
         return 'Client %s' % self.id
 
-    def spawn_dude(self):
-        self.dude = Dude()
-        self.dude.owner = self.id
+    def spawn_dude(self, dude=None):
+        if not dude:
+            log ('spawning dude for %s' % self)
+            dude = Dude()
+        self.dude = dude 
+        self.dude.owner = self
         self.dude.on_die = self.handle_player_die
+        self.inform_player_of_dude()
+
+    def inform_player_of_dude(self):
         self.send({'type' : 'client_info', 
                     'camera_ent_id' : self.dude.id})
 
@@ -83,14 +99,20 @@ class Client:
     def update(self):
         if self.dude == None:
             return
-  
-        self._send_deltas()
+
         self.dude.dir = self.dir
         self.dude.act = self.act
         self.dir = ZERO_VECTOR
         self.act = None
         
-    def _send_deltas(self):
+
+    def get_neighbor(self, dir):
+        if not self.dude:
+            return None
+        t = self.dude.pos + dir*GRID_SIZE
+        return engine.metagrid.get_cell(t.x, t.y)
+
+    def send_deltas(self):
         #check to make sure the guy can see what's around him
         now_watching = {}
         #we need to know how the set of what this guy's watching
@@ -99,45 +121,46 @@ class Client:
         still_watching = {}
         no_longer_watching = {}
         for dir in ALL_DIRS + [ZERO_VECTOR]:
-            t = self.dude.pos+dir*GRID_SIZE
-            cell = engine.metagrid.get_cell(t.x, t.y)
-            if not cell in self.watching:                
-                newly_watched[cell] = True
-            now_watching[cell] = True
+            cell = self.get_neighbor(dir)
+            if not dir in self.watching:                
+                newly_watched[dir] = True 
+            now_watching[dir] = True 
 
-        for cell in self.watching:
-            if not cell in now_watching:
-                no_longer_watching[cell] = True
+        for dir in self.watching:
+            if not (dir in now_watching):
+                no_longer_watching[dir] = True
             else:
-                still_watching[cell] = True
+                still_watching[dir] = True
                 
         params = (len(now_watching), len(newly_watched),
                   len(still_watching), len(no_longer_watching))
-        #log("%d now watched. %d new, %d still, %d no longer" % params)
 
         #do some sanity checks
         for cell in newly_watched:
             if cell in still_watching:
-                log_error("%s was in newly AND still watched!" % 
+                log("%s was in newly AND still watched!" % 
                             cell)
             if cell in no_longer_watching:
-                log_error ("%s was in newly AND no longer watched!" %
+                log("%s was in newly AND no longer watched!" %
                         cell)
         for cell in still_watching:
             if cell in no_longer_watching:
-                log_error("%s was in still and no longer watching!" % cell) 
+                log("%s was in still and no longer watching!" % cell) 
         #now go through each of these sells and send them 
         #the appropriate message
-        for cell in newly_watched:
-            if cell.current_state:
+        for dir in newly_watched:
+            cell = self.get_neighbor(dir)
+            if cell and cell.current_state:
                 self.send(cell.current_state)
-        for cell in still_watching:
-            if cell.last_delta and self.delta_matters(cell.last_delta):
+        for dir in still_watching:
+            cell = self.get_neighbor(dir)
+            if cell and cell.last_delta and self.delta_matters(cell.last_delta):
                 self.send(cell.last_delta) 
-        for cell in no_longer_watching:
-            if cell.drop_message:
-                self.send(cell.drop_message)
 
+        for dir in no_longer_watching:
+            cell = self.get_neighbor(dir)
+            if cell and cell.drop_message:
+                self.send(cell.drop_message)
         
         self.watching = now_watching
 
@@ -155,16 +178,18 @@ class Client:
             self.kill_count += 1
             
     def disconnect(self):
-        self.disconnected = True
-        if self.dude:
-            self.dude.die(self)
+        if not self.disconnected:
+            self.disconnected = True
+            engine.client_manager.remove_client(self)
 
     #@logged 
     def send(self, message):
-        try:
-            self.socket.write_message(message)
-        except IOError:
-            self.disconnect()
+        if not self.disconnected\
+            and hasattr(self, 'socket'):
+            try:
+                self.socket.write_message(message)
+            except IOError:
+                self.disconnect()
 
     #@logged    
     def on_message(self, message):                        
@@ -175,19 +200,29 @@ class Client:
             self.act = msg['act']
         elif 'name' in msg:
             self.name = msg['name']
+            if self.name in clients_by_name:
+                log ('We know this client: ' +self.name)
+                client = clients_by_name[self.name] 
+                log ('client has dude %s' % client.dude)
+                self.spawn_dude(client.dude)
+                client.die(self)
+                clients_by_name[self.name] = self
+            else:
+                clients_by_name[self.name] = self
+                self.spawn_dude(Dude())
+            
 
- 
 class SocketConnectionHandler (tornado.websocket.WebSocketHandler):
 
     def __init__(self, application, request):
         tornado.websocket.WebSocketHandler.__init__(self, application, request)
         """sets up the socket sender""" 
-        self.client = Client(self)
+        log ('New client connected: %s' % self.request)
         
     def open(self):
-        print "Client",self.client.id," opened a socket. They are alive!"
-        self.client.spawn_dude()
-
+        self.client = Client()
+        self.client.socket = self
+        self.on_message = self.client.on_message
 game = Game()
 engine.game = game
 engine.build_world()

@@ -148,7 +148,7 @@ class Walker:
                         self.carrying.pos = self.pos
             self.last_dir = self.dir
         
-@RegisterEntity
+@RegisterPersisted
 class Dude(Mover, Walker, Updater):
     
 
@@ -156,11 +156,9 @@ class Dude(Mover, Walker, Updater):
 
         pos = params.get('pos') or engine.metagrid.get_free_position(LAYER_BLOCKS)
         params['pos'] = pos
-
-        params['layer'] = LAYER_BLOCKS
+        params['layer'] = params.get('layer') or LAYER_BLOCKS
         Entity.__init__(self, **params)
 
-        self.net_vars['anim'] = True
         self.height = ENTITY_SIZE.x*0.5;
         self.act = None
         self.solid = True
@@ -175,7 +173,7 @@ class Dude(Mover, Walker, Updater):
         #states are: standing, moving, using
         self.state = 'standing'
         self.carrying = None
-
+        self.net_vars['anim'] = True
 
     def push(self, pushee):
         pass
@@ -269,7 +267,7 @@ class Dude(Mover, Walker, Updater):
 
 
 
-@RegisterEntity
+@RegisterPersisted
 class Sheep(Dude, Carryable):
     def __init__(self, **params):
         Dude.__init__(self,**params)
@@ -321,7 +319,7 @@ class Sheep(Dude, Carryable):
 
 
     
-@RegisterEntity
+@RegisterPersisted
 class Terrain(Entity):
     
     def __init__(self, **kwargs):
@@ -357,13 +355,14 @@ class Terrain(Entity):
 
     def start_forest(self, spawn_type, distance):
     
-        spawn_type(pos=self.pos)
-        return 
         def tree_visitor(neighbor, dir):
             if neighbor.terrain_type == 'water': 
                 return
             dist = (neighbor.pos - self.pos).length()
-            prob = dist/float(GRID_SIZE)
+            if dist == 0:
+                dist = 1
+
+            prob = 1/dist
             if random.random() < prob:
                 if not LAYER_BLOCKS in\
                     engine.get_entities(self.pos.x, self.pos.y):
@@ -409,7 +408,7 @@ class Terrain(Entity):
                                          self.neighbor_types[DOWN],
                                          self.neighbor_types[LEFT])
 
-@RegisterEntity
+@RegisterPersisted
 class Road(Entity):
 
     def __init__(self, pos, is_vertical):
@@ -420,7 +419,7 @@ class Road(Entity):
                         self.tex = 'road_horizontal.png'
 
 
-@RegisterEntity
+@RegisterPersisted
 class Shrub(Mover):
 
     def __init__(self, pos,parent):
@@ -435,7 +434,7 @@ class Shrub(Mover):
 
 
 
-@RegisterEntity
+@RegisterPersisted
 class PlowedPatch(Mover, Updater):
 
     PLANT_GROWTH_TICKS = 20
@@ -515,7 +514,7 @@ class PlowedPatch(Mover, Updater):
                     self.growing.grow()
 
 
-@RegisterEntity
+@RegisterPersisted
 class Tree(Mover):
     def __init__(self, **kwargs):
         kwargs['tex'] = 'full_tree.png'
@@ -525,7 +524,7 @@ class Tree(Mover):
     def die(self):
         Entity.die(self)
 
-@RegisterEntity
+@RegisterPersisted
 class WoodPile(Mover, Carryable):
     
     def __init__(self, **kwargs):
@@ -550,7 +549,7 @@ class WoodPile(Mover, Carryable):
             self.die()
             Fence(pos=other.pos) 
 
-@RegisterEntity
+@RegisterPersisted
 class Fence(Mover, Entity):
 
     def __init__(self, pos):
@@ -577,14 +576,14 @@ class Fence(Mover, Entity):
                                         self.neighbor_fences[DOWN],
                                          self.neighbor_fences[LEFT])
 
-@RegisterEntity
+@RegisterPersisted
 class Flag(Mover):
     def __init__(self, pos, team):
         Entity.__init__(self, pos, ENTITY_SIZE,LAYER_BLOCKS)
         self.tex = team+'_flag.png'
         self.height= ENTITY_SIZE.x
 
-@RegisterEntity
+@RegisterPersisted
 class Forest:
 
     def __init__(self, pos_x, pos_y, width, height,edge=2):
@@ -600,7 +599,7 @@ class Forest:
                     except CellFull:
                         pass
 
-@RegisterEntity
+@RegisterPersisted
 class FruitPatch:
 
     def __init__(self, pos_x, pos_y, width, height,edge=2):
@@ -617,7 +616,7 @@ class FruitPatch:
                         pass
 
 
-@RegisterEntity
+@RegisterPersisted
 class Building:
     def __init__(self, pos_x, pos_y, width, height):
         

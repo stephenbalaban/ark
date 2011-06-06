@@ -25,32 +25,73 @@ DIAGONALS = [UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT]
 ALL_DIRS = DIAGONALS + ORDINALS
 ENTITY_SIZE = vector2(8,8)
 GRID_SIZE = 8 
-METAGRID_SIZE =  8 
+METAGRID_SIZE = 2 
 ID_CHARS = [chr(x) for x in range(256) 
                 if (chr(x).isalpha() or chr(x).isdigit())]
 
 def make_entity_id():
             return ''.join([random.choice('0123456789abcedfeABCDEF') 
                             for x in range(8)])
-    
+ 
+entity_class_registry = {}
+def RegisterPersisted(f):
+    entity_class_registry[f.__name__] = f
+    return f
 
-class EntityWrapper:
+   
+@RegisterPersisted
+class PersistedWrapper:
 
     def __init__(self, target_id):
-        self.target_id = target_id
+        self.id = target_id
         self.target = None
 
     def __getattr__(self, name):
+
+        if name == 'id' :
+            return self.id
         if  not self.target:
             #see if you can get the entity from the database
-            self.target = engine.get_entity(self.target_id)
+            print 'getting entity', self.id
+            self.target = engine.get_entity(self.id)
 
         if not self.target:
-            raise NoSuchEntity("Empty json wrapper for '%s'" % self.target_id)
-        return self.__dict__[name]
+            raise NoSuchEntity("Empty json wrapper for '%s'" % self.id)
+        return getattr(self.target, name)
         
-    
-    
+class Persisted:
+    def dump_json(self):
+        res = {}
+        vars_to_save = [name 
+                            for name 
+                            in self.__dict__
+                            if self.saves(name)]
+        for varname in vars_to_save:
+            val = self.__dict__[varname]
+            if not (inspect.isfunction(val) or\
+                    inspect.ismethod(val) or\
+                    inspect.isclass(val)) :
+                res[varname] = val
+        res['__class__'] = self.__class__.__name__ 
+        return res 
+
+    def persist(self, datastore):
+        ent_data = self.dump_json()
+        #constructors set these up
+        del ent_data['net_vars']
+        ent_data['_id'] = self.id
+        try:
+            datastore.entities.save(ent_data,manipulate=True,safe=True) 
+        except Exception, exc:
+            import pdb
+            log ('Exception : %s' % exc )
+            pdb.set_trace()
+
+    def saves(self, name):
+        return True
+
+   
+
 
 from pymongo.son_manipulator import SONManipulator
 
@@ -64,7 +105,7 @@ class JSONTransformer(SONManipulator):
             if isinstance(item, vector2):
                 return {"_type" : "vector2", 
                             "vec" :  [item.x, item.y]}
-            elif isinstance(item, Entity):
+            elif isinstance(item, Entity) or isinstance(item, PersistedWrapper):
                 return {"_type" :"ent",
                         "ent_id" : item.id}
             elif isinstance(item, dict):
@@ -94,7 +135,8 @@ class JSONTransformer(SONManipulator):
                          return  vector2(item["vec"][0], 
                                            item["vec"][1])
                     if item["_type"] == "ent":
-                         return  EntityWrapper(item["ent_id"])
+                         log ('making entity wrapper.')
+                         return  PersistedWrapper(item["ent_id"])
  
                     elif item["_type"] == "dict":
                         res = {}
@@ -113,13 +155,20 @@ class ClientManager:
     
     def __init__(self):
         self.clients = {}
+        self.to_remove = {}
         
     def add_client(self,client):
         self.clients[client.id] = client
+
+    def remove_client(self,client):
+        self.to_remove[client] = True
     
     def update(self):
         for id in self.clients:
-            self.clients[id].update()
+            self.clients[id].send_deltas()
+        for dude in self.to_remove:
+            if dude.id in self.clients:
+                del self.clients[dude.id]
 
 class CellFull(Exception): pass
 class GridCell:
@@ -215,7 +264,7 @@ class MetaGrid:
         return res
 
     def add_entity(self, new_guy,moving=False): 
-        self.get_cell(new_guy.pos.x, 
+            self.get_cell(new_guy.pos.x, 
                         new_guy.pos.y).add_entity(new_guy,moving) 
 
     def get_entity(self, ent_id):
@@ -297,7 +346,7 @@ class Engine:
         self.datastore.add_son_manipulator(JSONTransformer())
         self.metagrid = MetaGrid(self.datastore)
         self.client_manager = ClientManager() 
-
+        self.ghosts = {}
 
     def save_world(self, save_terrain=False):
 
@@ -307,11 +356,15 @@ class Engine:
             self.metagrid.cells[cell].persist()
             if save_terrain:
                 self.metagrid.cells[cell].persist_terrain()
+        log ('saving ghosts.')
+        for ghost in self.ghosts:
+            log ('persisting %s' % self.ghosts[ghost])
+            self.ghosts[ghost].persist(self.datastore)
         log ('saving complete.')
 
     def build_world(self):
 
-        generate =  True 
+        generate = False 
  
         if generate:
             log ('Generating world.')
@@ -341,16 +394,18 @@ class Engine:
            log ('Load complete')
 
 
-                  
-
     def add_entity(self, new_guy, moving=False):
-        self.metagrid.add_entity(new_guy, moving)
+        if (hasattr(new_guy, 'pos') and (new_guy.pos)):
+            self.metagrid.add_entity(new_guy, moving)
+        else:
+            self.ghosts[new_guy.id] = new_guy
         
-    def add_client(self, client):
-        self.client_manager.add_client(client)
 
     def remove_entity(self, ent, moving=True):
-        self.metagrid.remove_entity(ent, moving)
+        if hasattr(ent,'pos') and ent.pos:
+            self.metagrid.remove_entity(ent, moving)
+        if ent.id in self.ghosts:
+            del self.ghosts[ent.id]
  
     def get_entities(self, x, y):
         return self.metagrid.get_entities(x,y)
@@ -362,10 +417,11 @@ class Engine:
         return ''.join([random.choice(ID_CHARS) for x in range(16)])
 
     def update(self):
+        for id in self.ghosts:
+            self.ghosts[id].update()
         self.metagrid.update()
-        self.client_manager.update() 
-                
-
+        self.client_manager.update()
+      
 class MetaGridCell:
         """encapsulates the behavior of the entire game"""
         def __init__(self,pos, datastore):
@@ -399,16 +455,22 @@ class MetaGridCell:
                 self.moved_here[entity] = True
             else:
                 self.noobs += [entity]
-            self.grid.add_entity(entity)
+            if hasattr(entity, 'pos') and entity.pos:
+                self.grid.add_entity(entity)
 
         def remove_entity(self, entity, moving=False):
             #don't put this guy on the list of dead entities
             #if he's just moving to another location
+            if entity in self.noobs:
+                self.noobs.remove(entity)
+                return
+
             if not moving:
                 self.deads[entity.id] = entity
             else:
                 self.moved_away[entity.id] = entity
-            self.grid.remove_entity(entity)
+            if hasattr(entity, 'pos') and entity.pos:
+                self.grid.remove_entity(entity)
                 
         def get_entity(self, ent_id):
             if ent_id in self.dude_map:
@@ -532,7 +594,8 @@ engine = Engine()
 
 
 
-class Entity:
+
+class Entity(Persisted):
     "abstract base class for things in the game"
     def __init__(self,**params ):
 
@@ -553,10 +616,10 @@ class Entity:
         self.__dict__["delta"] = {}
         
     
-        self.id = make_entity_id()      
+        self.id = params.get('id') or make_entity_id()      
         self.tex = params.get('tex') or 'none.png'
         self.dead = False
-        self.pos = params.get('pos') or vector2(0,0) 
+        self.pos = params.get('pos') or None 
         self.size = params.get('size') or ENTITY_SIZE 
         self.dir =  params.get('dir') or RIGHT 
         self.angle = params.get('angle') or 0 
@@ -566,7 +629,7 @@ class Entity:
         self.lerp_frames = {}
         self.frame = params.get('frame') or 0 
         
-        special_keys = self.net_vars.keys() + ['__class__']
+        special_keys = ['__class__']
         for param in params:
             if not param in special_keys: 
                 setattr(self, param, params[param])
@@ -575,34 +638,12 @@ class Entity:
 
 
     def __repr__(self):
-        return "%s %s at %d, %d" % (self.__class__.__name__,
+        return "%s %s at %d, %d, %d" % (self.__class__.__name__,
                                  self.id  or "No Id",
                                  self.pos.x,
-                                 self.pos.y)
+                                 self.pos.y, self.layer)
 
-    def dump_json(self):
-        res = {}
-        vars_to_save = [name for name in self.__dict__]
-        for varname in vars_to_save:
-            val = self.__dict__[varname]
-            if not (inspect.isfunction(val) or\
-                    inspect.ismethod(val) or\
-                    inspect.isclass(val)) :
-                res[varname] = val
-        res['__class__'] = self.__class__.__name__ 
-        return res 
-
-    def persist(self, datastore):
-        ent_data = self.dump_json()
-
-        #constructors set these up
-
-        del ent_data['net_vars']
-        ent_data['_id'] = self.id
-
-        datastore.entities.save(ent_data,manipulate=True,safe=True) 
-
-
+  
     def __setattr__(self, attr_name, value):
 
         if attr_name in self.net_vars:
@@ -656,12 +697,6 @@ class Entity:
 class NoSuchEntity: 
     def __init__(self, msg):
         self.message = msg
-
-
-entity_class_registry = {}
-def RegisterEntity(f):
-    entity_class_registry[f.__name__] = f
-    return f
 
 
 class Updater: pass

@@ -2,36 +2,6 @@ function lerp_frame(first,last,percent){
     return first + (last-first)*(percent);
 }
 
-function lerp_pos(ent){
-   
-    pieces = [ent.pos.x,ent.pos.y,ent.height] 
-    if (ent.lerp_targets.pos && ent.lerp_frames.pos > 0){
-        --ent.lerp_frames.pos;                
-        var how_far = 1 - ent.lerp_frames.pos/DRAWS_PER_TURN;
-        for (var i in [0,1]){
-            var piece = (ent.lerp_targets.pos[i] - ent.pos[i]) 
-            while (piece > grid_size/2)
-                piece -= grid_size;
-            while (piece < -grid_size/2)
-                piece += grid_size;
-            piece = piece * how_far;
-            pieces[i] = ent.pos[i] + piece;                
-            
-        }
-    }
-    if (ent.lerp_targets.height && ent.lerp_frames.height > 0){
-        --ent.lerp_frames.height;                
-        var how_far = 1 - ent.lerp_frames.pos/DRAWS_PER_TURN;
-        how_far = how_far*(ent.lerp_targets.height - ent.height);
-        pieces[2] = ent.height + how_far;
-            
-    }
-    
-    ent.pos = [pieces[0], pieces[1]];
-    ent.height = pieces[2];
-
-}
-
 function get_entity_pos(ent){
 
         if (camera_ent_id == -1){            
@@ -52,15 +22,10 @@ function get_entity_pos(ent){
         var y = ent.pos[1];
         var height = ent.height;
 
-        lerp_pos(ent);
-        x = ent.pos[0];
-        y = ent.pos[1];
-
-        x = canvas_width/2 + entity_size*(ent.pos[0]+0.5)
-        y = canvas_height/2 + entity_size*(ent.pos[1]+ 0.5 - ent.height);
-
+        x = canvas_width/2 + entity_size*(x-cx+0.5)
+        y = canvas_height/2 + entity_size*(y-cy + 0.5) - height;
     
-        return [x,y,ent.height, cx, cy];
+        return [x,y,height, cx, cy];
 }
 
 function render_image(ctx,x,y,h,angle,img,s_x,s_y,scale){

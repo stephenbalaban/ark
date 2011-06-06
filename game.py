@@ -57,7 +57,7 @@ class Game:
             x = random.choice(range(GRID_SIZE*METAGRID_SIZE))
             y = random.choice(range(GRID_SIZE*METAGRID_SIZE))
         
-            choices =  {Tree: GRID_SIZE, Sheep: GRID_SIZE*0.1}
+            choices =  {Tree: GRID_SIZE, Sheep: GRID_SIZE*0.5}
             choice = random.choice(choices.keys())
             engine.get_entities(x,y)[LAYER_GROUND].start_forest(choice,
                                                                 choices[choice])
