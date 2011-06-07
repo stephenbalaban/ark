@@ -364,7 +364,7 @@ class Engine:
 
     def build_world(self):
 
-        generate = False 
+        generate = True 
  
         if generate:
             log ('Generating world.')

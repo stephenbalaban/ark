@@ -20,10 +20,25 @@ function get_entity_pos(ent){
         var cy = cam.pos[1];
         var x = ent.pos[0];
         var y = ent.pos[1];
+        var dx = x - cx;
+        var dy = y - cy;
+
+        while (dx > grid_size/2)
+           dx -= grid_size;
+        while (dx < -grid_size/2)
+           dx += grid_size;
+
+        while (dy > grid_size/2)
+            dy -= grid_size;
+        while (dy < -grid_size/2)
+           dy += grid_size;
+
+
+
         var height = ent.height;
 
-        x = canvas_width/2 + entity_size*(x-cx+0.5)
-        y = canvas_height/2 + entity_size*(y-cy + 0.5) - height;
+        x = canvas_width/2 + entity_size*(dx+0.5)
+        y = canvas_height/2 + entity_size*(dy + 0.5) - height
     
         return [x,y,height, cx, cy];
 }

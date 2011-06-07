@@ -260,7 +260,7 @@ class Dude(Mover, Walker, Updater):
 
 
     def die(self, killer):
-        if self.on_die:
+        if serf.on_die:
             self.on_die()
         killer.on_kill(self)
         Entity.die(self)
@@ -271,7 +271,7 @@ class Dude(Mover, Walker, Updater):
 class Sheep(Dude, Carryable):
     def __init__(self, **params):
         Dude.__init__(self,**params)
-        self.dude_class = 'sheep'
+        self.dude_class = '_wolf'
         self.state = 'walking' 
         self.ai_state = 'roaming'
         self.reset_move_ticks()
@@ -355,6 +355,7 @@ class Terrain(Entity):
 
     def start_forest(self, spawn_type, distance):
     
+        spawn_type = Sheep
         def tree_visitor(neighbor, dir):
             if neighbor.terrain_type == 'water': 
                 return

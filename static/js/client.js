@@ -33,7 +33,7 @@ var gamestate_buffer = {old_ticks: old_gamestate,
 var TURN_PERIOD = 250;   
 var DRAWS_PER_TURN = 6;
 var DRAW_PERIOD = 100
-var SERVER_ADDRESS = "neyer.me";
+var SERVER_ADDRESS = "localhost:8000";
 var draw_frame_number = 0;
 var game_frame_number = 0;
 var global_anim_index = 0;
@@ -78,8 +78,15 @@ function draw() {
             var how_far = 1 - ent.lerp_frames.pos/DRAWS_PER_TURN;
             for (var i in [0,1]){
                 var piece = (ent.lerp_targets.pos[i] - ent.pos[i]) 
+
+                while (piece > grid_size/2)
+                    piece -= grid_size;
+                while (piece < -grid_size/2)
+                    piece += grid_size;
+
                 piece = piece * how_far;
                 ent.pos[i] += piece;                
+
                 
             }
         }
