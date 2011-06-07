@@ -37,8 +37,8 @@ function get_entity_pos(ent){
 
         var height = ent.height;
 
-        x = canvas_width/2 + entity_size*(dx+0.5)
-        y = canvas_height/2 + entity_size*(dy + 0.5) - height
+        x = canvas_width/2 + entity_size*(dx+0.5);
+        y = canvas_height/2 + entity_size*(dy + 0.5) - height;
     
         return [x,y,height, cx, cy];
 }

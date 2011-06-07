@@ -114,23 +114,27 @@ class Client(Updater, Entity):
 
     def send_deltas(self):
         #check to make sure the guy can see what's around him
-        now_watching = {}
+        old_watching = {}
+        for cell_pos in self.watching:
+            old_watching[cell_pos] = True
         #we need to know how the set of what this guy's watching
         #has changed
         newly_watched = {}
         still_watching = {}
+        now_watching = {}
         no_longer_watching = {}
         for dir in ALL_DIRS + [ZERO_VECTOR]:
             cell = self.get_neighbor(dir)
-            if not dir in self.watching:                
-                newly_watched[dir] = True 
-            now_watching[dir] = True 
+            if not cell.pos in old_watching:                
+                newly_watched[cell] = cell.pos 
+            now_watching[cell] = cell.pos 
 
-        for dir in self.watching:
-            if not (dir in now_watching):
-                no_longer_watching[dir] = True
+        for cell_pos in old_watching:
+            cell = engine.metagrid.get_cell(cell_pos[0], cell_pos[1])
+            if not cell in now_watching:
+                no_longer_watching[cell] = True 
             else:
-                still_watching[dir] = True
+                still_watching[cell] = True 
                 
         params = (len(now_watching), len(newly_watched),
                   len(still_watching), len(no_longer_watching))
@@ -148,21 +152,23 @@ class Client(Updater, Entity):
                 log("%s was in still and no longer watching!" % cell) 
         #now go through each of these sells and send them 
         #the appropriate message
-        for dir in newly_watched:
-            cell = self.get_neighbor(dir)
+        for cell in newly_watched:
+            log('now watching %s' % cell)
             if cell and cell.current_state:
                 self.send(cell.current_state)
-        for dir in still_watching:
-            cell = self.get_neighbor(dir)
+        for cell in still_watching:
             if cell and cell.last_delta and self.delta_matters(cell.last_delta):
+                log('sending delta for %s' % cell)
                 self.send(cell.last_delta) 
 
-        for dir in no_longer_watching:
-            cell = self.get_neighbor(dir)
+        for cell in no_longer_watching:
+            log ('no longer watching %s' % cell)
             if cell and cell.drop_message:
                 self.send(cell.drop_message)
         
-        self.watching = now_watching
+        self.watching = {} 
+        for cell in now_watching:
+            self.watching[cell.pos] = True
 
 
     def handle_player_die(self):
