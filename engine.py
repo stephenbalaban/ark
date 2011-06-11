@@ -325,15 +325,26 @@ class MetaGrid:
                     
 
     def find_nearest(self, x, y, layer, max_dist=4, selector = lambda ent : True):
-        for i in range(max_dist):
-            for j in range(max_dist):
-                this_x = x + i - max_dist/2
-                this_y = y + j - max_dist/2
-                dudes = self.get_entities(this_x,this_y)
-                if layer in dudes:
-                    if selector(dudes[layer]):
-                        return dudes[layer]
+        cx = x
+        cy = y
 
+        for r in range(max_dist):
+            for dx in range(2*r+1):
+                cx = x - max_dist/2 + dx
+                for cy in [y-max_dist/2, y+max_dist/2]:
+                    dudes = self.get_entities(cx,cy)
+                    if layer in dudes:
+                        if selector(dudes[layer]):
+                            return dudes[layer]
+
+            for dy in range(2*r+1):
+                cy = y - max_dist/2 + dy
+                for cx in [x-max_dist/2, y+max_dist/2]:
+                    dudes = self.get_entities(cx,cy)
+                    if layer in dudes:
+                        if selector(dudes[layer]):
+                            return dudes[layer]
+           
 
 class Engine:
     "The engine controls the whole game, updating entities and shit"
@@ -440,6 +451,9 @@ class MetaGridCell:
                 self.datastore = datastore
 
     
+        def get_pos(self):
+            return vector2(self.pos[0],
+                           self.pos[1])
         def __repr__(self):
             return "MetaGridCell at %d,%d." % self.pos                
 

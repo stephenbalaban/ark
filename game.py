@@ -52,12 +52,13 @@ class Game:
 
         #now add some trees and fruit
         log('building world: adding resources')
-        num_tree_cells = 1 #int(num_cells*0.4)
+        num_tree_cells = int(num_cells*0.4)
         for c in range(num_tree_cells):
             x = random.choice(range(GRID_SIZE*METAGRID_SIZE))
             y = random.choice(range(GRID_SIZE*METAGRID_SIZE))
         
-            choices =  {Tree: GRID_SIZE, Sheep: GRID_SIZE*0.5}
+            choices =  { Sheep: GRID_SIZE*0.5,
+                         Wolf : GRID_SIZE*0.1}
             choice = random.choice(choices.keys())
             engine.get_entities(x,y)[LAYER_GROUND].start_forest(choice,
                                                                 choices[choice])

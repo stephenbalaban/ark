@@ -19,7 +19,7 @@ var canvas_height = 400;
 var entity_size = 32;
 var camera_ent_id = -1;
 var base_scale = entity_size/16;
-var grid_size = 64;
+var grid_size = 8*8;
 //all the images are stored in the same directory
 //to save on bandwidth we know to prefix them all with this
 var image_base = '/static/images/';

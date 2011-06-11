@@ -107,12 +107,12 @@ class Client(Updater, Entity):
         
 
     def get_neighbor(self, dir):
-        if not self.dude:
-            return None
         t = self.dude.pos + dir*GRID_SIZE
         return engine.metagrid.get_cell(t.x, t.y)
 
     def send_deltas(self):
+        if not self.dude:
+            return 
         #check to make sure the guy can see what's around him
         old_watching = {}
         for cell_pos in self.watching:
@@ -125,12 +125,17 @@ class Client(Updater, Entity):
         no_longer_watching = {}
         for dir in ALL_DIRS + [ZERO_VECTOR]:
             cell = self.get_neighbor(dir)
-            if not cell.pos in old_watching:                
-                newly_watched[cell] = cell.pos 
-            now_watching[cell] = cell.pos 
+
+            if not cell:
+                log ('No cell for direction %s' % dir)
+                import pdb
+                pdb.set_trace()
+            if not cell.get_pos() in old_watching:                
+                newly_watched[cell] = cell.get_pos()
+            now_watching[cell] = cell.get_pos()
 
         for cell_pos in old_watching:
-            cell = engine.metagrid.get_cell(cell_pos[0], cell_pos[1])
+            cell = engine.metagrid.get_cell(cell_pos.x, cell_pos.y)
             if not cell in now_watching:
                 no_longer_watching[cell] = True 
             else:
@@ -153,22 +158,22 @@ class Client(Updater, Entity):
         #now go through each of these sells and send them 
         #the appropriate message
         for cell in newly_watched:
-            log('now watching %s' % cell)
+            #log('now watching %s' % cell)
             if cell and cell.current_state:
                 self.send(cell.current_state)
         for cell in still_watching:
             if cell and cell.last_delta and self.delta_matters(cell.last_delta):
-                log('sending delta for %s' % cell)
+                #log('sending delta for %s' % cell)
                 self.send(cell.last_delta) 
 
         for cell in no_longer_watching:
-            log ('no longer watching %s' % cell)
+            #log ('no longer watching %s' % cell)
             if cell and cell.drop_message:
                 self.send(cell.drop_message)
         
         self.watching = {} 
         for cell in now_watching:
-            self.watching[cell.pos] = True
+            self.watching[cell.get_pos()] = True
 
 
     def handle_player_die(self):
@@ -255,7 +260,7 @@ if __name__ == "__main__":
     http_server.listen(8000)
     main_loop = tornado.ioloop.IOLoop.instance();
     scheduler = tornado.ioloop.PeriodicCallback(game.update, TICK_PERIOD, io_loop = main_loop)    
-    scheduler2 = tornado.ioloop.PeriodicCallback(engine.save_world, 2000, io_loop = main_loop)    
+    scheduler2 = tornado.ioloop.PeriodicCallback(engine.save_world,  TICK_PERIOD*100, io_loop = main_loop)    
 
     scheduler.start()
     scheduler2.start()

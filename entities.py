@@ -268,37 +268,141 @@ class Dude(Mover, Walker, Updater):
 
 
 @RegisterPersisted
-class Sheep(Dude, Carryable):
+class Roamer(Walker):
+
     def __init__(self, **params):
-        Dude.__init__(self,**params)
-        self.dude_class = '_wolf'
-        self.state = 'walking' 
-        self.ai_state = 'roaming'
         self.reset_move_ticks()
-        self.update_texture() 
-        self.carried_by = None
-        self.carrying = None
 
 
     def reset_move_ticks(self):
         self.move_ticks =  5 + random.randint(0, 5)
 
     def update(self):
-        if self.ai_state == 'roaming' and not\
-                self.carried_by:
-            #set dir 
-            if self.move_ticks == 0:
-                if random.random() < 0.1:
-                    self.dir = random.choice([UP,DOWN,LEFT,RIGHT])
-                self.reset_move_ticks()
-                Walker.update(self)
+        #set dir 
+        if self.move_ticks == 0:
+            if random.random() < 0.1:
+                self.dir = random.choice([UP,DOWN,LEFT,RIGHT])
+            self.reset_move_ticks()
+            Walker.update(self)
 
         self.move_ticks -= 1
             #see if there are any plants in the area, if there are, go afer them
         self.update_texture()
     
+   
+@RegisterPersisted
+class Chaser(Walker):
+
+    def __init__(self,**params):
+        self.target = None
+    
+
+    def update(self):
+        if not self.target:
+            self.find_target()
+        else:
+            #figure out what direction to go to the target
+            #go that direction
+            target_dir = self.target.pos - self.pos
+
+            if target_dir.x > 0:
+                target_pos = self.pos + LEFT
+            elif target_dir.x < 0:
+                target_pos = self.pos + RIGHT
+            elif target_dir.y < 0:
+                target_pos = DOWN
+            elif target_dir.y > 0:
+                target_pos = UP
+            else:
+                target_pos = self.pos
+
+            self.move(target_pos)
+
+    
+    def find_target(self):
+        return None
+
+class Seeker:
+
+    def get_dir_for_target(self, other):
+        away = other.pos - self.pos
+        choices = [ZERO_VECTOR]
+        
+        correct_bonus = 5
+        if away.x > 0:
+            for x in range (correct_bonus):
+                choices.append(LEFT)
+            choices.append(UP)
+            choices.append(DOWN)
+        if away.x < 0:
+            for x in range(correct_bonus):
+                choices.append(RIGHT)
+            choices.append(UP)
+            choices.append(DOWN)
+
+        if away.y > 0:
+            for x in range(correct_bonus):
+                choices.append(DOWN)
+            choices.append(LEFT)
+            choices.append(RIGHT)
+
+        if away.y < 0:
+            for x in range(correct_bonus):
+               choices.append(UP)
+            choices.append(LEFT)
+            choices.append(RIGHT)
+
+        return random.choice(choices)
+
+
+
+@RegisterPersisted
+class Sheep(Seeker, Dude, Roamer, Carryable):
+
+    def __init__(self, **params):
+        Dude.__init__(self,**params)
+        self.dude_class = 'sheep'
+        self.update_texture() 
+        self.carried_by = None
+        self.carrying = None
+        self.state = 'walking'
+        self.reset_move_ticks()
+
+
+
+    def can_smash(self, other):
+        can = isinstance(other, Terrain)
+        return can
+
+    def can_travel(self, ttype):
+        return not ttype in [ 'water' ]
+
+    def smash(self, other):
+        if isinstance(other, Terrain):
+            Carryable.smash(self,other)
+
     def can_push(self, other):
         return False
+
+    def update(self):
+
+        def acceptor(ent):
+            return isinstance(ent, Wolf)
+
+        wolf = engine.metagrid.find_nearest(self.pos.x, 
+                                  self.pos.y,
+                                   LAYER_BLOCKS,
+                                   4,
+                                   acceptor)
+        if not wolf:
+            Roamer.update(self)
+        else:
+            towards = self.get_dir_for_target(wolf)
+            if not towards == ZERO_VECTOR:
+                away = DIR_OPPOSITES[towards]
+                self.last_dir = away 
+                self.dir = away
+                Walker.update(self)
 
     def use(self):
         #sheep eat plants
@@ -308,17 +412,61 @@ class Sheep(Dude, Carryable):
             self.target = None
             self.ai_state = 'roaming'
             self.act =  None
+ 
+@RegisterPersisted
+class Wolf(Seeker, Roamer, Chaser, Dude):
+
+    def __init__(self, **params):
+        Dude.__init__(self,**params)
+        Roamer.__init__(self)
+        Chaser.__init__(self)
+        self.dude_class = 'wolf'
+        self.state = 'walking'
+        self.update_texture() 
+        self.carried_by = None
+        self.carrying = None
+
 
     def can_smash(self, other):
         can = isinstance(other, Terrain)
         return can
 
+    def can_travel(self, ttype):
+        return not ttype in [ 'water' ]
+
+
+    def update(self):
+
+        def acceptor(ent):
+            return isinstance(ent, Sheep)
+
+        sheep = engine.metagrid.find_nearest(self.pos.x, 
+                                  self.pos.y,
+                                   LAYER_BLOCKS,
+                                   6,
+                                   acceptor)
+        if not sheep:
+            Roamer.update(self)
+        else:
+            towards = self.get_dir_for_target(sheep)
+            if not towards == ZERO_VECTOR:
+                self.last_dir = towards 
+                self.dir = towards 
+                Walker.update(self)
+
+
     def smash(self, other):
         if isinstance(other, Terrain):
             Carryable.smash(self,other)
 
+    def can_push(self, other):
+        return False
 
-    
+    def use(self):
+        pass
+
+
+   
 @RegisterPersisted
 class Terrain(Entity):
     
@@ -354,8 +502,6 @@ class Terrain(Entity):
         self.update_tex()
 
     def start_forest(self, spawn_type, distance):
-    
-        spawn_type = Sheep
         def tree_visitor(neighbor, dir):
             if neighbor.terrain_type == 'water': 
                 return
@@ -368,7 +514,7 @@ class Terrain(Entity):
                 if not LAYER_BLOCKS in\
                     engine.get_entities(self.pos.x, self.pos.y):
                     spawn_type(layer=LAYER_BLOCKS,pos=neighbor.pos)
-        self.percolate(GRID_SIZE, 0.8, tree_visitor)
+        self.percolate(distance, 0.8, tree_visitor)
         tree_visitor(self, None)
 
 
@@ -520,6 +666,7 @@ class Tree(Mover):
     def __init__(self, **kwargs):
         kwargs['tex'] = 'full_tree.png'
         kwargs['layer'] = LAYER_BLOCKS
+        kwargs['height'] = ENTITY_SIZE.y
         Entity.__init__(self, **kwargs)
 
     def die(self):
@@ -553,8 +700,9 @@ class WoodPile(Mover, Carryable):
 @RegisterPersisted
 class Fence(Mover, Entity):
 
-    def __init__(self, pos):
-        Entity.__init__(self, pos, ENTITY_SIZE, LAYER_BLOCKS)
+    def __init__(self, **kwargs):
+        kwargs['layer'] = kwargs.get('layer') or LAYER_BLOCKS
+        Entity.__init__(self)
         self.neighbor_fences = {}
 
         neighbors = engine.metagrid.grid.get_neighbors(pos)
