@@ -198,6 +198,7 @@ class GridCell:
             if ent.layer in self.entities:
                     other = self.entities.pop(ent.layer)
                     return True
+            log ('%s was not in %s' % (ent, self.entities))
             raise NoSuchEntity('No such entity %s at' % (ent))
 
 class GameGrid:
@@ -330,16 +331,16 @@ class MetaGrid:
 
         for r in range(max_dist):
             for dx in range(2*r+1):
-                cx = x - max_dist/2 + dx
-                for cy in [y-max_dist/2, y+max_dist/2]:
+                cx = x - max_dist + dx
+                for cy in [y-max_dist, y+max_dist]:
                     dudes = self.get_entities(cx,cy)
                     if layer in dudes:
                         if selector(dudes[layer]):
                             return dudes[layer]
 
             for dy in range(2*r+1):
-                cy = y - max_dist/2 + dy
-                for cx in [x-max_dist/2, y+max_dist/2]:
+                cy = y - max_dist + dy
+                for cx in [x-max_dist, y+max_dist]:
                     dudes = self.get_entities(cx,cy)
                     if layer in dudes:
                         if selector(dudes[layer]):

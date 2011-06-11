@@ -386,6 +386,9 @@ class Sheep(Seeker, Dude, Roamer, Carryable):
 
     def update(self):
 
+        if self.carried_by:
+            return 
+
         def acceptor(ent):
             return isinstance(ent, Wolf)
 
