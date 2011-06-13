@@ -51,17 +51,17 @@ class Game:
 
 
         #now add some trees and fruit
-        num_bomb_cells =  num_cells/(GRID_SIZE*GRID_SIZE)
+        num_bomb_cells =  num_cells*2/(GRID_SIZE*GRID_SIZE)
         log('building world: adding %d bombs' % num_bomb_cells)
         for c in range(num_bomb_cells):
             x = random.choice(range(GRID_SIZE*METAGRID_SIZE))
             y = random.choice(range(GRID_SIZE*METAGRID_SIZE))
         
-            choices =  { Sheep: GRID_SIZE*0.5,
-                         Wolf : GRID_SIZE*0.1,
-                         FirePuff : GRID_SIZE*0.2,
-                         Fruit : GRID_SIZE*0.25,
-                         Tree : GRID_SIZE*1.5}
+            choices =  { Sheep: GRID_SIZE*0.25,
+                         Wolf : GRID_SIZE*0.05,
+                         FirePuff : GRID_SIZE*0.1,
+                         Fruit : GRID_SIZE*0.125,
+                         Tree : GRID_SIZE*0.75}
 
             choice = random.choice(choices.keys())
 

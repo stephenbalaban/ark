@@ -618,7 +618,8 @@ class MetaGridCell:
                             'ents' : []} 
             
             for entity in self.updaters:
-                entity.update()
+                if not entity.dead:
+                    entity.update()
 
             for ent_id in self.dude_map:
                 entity = self.dude_map[ent_id]
@@ -649,6 +650,7 @@ class Entity(Persisted):
                  'tex': True,
                  'angle' : True,
                  'size' :True,
+                 'scale' : True,
                  'pos' : True,
                  'layer' : True,
                  'height': 0,
@@ -674,6 +676,7 @@ class Entity(Persisted):
         self.angle = params.get('angle') or 0 
         self.layer = params.get('layer') or 0 
         self.height = params.get('height') or 0
+        self.scale = params.get('scale') or 1
         self.lerp_targets = {}
         self.lerp_frames = {}
         self.frame = params.get('frame') or 0 

@@ -338,7 +338,7 @@ class Seeker:
 
     def get_dir_for_target(self, other):
         away = other.pos - self.pos
-        choices = []
+        choices = [ZERO_VECTOR]
         
         correct_bonus = 10 
         if away.x > 0:
@@ -372,6 +372,7 @@ class Seeker:
 class Sheep(Seeker, Dude, Roamer, Carryable, Flammable):
 
     def __init__(self, **params):
+        params['scale'] = params.get('scale') or 0.5+ random.random()*0.5 
         Dude.__init__(self,**params)
         self.dude_class = 'sheep'
         self.update_texture() 
@@ -400,8 +401,6 @@ class Sheep(Seeker, Dude, Roamer, Carryable, Flammable):
             Carryable.smash(self, other) 
 
 
-
-
     def can_push(self, other):
         return False
 
@@ -410,23 +409,45 @@ class Sheep(Seeker, Dude, Roamer, Carryable, Flammable):
         if self.carried_by:
             return 
 
+        if self.scale < 1:
+            self.scale += random.random()*0.001
+        else:
+            if random.random() < 0.001:
+                #find a free position near this guy and spawn a sheep
+                neighbors = engine.metagrid.get_neighbors(self.pos)
+
+                for dir in neighbors:
+                    if not LAYER_BLOCKS in neighbors[dir]:
+                        Sheep(pos=self.pos+dir,
+                              scale=0.5)
+                        break
+
         def acceptor(ent):
             return isinstance(ent, Wolf) or\
-                    isinstance(ent, Player)
+                    isinstance(ent, Player) or\
+                    isinstance(ent, Shrub)
 
-        wolf = engine.metagrid.find_nearest(self.pos.x, 
+        nearest = engine.metagrid.find_nearest(self.pos.x, 
                                   self.pos.y,
                                    LAYER_BLOCKS,
-                                   4,
+                                   GRID_SIZE/2,
                                    acceptor)
-        if not wolf:
+        if not nearest:
             Roamer.update(self)
         else:
-            towards = self.get_dir_for_target(wolf)
+            towards = self.get_dir_for_target(nearest)
             if not towards == ZERO_VECTOR:
-                away = DIR_OPPOSITES[towards]
-                self.last_dir = away 
-                self.dir = away
+                if isinstance(nearest, Shrub):
+                    if towards.length() == 1:
+                        nearest.die()
+                        return
+                    else:
+                        self.last_dir = towards
+                        self.dir = towards
+                else:
+                    away = DIR_OPPOSITES[towards]
+                    self.last_dir = away 
+                    self.dir = away
                 Walker.update(self)
 
     def use(self):
@@ -491,7 +512,7 @@ class Wolf(Seeker, Roamer, Chaser, Dude):
         sheep = engine.metagrid.find_nearest(self.pos.x, 
                                   self.pos.y,
                                    LAYER_BLOCKS,
-                                   6,
+                                   GRID_SIZE,
                                    acceptor)
         if not sheep:
             Roamer.update(self)
@@ -560,7 +581,7 @@ class Terrain(Entity):
             prob = distance/(dist*dist)
             if random.random() < prob:
                 if not LAYER_BLOCKS in\
-                    engine.get_entities(self.pos.x, self.pos.y):
+                    engine.get_entities(neighbor.pos.x, neighbor.pos.y):
                     spawn_type(layer=LAYER_BLOCKS,pos=neighbor.pos)
         self.percolate(distance, 0.8, tree_visitor)
         tree_visitor(self, None)
@@ -615,7 +636,7 @@ class Road(Entity):
 
 
 @RegisterPersisted
-class Shrub(Mover):
+class Shrub(Carryable, Mover):
 
     def __init__(self, pos,parent):
         Entity.__init__(self, pos=pos,size=ENTITY_SIZE,layer=LAYER_BLOCKS)

@@ -67,8 +67,7 @@ var animations = {
         var angle = ent.angle;
         var img = new Image();
         img.src = image_base + ent.tex;
-        render_image(contexts[ent.layer],x,y,h,angle,img,s_x,s_y,base_scale);
-;
+        render_image(contexts[ent.layer],x,y,h,angle,img,s_x,s_y,base_scale*ent.scale);
     },
 
     'dude' : function(contexts, ent) {
@@ -101,7 +100,7 @@ var animations = {
         img.src = image_base + ent.tex+"/"+ent.frame+".png";
         
         var ctx = contexts[ent.layer]
-        render_image(ctx,x,y,h,angle,img,s_x,s_y,base_scale);
+        render_image(ctx,x,y,h,angle,img,s_x,s_y,base_scale*ent.scale);
     } 
 
 
