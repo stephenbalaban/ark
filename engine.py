@@ -25,7 +25,7 @@ DIAGONALS = [UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT]
 ALL_DIRS = DIAGONALS + ORDINALS
 ENTITY_SIZE = vector2(8,8)
 GRID_SIZE = 8 
-METAGRID_SIZE = 8 
+METAGRID_SIZE = 4 
 ID_CHARS = [chr(x) for x in range(256) 
                 if (chr(x).isalpha() or chr(x).isdigit())]
 
@@ -326,25 +326,20 @@ class MetaGrid:
                     
 
     def find_nearest(self, x, y, layer, max_dist=4, selector = lambda ent : True):
-        cx = x
-        cy = y
 
-        for r in range(max_dist*2+1):
-            for dx in range(2*r+1):
-                cx = x - max_dist + dx
-                for cy in [y-max_dist, y+max_dist]:
-                    dudes = self.get_entities(cx,cy)
-                    if layer in dudes:
-                        if selector(dudes[layer]):
-                            return dudes[layer]
 
-            for dy in range(2*r+1):
-                cy = y - max_dist + dy
-                for cx in [x-max_dist, x+max_dist]:
-                    dudes = self.get_entities(cx,cy)
-                    if layer in dudes:
-                        if selector(dudes[layer]):
-                            return dudes[layer]
+        closest = []
+        def circle_visitor(x,y):
+            dudes = self.get_entities(x,y)
+            if layer in dudes:
+                if selector(dudes[layer]):
+                    closest.append(dudes[layer])
+   
+        for r in range(max_dist+1):
+            self.visit_circle(x,y, r, circle_visitor)
+
+        if closest:
+            return closest[0]
 
     def visit_circle(self, cx,cy, radius, visitor):
         f = 1 - radius

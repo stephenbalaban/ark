@@ -76,7 +76,7 @@ class Client(Updater, Entity):
     def spawn_dude(self, dude=None):
         if not dude:
             log ('spawning dude for %s' % self)
-            dude = Dude()
+            dude = Player()
         self.dude = dude 
         self.dude.owner = self
         self.dude.on_die = self.handle_player_die
@@ -220,7 +220,7 @@ class Client(Updater, Entity):
                 clients_by_name[self.name] = self
             else:
                 clients_by_name[self.name] = self
-                self.spawn_dude(Dude())
+                self.spawn_dude(Player())
             
 
 class SocketConnectionHandler (tornado.websocket.WebSocketHandler):

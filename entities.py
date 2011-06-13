@@ -154,7 +154,6 @@ class Walker:
         
 @RegisterPersisted
 class Dude(Mover, Walker, Updater):
-    
 
     def __init__(self,**params):
 
@@ -196,7 +195,6 @@ class Dude(Mover, Walker, Updater):
 
     def update(self):
 
-        log('Dude is %s' % self.dump_json())
         if not self.dir.is_zero():
             Walker.update(self)
         elif self.act == 'use':
@@ -278,7 +276,8 @@ class Dude(Mover, Walker, Updater):
             killer.on_kill(self)
         Entity.die(self)
 
-
+@RegisterPersisted
+class Player(Dude): pass
 
 @RegisterPersisted
 class Roamer(Walker):
@@ -339,7 +338,7 @@ class Seeker:
 
     def get_dir_for_target(self, other):
         away = other.pos - self.pos
-        choices = [ZERO_VECTOR]
+        choices = []
         
         correct_bonus = 10 
         if away.x > 0:
@@ -413,7 +412,7 @@ class Sheep(Seeker, Dude, Roamer, Carryable, Flammable):
 
         def acceptor(ent):
             return isinstance(ent, Wolf) or\
-                    isinstance(ent, Dude)
+                    isinstance(ent, Player)
 
         wolf = engine.metagrid.find_nearest(self.pos.x, 
                                   self.pos.y,
@@ -778,9 +777,8 @@ class FirePuff(Entity, Mover, Carryable):
 
 @RegisterPersisted
 class WaterDrop(Entity, Mover,Carryable):
-
     def __init__(self, **kwargs):
-        kwargs['tex'] = 'carried/water.bmp'
+        kwargs['tex'] = 'carried/water.png'
         kwargs['layer'] = LAYER_BLOCKS
         kwargs['height'] = ENTITY_SIZE.y
         Entity.__init__(self,**kwargs)
