@@ -329,7 +329,7 @@ class MetaGrid:
         cx = x
         cy = y
 
-        for r in range(max_dist):
+        for r in range(max_dist*2+1):
             for dx in range(2*r+1):
                 cx = x - max_dist + dx
                 for cy in [y-max_dist, y+max_dist]:
@@ -340,11 +340,46 @@ class MetaGrid:
 
             for dy in range(2*r+1):
                 cy = y - max_dist + dy
-                for cx in [x-max_dist, y+max_dist]:
+                for cx in [x-max_dist, x+max_dist]:
                     dudes = self.get_entities(cx,cy)
                     if layer in dudes:
                         if selector(dudes[layer]):
                             return dudes[layer]
+
+    def visit_circle(self, cx,cy, radius, visitor):
+        f = 1 - radius
+        ddF_x = 1
+        ddF_y = -2*radius
+        x = 0
+        y = radius
+
+        visitor(cx,cy+radius)
+        visitor(cx,cy-radius)
+        visitor(cx+radius, cy)
+        visitor(cx-radius, cy)
+
+
+        while x < y:
+            if f >= 0:
+                y-=1
+                ddF_y += 2
+                f += ddF_y
+
+            x += 1
+            ddF_x += 2
+            f += ddF_x
+
+            visitor(cx+x, cy+y)
+            visitor(cx-x, cy+y)
+            visitor(cx+x, cy-y)
+            visitor(cx-x, cy-y)
+            visitor(cx+y, cy+x)
+            visitor(cx-y, cy+x)
+            visitor(cx+y, cy-x)
+            visitor(cx-y, cy-x)
+
+
+        
            
 
 class Engine:
@@ -362,6 +397,7 @@ class Engine:
 
     def save_world(self, save_terrain=False):
 
+        return
         log('saving world..')
             
         for cell in self.metagrid.cells:
@@ -635,6 +671,9 @@ class Entity(Persisted):
         self.tex = params.get('tex') or 'none.png'
         self.dead = False
         self.pos = params.get('pos') or None 
+        if self.pos:
+            self.pos.x = self.pos.x % (GRID_SIZE*METAGRID_SIZE)
+            self.pos.y = self.pos.y % (GRID_SIZE*METAGRID_SIZE)
         self.size = params.get('size') or ENTITY_SIZE 
         self.dir =  params.get('dir') or RIGHT 
         self.angle = params.get('angle') or 0 
@@ -705,7 +744,6 @@ class Entity(Persisted):
             if hasattr(val,'to_json'):
                 val = val.to_json()
             out_delta[varname] = val
-
         self.delta = {}
         return out_delta
                 

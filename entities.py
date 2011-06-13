@@ -28,6 +28,10 @@ class Air:
             other.die()
             WoodPile(pos=other.pos)
 
+class Flammable:
+    pass
+
+
 ACT_PLACE = 1
 class Mover(Entity):
 
@@ -54,9 +58,6 @@ class Mover(Entity):
                     if self.can_push(other) and other.try_move(push_dir):
                         other.take_push(self, other_target)
                         self.push(other)
-                    elif self.can_smash(other):
-                        other.take_smash(self)
-                        self.smash(other)
                     else:
                         blocked = True
                         
@@ -82,24 +83,26 @@ class Mover(Entity):
         pass
 
     def smash(self, victim):
-        self.pos = victim.pos
+        self.move(victim.pos)
+        
 
 
             
     def take_push(self, pusher, target):
         self.move(target)
+
     def take_smash(self,  smasher):
-        self.die()
+        self.die(smasher)
 
 class Carryable:
 
     def smash(self, victim):
         self.carried_by = None
         self.height = ENTITY_SIZE.x*0.5
+        engine.metagrid.remove_entity(self, moving=True)
         self.layer = LAYER_BLOCKS
-        Mover.smash(self, victim)
-        engine.metagrid.add_entity(self, moving=True)    
-
+        self.pos = victim.pos
+        engine.metagrid.add_entity(self, moving=True)
 
 
 class Plantable:
@@ -108,10 +111,11 @@ class Plantable:
 class Craftable:
     pass
 
-class Fruit(Carryable, Plantable, Mover):
+class Fruit(Carryable, Plantable, Flammable, Mover):
 
-    def __init__(self, pos):
-        Entity.__init__(self, pos, ENTITY_SIZE, LAYER_BLOCKS)
+    def __init__(self, **kwargs):
+        kwargs['layer'] = LAYER_BLOCKS
+        Entity.__init__(self, **kwargs)
         self.type = random.choice(['lemon',
                                   'cherry'])
         self.tex = "carried\\%s.png" % self.type
@@ -145,7 +149,7 @@ class Walker:
                         or self.dir == self.last_dir:
                 if self.try_move(self.dir):
                     if self.carrying:
-                        self.carrying.pos = self.pos
+                        self.carrying.move(self.pos)
             self.last_dir = self.dir
         
 @RegisterPersisted
@@ -176,24 +180,23 @@ class Dude(Mover, Walker, Updater):
         self.net_vars['anim'] = True
 
     def push(self, pushee):
-        pass
+        Mover.push(self, pushee)
  
-    def get_delta(self):
-        delta = Entity.get_delta(self)
-        return delta 
-
     def can_travel(self, terrain_type):
         return True 
 
-
     def can_push(self,other):
-        can =  isinstance(other, WoodPile)
-        can = can or isinstance(other, Flag)
+        can =  isinstance(other, WoodPile) or\
+                isinstance(other, FirePuff) or\
+                isinstance(other, Sheep) or\
+                isinstance(other, Fruit)
 
         return can
 
 
     def update(self):
+
+        log('Dude is %s' % self.dump_json())
         if not self.dir.is_zero():
             Walker.update(self)
         elif self.act == 'use':
@@ -202,31 +205,40 @@ class Dude(Mover, Walker, Updater):
         else:
             self.state = 'standing'
         self.update_texture()
-         
 
-
+        
+             
     def use(self):
-
         target_pos = self.pos + self.last_dir
         dudes = engine.get_entities(target_pos.x,target_pos.y)
         move = False
         
         if self.carrying:  
             smasher = self.carrying
-            
             for layer in [LAYER_BLOCKS, 
                           LAYER_GROUND_DETAIL,
                           LAYER_GROUND]:
                 if layer in dudes: 
                     if smasher.can_smash(dudes[layer]):
                         log('%s can smash %s' % (smasher, dudes[layer]))
-                        smasher.smash(dudes[layer])
                         self.carrying = None
+                        smasher.smash(dudes[layer])
                     break
             return
         #not carrying anything  
         #check for an item to act on
         neighbors = engine.metagrid.get_neighbors(self.pos)
+
+
+        #see if you're looking at a water square
+        if self.last_dir in neighbors:
+            dudes = neighbors[self.last_dir]
+            if not LAYER_BLOCKS in dudes and\
+                dudes[LAYER_GROUND].terrain_type == 'water':
+
+                WaterDrop(pos=self.pos+self.last_dir)
+                return 
+
         if self.last_dir in neighbors:
             dudes = neighbors[self.last_dir]
             for layer in [LAYER_BLOCKS,
@@ -260,9 +272,10 @@ class Dude(Mover, Walker, Updater):
 
 
     def die(self, killer):
-        if serf.on_die:
+        if self.on_die:
             self.on_die()
-        killer.on_kill(self)
+        if killer and hasattr(killer, 'on_kill'):
+            killer.on_kill(self)
         Entity.die(self)
 
 
@@ -328,15 +341,15 @@ class Seeker:
         away = other.pos - self.pos
         choices = [ZERO_VECTOR]
         
-        correct_bonus = 5
+        correct_bonus = 10 
         if away.x > 0:
             for x in range (correct_bonus):
-                choices.append(LEFT)
+                choices.append(RIGHT)
             choices.append(UP)
             choices.append(DOWN)
         if away.x < 0:
             for x in range(correct_bonus):
-                choices.append(RIGHT)
+                choices.append(LEFT)
             choices.append(UP)
             choices.append(DOWN)
 
@@ -357,7 +370,7 @@ class Seeker:
 
 
 @RegisterPersisted
-class Sheep(Seeker, Dude, Roamer, Carryable):
+class Sheep(Seeker, Dude, Roamer, Carryable, Flammable):
 
     def __init__(self, **params):
         Dude.__init__(self,**params)
@@ -372,14 +385,23 @@ class Sheep(Seeker, Dude, Roamer, Carryable):
 
     def can_smash(self, other):
         can = isinstance(other, Terrain)
+        can = can or isinstance(other, FirePuff)
         return can
+
 
     def can_travel(self, ttype):
         return not ttype in [ 'water' ]
 
     def smash(self, other):
-        if isinstance(other, Terrain):
-            Carryable.smash(self,other)
+        if isinstance(other, FirePuff):
+            other.die(self)
+            self.die(self)
+            FireRing(pos=other.pos)
+        else:
+            Carryable.smash(self, other) 
+
+
+
 
     def can_push(self, other):
         return False
@@ -390,7 +412,31 @@ class Sheep(Seeker, Dude, Roamer, Carryable):
             return 
 
         def acceptor(ent):
-            return isinstance(ent, Wolf)
+            return isinstance(ent, Wolf) or\
+                    isinstance(ent, Dude)
+
+        wolf = engine.metagrid.find_nearest(self.pos.x, 
+                                  self.pos.y,
+                                   LAYER_BLOCKS,
+                                   4,
+                                   acceptor)
+        if not wolf:
+            Roamer.update(self)
+        else:
+            towards = self.get_dir_for_target(wolf)
+            if not towards == ZERO_VECTOR:
+                away = DIR_OPPOSITES[towards]
+                self.last_dir = away 
+                self.dir = away
+                Walker.update(self)
+
+    def use(self):
+        #sheep eat plants
+        if self.target:
+            self.target.die()
+            self.target.parent.harvest()
+            self.target = None
+ 
 
         wolf = engine.metagrid.find_nearest(self.pos.x, 
                                   self.pos.y,
@@ -512,7 +558,7 @@ class Terrain(Entity):
             if dist == 0:
                 dist = 1
 
-            prob = 1/dist
+            prob = distance/(dist*dist)
             if random.random() < prob:
                 if not LAYER_BLOCKS in\
                     engine.get_entities(self.pos.x, self.pos.y):
@@ -669,14 +715,94 @@ class Tree(Mover):
     def __init__(self, **kwargs):
         kwargs['tex'] = 'full_tree.png'
         kwargs['layer'] = LAYER_BLOCKS
-        kwargs['height'] = ENTITY_SIZE.y
+        kwargs['height'] = ENTITY_SIZE.y*2
         Entity.__init__(self, **kwargs)
 
     def die(self):
         Entity.die(self)
 
+
 @RegisterPersisted
-class WoodPile(Mover, Carryable):
+class FireRing(Entity, Updater):
+
+    def __init__(self, **kwargs):
+        kwargs['total_distance'] = kwargs.get('total_distance') or   5
+        kwargs['current_distance'] = kwargs.get('current_distance') or  5 
+        kwargs['layer'] = kwargs.get('layer') or  LAYER_BLOCKS
+        Entity.__init__(self,**kwargs)
+
+    def update(self):
+        self.current_distance -= 1
+        if self.current_distance == 4:
+
+            #log ('Fire ring updating radius %d' % self.current_distance)
+            def circle_visitor(x,y):
+                ents = engine.metagrid.get_entities(x,y)
+                if  LAYER_BLOCKS in ents:
+                    dude = ents[LAYER_BLOCKS]
+                    if not isinstance(ents, Flammable):
+                        return
+                    else:
+                        ents[LAYER_BLOCKS].die()
+                log('Fire ring at %d,%d'% (x,y))
+                log('Distance: %0.3f' % ( ((x-self.pos.x)**2 + (y -self.pos.y)**2)**0.5))
+                FirePuff(pos=vector2(x,y))
+            engine.metagrid.visit_circle(self.pos.x, self.pos.y, self.current_distance, circle_visitor)
+        else:
+            #log('FireRing died')
+            self.die()
+
+        
+            
+@RegisterPersisted
+class FirePuff(Entity, Mover, Carryable):
+
+    def __init__(self, **kwargs):
+        kwargs['tex'] = 'fire.png'
+        kwargs['layer'] = LAYER_BLOCKS
+        kwargs['height'] = ENTITY_SIZE.y
+        Entity.__init__(self,**kwargs)
+
+    def can_smash(self, other):
+        return isinstance(other, Flammable) or\
+               isinstance(other, Terrain)
+
+
+    def smash(self, other):
+        if isinstance(other, Flammable):
+            other.die(self)
+            self.die(self)
+            FireRing(pos=other.pos)
+        else:
+            Carryable.smash(self,other)
+
+@RegisterPersisted
+class WaterDrop(Entity, Mover,Carryable):
+
+    def __init__(self, **kwargs):
+        kwargs['tex'] = 'carried/water.bmp'
+        kwargs['layer'] = LAYER_BLOCKS
+        kwargs['height'] = ENTITY_SIZE.y
+        Entity.__init__(self,**kwargs)
+        self.tex  = 'carried/water.png'
+
+    def can_smash(self, other):
+        return isinstance(other, FirePuff) or\
+               isinstance(other, Terrain)
+
+ 
+
+    def smash(self, other):
+        if isinstance(other, FirePuff):
+            other.die(self)
+            self.die(self)
+        else:
+            Carryable.smash(self,other)
+
+
+
+@RegisterPersisted
+class WoodPile(Mover, Carryable, Flammable):
     
     def __init__(self, **kwargs):
         kwargs['tex'] = kwargs.get('tex') or 'carried/wood_pile.png'
@@ -701,14 +827,14 @@ class WoodPile(Mover, Carryable):
             Fence(pos=other.pos) 
 
 @RegisterPersisted
-class Fence(Mover, Entity):
+class Fence(Mover, Entity, Flammable):
 
     def __init__(self, **kwargs):
         kwargs['layer'] = kwargs.get('layer') or LAYER_BLOCKS
-        Entity.__init__(self)
+        Entity.__init__(self,**kwargs)
         self.neighbor_fences = {}
 
-        neighbors = engine.metagrid.grid.get_neighbors(pos)
+        neighbors = engine.metagrid.get_neighbors(self.pos)
 
         for dir in ORDINALS:
             self.neighbor_fences[dir] = 'no'

@@ -41,8 +41,8 @@ class Game:
 
         #add some water 
         log ('building world: adding water')
-        num_cells = METAGRID_SIZE*METAGRID_SIZE
-        num_water_cells = int(num_cells*0.2)
+        num_cells = (METAGRID_SIZE*GRID_SIZE)**2
+        num_water_cells = int(num_cells*0.2/float(METAGRID_SIZE**2))
         for c in range(num_water_cells):
             x = random.choice(range(GRID_SIZE*METAGRID_SIZE))
             y = random.choice(range(GRID_SIZE*METAGRID_SIZE))
@@ -51,19 +51,21 @@ class Game:
 
 
         #now add some trees and fruit
-        log('building world: adding resources')
-        num_tree_cells = int(num_cells*0.4)
-        for c in range(num_tree_cells):
+        num_bomb_cells = num_cells/(GRID_SIZE*GRID_SIZE)
+        log('building world: adding %d bombs' % num_bomb_cells)
+        for c in range(num_bomb_cells):
             x = random.choice(range(GRID_SIZE*METAGRID_SIZE))
             y = random.choice(range(GRID_SIZE*METAGRID_SIZE))
         
             choices =  { Sheep: GRID_SIZE*0.5,
-                         Wolf : GRID_SIZE*0.1}
+                         FirePuff : GRID_SIZE*2,
+                         Fruit : GRID_SIZE*0.25,
+                         Tree : GRID_SIZE*1.5}
+
             choice = random.choice(choices.keys())
-            engine.get_entities(x,y)[LAYER_GROUND].start_forest(choice,
-                                                                choices[choice])
 
-
-           
+            dudes = engine.metagrid.get_entities(x,y)
+            if LAYER_GROUND in dudes:
+                dudes[LAYER_GROUND].start_forest(choice, choices[choice])
 
     
