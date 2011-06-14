@@ -42,7 +42,7 @@ class Game:
         #add some water 
         log ('building world: adding water')
         num_cells = (METAGRID_SIZE*GRID_SIZE)**2
-        num_water_cells = int(num_cells*0.01/float(METAGRID_SIZE**2))
+        num_water_cells = int(num_cells*0.05/float(METAGRID_SIZE**2))
         for c in range(num_water_cells):
             x = random.choice(range(GRID_SIZE*METAGRID_SIZE))
             y = random.choice(range(GRID_SIZE*METAGRID_SIZE))
