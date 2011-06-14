@@ -111,6 +111,10 @@ class Plantable:
 class Craftable:
     pass
 
+class DamageTaker:
+    def take_damage(self, other):
+        pass
+
 class Fruit(Carryable, Plantable, Flammable, Mover):
 
     def __init__(self, **kwargs):
@@ -153,13 +157,14 @@ class Walker:
             self.last_dir = self.dir
         
 @RegisterPersisted
-class Dude(Mover, Walker, Updater):
+class Dude(Mover, Walker, Updater, DamageTaker):
 
     def __init__(self,**params):
 
         pos = params.get('pos') or engine.metagrid.get_free_position(LAYER_BLOCKS)
         params['pos'] = pos
         params['layer'] = params.get('layer') or LAYER_BLOCKS
+        params['hit_points'] = params.get('hit_points') or 1
         Entity.__init__(self, **params)
 
         self.height = ENTITY_SIZE.x*0.5;
@@ -178,6 +183,8 @@ class Dude(Mover, Walker, Updater):
         self.carrying = None
         self.net_vars['anim'] = True
 
+        self.__dict__['net_vars']['hit_points'] = self.hit_points
+
     def push(self, pushee):
         Mover.push(self, pushee)
  
@@ -192,6 +199,9 @@ class Dude(Mover, Walker, Updater):
 
         return can
 
+    def consume(self,other):
+        if isinstance(other, DrumStick):
+            self.hit_points += 1
 
     def update(self):
 
@@ -204,6 +214,11 @@ class Dude(Mover, Walker, Updater):
             self.state = 'standing'
         self.update_texture()
 
+
+    def take_damage(self, other):
+        self.hit_points -= 1
+        if self.hit_points == 0:
+            self.die(other)
         
              
     def use(self):
@@ -246,6 +261,9 @@ class Dude(Mover, Walker, Updater):
                     other_guy = dudes[layer]
                     if isinstance(other_guy, Carryable):
                         self.carry_item(other_guy)
+                    elif isinstance(other_guy, Consumable):
+                        self.consume(other_guy)
+                        other_guy.die(self)
                     else: 
                         Air(self.pos).smash(other_guy)
                     #once we've encounterd an object, we're done
@@ -277,7 +295,10 @@ class Dude(Mover, Walker, Updater):
         Entity.die(self)
 
 @RegisterPersisted
-class Player(Dude): pass
+class Player(Dude): 
+    def __init__(self, **params):
+        params['hit_points'] = params.get('hit_points') or  3
+        Dude.__init__(self,** params)
 
 @RegisterPersisted
 class Roamer(Walker):
@@ -369,7 +390,7 @@ class Seeker:
 
 
 @RegisterPersisted
-class Sheep(Seeker, Dude, Roamer, Carryable, Flammable):
+class Sheep(Seeker, Dude, Roamer, Carryable):
 
     def __init__(self, **params):
         params['scale'] = params.get('scale') or 0.5+ random.random()*0.5 
@@ -396,7 +417,7 @@ class Sheep(Seeker, Dude, Roamer, Carryable, Flammable):
         if isinstance(other, FirePuff):
             other.die(self)
             self.die(self)
-            FireRing(pos=other.pos)
+            DrumStick(pos=other.pos)
         else:
             Carryable.smash(self, other) 
 
@@ -578,7 +599,7 @@ class Terrain(Entity):
             if dist == 0:
                 dist = 1
 
-            prob = distance/(dist*dist)
+            prob = 1/float(distance)
             if random.random() < prob:
                 if not LAYER_BLOCKS in\
                     engine.get_entities(neighbor.pos.x, neighbor.pos.y):
@@ -772,8 +793,28 @@ class FireRing(Entity, Updater):
             #log('FireRing died')
             self.die()
 
-        
-            
+
+@RegisterPersisted
+class Consumable: pass
+
+@RegisterPersisted
+class Coal(Entity, Mover, Flammable):
+
+    def __init__(self,**kwargs):
+        kwargs['tex'] = kwargs.get('tex') or 'coal.png'
+        kwargs['height'] = kwargs.get('height') or ENTITY_SIZE.y
+        kwargs['layer'] = kwargs.get('layer') or LAYER_BLOCKS
+        Entity.__init__(self,**kwargs)
+
+@RegisterPersisted
+class DrumStick(Entity, Consumable, Mover):
+
+    def __init__(self,**kwargs):
+        kwargs['layer'] = kwargs.get('layer') or LAYER_BLOCKS
+        kwargs['tex'] = kwargs.get('tex') or 'drumstick.png'
+        kwargs['height'] = ENTITY_SIZE.y
+        Entity.__init__(self,**kwargs)
+
 @RegisterPersisted
 class FirePuff(Entity, Mover, Carryable):
 
@@ -785,14 +826,23 @@ class FirePuff(Entity, Mover, Carryable):
 
     def can_smash(self, other):
         return isinstance(other, Flammable) or\
-               isinstance(other, Terrain)
+               isinstance(other, Sheep) or\
+               isinstance(other, Terrain) or\
+               isinstance(other, DamageTaker)
 
 
     def smash(self, other):
-        if isinstance(other, Flammable):
+        if isinstance(other, Sheep):
+            other.die(self)
+            self.die(self)
+            DrumStick(pos=other.pos)
+        elif isinstance(other, Flammable):
             other.die(self)
             self.die(self)
             FireRing(pos=other.pos)
+        elif isinstance(other, DamageTaker):
+            other.take_damage(self)
+            self.die(self)
         else:
             Carryable.smash(self,other)
 

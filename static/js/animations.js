@@ -92,15 +92,22 @@ var animations = {
         var s_y = ent.size[1];
         var angle = ent.angle;
         var img = new Image();
+        var heart = new Image()
 
         if (walking){
             ent.frame =  (ent.frame+1) % 3;
         }
 
         img.src = image_base + ent.tex+"/"+ent.frame+".png";
+        heart.src = image_base + '/heart.png'
         
         var ctx = contexts[ent.layer]
         render_image(ctx,x,y,h,angle,img,s_x,s_y,base_scale*ent.scale);
+
+        for (var i = 0;i < ent.hit_points ; ++i){
+            render_image(ctx,x+16*i - ent.hit_points*8,y-24,h,angle,heart,s_x,s_y,
+                        0.5)
+        }
     } 
 
 

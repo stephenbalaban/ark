@@ -53,20 +53,30 @@ class Game:
         #now add some trees and fruit
         num_bomb_cells =  num_cells*2/(GRID_SIZE*GRID_SIZE)
         log('building world: adding %d bombs' % num_bomb_cells)
-        for c in range(num_bomb_cells):
+        choices =  { 
+                         Sheep: GRID_SIZE*0.4,
+                         FirePuff : GRID_SIZE*0.3,
+                         Coal : GRID_SIZE*0.7,
+                         Tree : GRID_SIZE*0.75,
+                         }
+
+ 
+        for choice in [Sheep, Sheep, Tree, Tree, Coal, Coal, FirePuff]:
+            
             x = random.choice(range(GRID_SIZE*METAGRID_SIZE))
             y = random.choice(range(GRID_SIZE*METAGRID_SIZE))
         
-            choices =  { Sheep: GRID_SIZE*0.25,
-                         Wolf : GRID_SIZE*0.05,
-                         FirePuff : GRID_SIZE*0.1,
-                         Fruit : GRID_SIZE*0.125,
-                         Tree : GRID_SIZE*0.75}
 
-            choice = random.choice(choices.keys())
+            def get_dudes():
+                x = random.choice(range(GRID_SIZE*METAGRID_SIZE))
+                y = random.choice(range(GRID_SIZE*METAGRID_SIZE))
+                return engine.metagrid.get_entities(x,y)
 
-            dudes = engine.metagrid.get_entities(x,y)
-            if LAYER_GROUND in dudes:
-                dudes[LAYER_GROUND].start_forest(choice, choices[choice])
+            dudes = get_dudes() 
+            while dudes[LAYER_GROUND].terrain_type == 'water':
+                dudes = get_dudes()
+
+            log ('got a dude')
+            dudes[LAYER_GROUND].start_forest(choice, choices[choice])
 
     
