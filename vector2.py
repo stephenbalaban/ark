@@ -112,3 +112,18 @@ def get_unit_vector(angle):
     angle = angle*math.pi/180
     return vector2(sin(angle), cos(angle))
         
+UP = vector2(0,-1)
+DOWN = vector2(0,1)
+LEFT = vector2(-1,0)
+RIGHT = vector2(1,0)
+
+DIR_NAMES = {UP: 'up', DOWN : 'down', LEFT : 'left', RIGHT : 'right'}
+DIR_OPPOSITES = {UP : DOWN, DOWN: UP, LEFT : RIGHT, RIGHT : LEFT}
+ORDINALS = [UP, DOWN, LEFT, RIGHT]
+UP_LEFT= UP+LEFT
+UP_RIGHT= UP+RIGHT
+DOWN_LEFT = DOWN+LEFT
+DOWN_RIGHT = DOWN+RIGHT
+DIAGONALS = [UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT]
+ALL_DIRS = DIAGONALS + ORDINALS
+

@@ -1,6 +1,8 @@
 from random import *
 from vector2 import *
 from engine import *
+from entity import *
+from metagrid import *
 
 
 from scribit import log, timed, logged
