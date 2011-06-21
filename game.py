@@ -55,13 +55,18 @@ class Game:
         log('building world: adding %d bombs' % num_bomb_cells)
         choices =  { 
                          Sheep: GRID_SIZE*0.4,
-                         FirePuff : GRID_SIZE*0.3,
+                         FirePuff : GRID_SIZE*0.4,
                          Coal : GRID_SIZE*0.7,
                          Tree : GRID_SIZE*0.75,
+                         Wolf : GRID_SIZE*0.3,
+                         Stone: GRID_SIZE*0.3,
                          }
 
  
-        for choice in [Sheep, Sheep, Tree, Tree, Coal, Coal, FirePuff]:
+        for choice in [Tree] * 4 + \
+                      [Coal] * 2 + \
+                      [Stone] * 3 + \
+                      [Sheep] * 2:
             
             x = random.choice(range(GRID_SIZE*METAGRID_SIZE))
             y = random.choice(range(GRID_SIZE*METAGRID_SIZE))

@@ -77,7 +77,9 @@ class Entity(Persisted):
                  'id' : -1,
                  'lerp_targets' : {},
                  'lerp_frames' : {},
-                 'frame' : 0
+                 'frame' : 0,
+                 'frames' : 0,
+                 'anim' : True,
                 }           
 
 
@@ -100,6 +102,8 @@ class Entity(Persisted):
         self.lerp_targets = {}
         self.lerp_frames = {}
         self.frame = params.get('frame') or 0 
+        self.frames = params.get('frames') or 0
+        self.anim = None
         
         special_keys = ['__class__']
         for param in params:

@@ -34,6 +34,9 @@ class GridCell:
                     other = self.entities.pop(ent.layer)
                     return True
             log ('%s was not in %s' % (ent, self.entities))
+            from entity import NoSuchEntity
+            import pdb
+            pdb.set_trace()
             raise NoSuchEntity('No such entity %s at' % (ent))
 
 class GameGrid:
@@ -167,7 +170,6 @@ class MetaGrid:
 
         closest = []
         def circle_visitor(x,y):
-            log ('visiting %d, %d' % (x,y))
             dudes = self.get_entities(x,y)
             if layer in dudes:
                 if selector(dudes[layer]):

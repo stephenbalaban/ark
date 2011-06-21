@@ -113,7 +113,7 @@ function draw() {
     
     if (draw_frame_number % 10 == 0){
 
-        $("#debug").html(total_bytes/(1024/4)+' kbps')
+        $("#debug_bandwidth").html(total_bytes/(1024/4)+' kbps')
         total_bytes = 0;
     }
     
@@ -294,7 +294,10 @@ function on_keydown(e) {
 
     }else if (e.which == '32'){
         msg['act'] = 'use';
+    }else if (e.which == '88'){
+        msg['act'] = 'shoot';
     }
+
 
     if (socket)
         socket.send(JSON.stringify(msg));
@@ -353,6 +356,7 @@ function start() {
     $("#input_box_area").append('<input type="button" id="input_button" value="connect"/>');
 
     $("#input_button").click(function (clickEvent) {
+            new_gamestate = {'ents' : {}, 'ticks' : 0, 'draw_frame' : 0};
             connect();
             return false;
         });

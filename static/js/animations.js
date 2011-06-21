@@ -66,13 +66,17 @@ var animations = {
         var s_y = ent.size[1];
         var angle = ent.angle;
         var img = new Image();
+        img.onmouseover = function (){
+            $("#debug_ent").html(ent.tex);
+
+        }
+        
+
         img.src = image_base + ent.tex;
         render_image(contexts[ent.layer],x,y,h,angle,img,s_x,s_y,base_scale*ent.scale);
     },
 
-    'dude' : function(contexts, ent) {
-
-    
+    'simple' : function(contexts, ent) {
     
         pos = get_entity_pos(ent);
         var x = pos[0];
@@ -80,8 +84,36 @@ var animations = {
         var h = pos[2];
         var cx = pos[3];
         var cy = pos[4];
+                
+        var s_x = ent.size[0]; 
+        var s_y = ent.size[1];
+        var angle = ent.angle;
+        var img = new Image();
+        var heart = new Image()
+
+        ent.frame =  (ent.frame+1) % ent.frames;
+
+        img.src = image_base + ent.tex+"/"+ent.frame+".png";
+
+        img.onmouseover = function (){
+            $("#debug_ent").html(ent.tex);
+
+        }
+        
+        var ctx = contexts[ent.layer]
+        render_image(ctx,x,y,h,angle,img,s_x,s_y,base_scale*ent.scale);
+
+    }, 
 
 
+    'dude' : function(contexts, ent) {
+    
+        pos = get_entity_pos(ent);
+        var x = pos[0];
+        var y = pos[1]
+        var h = pos[2];
+        var cx = pos[3];
+        var cy = pos[4];
 
         var walking = false;
         if (ent.lerp_frames.pos && ent.lerp_frames.pos >0 )
@@ -95,7 +127,7 @@ var animations = {
         var heart = new Image()
 
         if (walking){
-            ent.frame =  (ent.frame+1) % 3;
+            ent.frame =  (ent.frame+1) % ent.frames;
         }
 
         img.src = image_base + ent.tex+"/"+ent.frame+".png";
